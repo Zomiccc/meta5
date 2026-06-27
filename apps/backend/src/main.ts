@@ -19,15 +19,26 @@ async function bootstrap() {
       message: { message: 'Too many requests, please try again later.' },
     }),
   );
+  const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      if (!origin) return callback(null, true);
+      const allowed = [
+        frontendUrl,
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        /^https:\/\/.*\.vercel\.app$/,
+      ];
+      const isAllowed = allowed.some((a) => {
+        if (typeof a === 'string') return origin === a;
+        return a.test(origin);
+      });
+      if (isAllowed) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
   app.useGlobalPipes(
