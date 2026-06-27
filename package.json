@@ -1,8 +1,8 @@
 {
-  "name": "forex-broker-platform",
+  "name": "fxons-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "Full-stack Forex Broker Platform for Pakistani market",
+  "description": "FXONS — Global Multi-Asset Broker Platform",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -11,7 +11,8 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm run start:dev --workspace=apps/backend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
-    "build": "npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend",
+    "build": "npm run db:generate && npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend",
+    "postinstall": "npm run db:generate",
     "db:migrate": "npm run db:migrate --workspace=packages/database",
     "db:generate": "npm run db:generate --workspace=packages/database",
     "db:seed": "npm run db:seed --workspace=packages/database",
