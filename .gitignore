@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+apps/backend/dist/
+apps/frontend/.next/
+apps/frontend/out/
+packages/database/dist/
+packages/database/node_modules/.prisma/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Prisma
+packages/database/prisma/migrations/
+
+# Misc
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Google credentials
+apps/backend/google-credentials.json

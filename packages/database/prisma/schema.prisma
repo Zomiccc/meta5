@@ -1,0 +1,208 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  name          String
+  email         String     @unique
+  password      String
+  phone         String?
+  role          Role       @default(client)
+  status        UserStatus @default(active)
+  referralCode  String?    @unique
+  referredBy    String?
+  referrer      User?      @relation("Referrals", fields: [referredBy], references: [id])
+  referrals     User[]     @relation("Referrals")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  kyc           KYC?
+  mt5Account    MT5Account?
+  deposits      Deposit[]
+  withdrawals   Withdrawal[]
+  notifications Notification[]
+  affiliate     Affiliate?
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@index([referralCode])
+  @@index([referredBy])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model KYC {
+  id              String     @id @default(uuid())
+  userId          String     @unique
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cnicFrontUrl    String?
+  cnicBackUrl     String?
+  selfieUrl       String?
+  status          KYCStatus  @default(pending)
+  aiResponse      Json?
+  rejectionReason String?
+  adminOverride   Boolean    @default(false)
+  adminNote       String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model MT5Account {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mt5Login     String   @unique
+  mt5Password  String
+  server       String
+  balance      Decimal  @default(0) @db.Decimal(18, 2)
+  equity       Decimal  @default(0) @db.Decimal(18, 2)
+  margin       Decimal  @default(0) @db.Decimal(18, 2)
+  currency     String   @default("USD")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([mt5Login])
+}
+
+model Deposit {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Decimal       @db.Decimal(18, 2)
+  currency       String        @default("USD")
+  cryptoCurrency String        @default("USDT")
+  cryptoAddress  String?
+  txHash         String?
+  nowPaymentsId  String?
+  status         DepositStatus @default(pending)
+  adminNote      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([nowPaymentsId])
+}
+
+model Withdrawal {
+  id              String           @id @default(uuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal          @db.Decimal(18, 2)
+  walletAddress   String
+  currency        String           @default("USD")
+  cryptoCurrency  String           @default("USDT")
+  status          WithdrawalStatus @default(pending)
+  rejectionReason String?
+  adminNote       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Affiliate {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referralCode   String   @unique
+  totalReferred  Int      @default(0)
+  totalCommission Decimal @default(0) @db.Decimal(18, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@index([referralCode])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([read])
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+}
+
+model OpenTrade {
+  id           String   @id @default(uuid())
+  userId       String
+  mt5Login     String
+  symbol       String
+  type         String
+  volume       Decimal  @db.Decimal(18, 4)
+  openPrice    Decimal  @db.Decimal(18, 5)
+  currentPrice Decimal  @db.Decimal(18, 5)
+  profit       Decimal  @db.Decimal(18, 2)
+  openTime     DateTime
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([mt5Login])
+}
+
+enum Role {
+  client
+  admin
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+enum KYCStatus {
+  pending
+  approved
+  rejected
+}
+
+enum DepositStatus {
+  pending
+  approved
+  rejected
+}
+
+enum WithdrawalStatus {
+  pending
+  approved
+  rejected
+}

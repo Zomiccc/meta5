@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-950: #050d1a;
+  --navy-900: #0a1628;
+  --navy-800: #0f1e32;
+  --navy-700: #162a44;
+  --navy-600: #1e3a5f;
+  --gold: #f0a500;
+  --gold-dark: #d18b00;
+  --gold-light: #ffc333;
+}
+
+html,
+body {
+  color: #ffffff;
+  background: #0a1628;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1e32;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4a6f;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-navy-700 bg-navy-800/80 p-6 backdrop-blur-sm;
+  }
+  .btn-gold {
+    @apply rounded-lg bg-gold px-6 py-2.5 font-semibold text-navy-900 transition-all hover:bg-gold-dark hover:shadow-lg hover:shadow-gold/20 active:scale-95;
+  }
+  .btn-outline {
+    @apply rounded-lg border border-navy-600 px-6 py-2.5 font-medium text-white transition-all hover:border-gold hover:text-gold active:scale-95;
+  }
+  .input-field {
+    @apply w-full rounded-lg border border-navy-600 bg-navy-900/50 px-4 py-2.5 text-white placeholder-white/30 outline-none transition-all focus:border-gold focus:ring-1 focus:ring-gold/30;
+  }
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
