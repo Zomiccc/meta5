@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
-import { RotateCcw, Check, X, Loader2 } from 'lucide-react';
+import { RotateCcw, Check, X, Loader2, Eye, AlertTriangle } from 'lucide-react';
 
 export default function AdminKycPage() {
   const [kycs, setKycs] = useState<any[]>([]);
@@ -53,6 +53,13 @@ export default function AdminKycPage() {
     pending: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     approved: 'bg-green-500/10 text-green-400 border-green-500/20',
     rejected: 'bg-red-500/10 text-red-400 border-red-500/20',
+  };
+
+  const getImageUrl = (url?: string) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3001';
+    return `${base}${url}`;
   };
 
   return (
@@ -127,14 +134,48 @@ export default function AdminKycPage() {
                 </div>
               )}
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                {['cnicFrontUrl', 'cnicBackUrl', 'selfieUrl'].map((key) => (
-                  <div key={key} className="rounded bg-navy-900 p-2">
-                    <p className="mb-1 text-xs text-white/60">{key.replace('Url', '').replace(/([A-Z])/g, ' $1').trim()}</p>
-                    <p className="truncate text-xs text-gold">{kyc[key] || 'Not uploaded'}</p>
-                  </div>
-                ))}
+              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+                {[
+                  { key: 'cnicFrontUrl', label: 'ID Front' },
+                  { key: 'cnicBackUrl', label: 'ID Back' },
+                  { key: 'selfieUrl', label: 'Selfie' },
+                ].map(({ key, label }) => {
+                  const imgUrl = getImageUrl(kyc[key]);
+                  return (
+                    <div key={key} className="rounded-lg border border-navy-700 bg-navy-900 p-2">
+                      <p className="mb-2 text-xs font-medium text-white/70">{label}</p>
+                      {imgUrl ? (
+                        <a href={imgUrl} target="_blank" rel="noreferrer" className="group block">
+                          <img
+                            src={imgUrl}
+                            alt={label}
+                            className="h-32 w-full rounded-md object-cover transition group-hover:opacity-80"
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                          />
+                          <span className="mt-1 flex items-center gap-1 text-xs text-gold">
+                            <Eye className="h-3 w-3" /> View full image
+                          </span>
+                        </a>
+                      ) : (
+                        <p className="text-xs text-white/40">Not uploaded</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+
+              {kyc.aiResponse?.flags?.length > 0 && (
+                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-3">
+                  <p className="mb-1 flex items-center gap-1 text-xs font-bold text-yellow-400">
+                    <AlertTriangle className="h-3 w-3" /> AI Review Flags
+                  </p>
+                  <ul className="list-inside list-disc text-xs text-yellow-300/90">
+                    {kyc.aiResponse.flags.map((flag: string, i: number) => (
+                      <li key={i}>{flag}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ))}
           {kycs.length === 0 && <p className="text-white/50">No KYC records found.</p>}

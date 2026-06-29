@@ -14,6 +14,9 @@ model User {
   email         String     @unique
   password      String
   phone         String?
+  country       String?
+  countryCode   String?
+  emailVerified Boolean    @default(false)
   role          Role       @default(client)
   status        UserStatus @default(active)
   referralCode  String?    @unique
@@ -114,6 +117,8 @@ model Withdrawal {
   currency        String           @default("USD")
   cryptoCurrency  String           @default("USDT")
   status          WithdrawalStatus @default(pending)
+  txHash          String?
+  processedAt     DateTime?
   rejectionReason String?
   adminNote       String?
   createdAt       DateTime         @default(now())
@@ -177,6 +182,17 @@ model OpenTrade {
 
   @@index([userId])
   @@index([mt5Login])
+}
+
+model EmailOtp {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  purpose   String   @default("verify_email")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
 }
 
 enum Role {

@@ -4,6 +4,7 @@ import { DepositService } from '../deposit/deposit.service';
 import { WithdrawalService } from '../withdrawal/withdrawal.service';
 import { EmailService } from '../email/email.service';
 import { Mt5Service } from '../mt5/mt5.service';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class AdminService {
@@ -13,7 +14,18 @@ export class AdminService {
     private readonly withdrawalService: WithdrawalService,
     private readonly emailService: EmailService,
     private readonly mt5Service: Mt5Service,
+    private readonly fileService: FileService,
   ) {}
+
+  private withKycUrls(kyc: any) {
+    if (!kyc) return kyc;
+    return {
+      ...kyc,
+      cnicFrontUrl: kyc.cnicFrontUrl ? this.fileService.getSignedUrl(kyc.cnicFrontUrl) : null,
+      cnicBackUrl: kyc.cnicBackUrl ? this.fileService.getSignedUrl(kyc.cnicBackUrl) : null,
+      selfieUrl: kyc.selfieUrl ? this.fileService.getSignedUrl(kyc.selfieUrl) : null,
+    };
+  }
 
   async getDashboardStats() {
     const [clients, deposits, withdrawals, pendingKyc, openTrades] = await Promise.all([
@@ -43,19 +55,21 @@ export class AdminService {
   }
 
   async getPendingKyc() {
-    return this.prisma.kYC.findMany({
+    const items = await this.prisma.kYC.findMany({
       where: { status: 'pending' },
       include: { user: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
     });
+    return items.map((k) => this.withKycUrls(k));
   }
 
   async getAllKyc(status?: string) {
-    return this.prisma.kYC.findMany({
+    const items = await this.prisma.kYC.findMany({
       where: status ? { status: status as any } : undefined,
       include: { user: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
     });
+    return items.map((k) => this.withKycUrls(k));
   }
 
   async resetKyc(id: string) {
@@ -70,7 +84,7 @@ export class AdminService {
       },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
-    return kyc;
+    return this.withKycUrls(kyc);
   }
 
   async getDeposits(status?: string) {
@@ -98,7 +112,7 @@ export class AdminService {
 
     const mt5 = await this.mt5Service.createAccount(kyc.userId);
     await this.emailService.sendKycApprovedEmail(kyc.user.email, kyc.user.name, mt5.login, mt5.password, mt5.server);
-    return kyc;
+    return this.withKycUrls(kyc);
   }
 
   async rejectKyc(id: string, reason: string) {
@@ -108,7 +122,7 @@ export class AdminService {
       include: { user: true },
     });
     await this.emailService.sendKycRejectedEmail(kyc.user.email, kyc.user.name, reason);
-    return kyc;
+    return this.withKycUrls(kyc);
   }
 
   async approveDeposit(id: string) {
@@ -123,16 +137,10 @@ export class AdminService {
   }
 
   async approveWithdrawal(id: string) {
-    const withdrawal = await this.withdrawalService.approveWithdrawal(id);
-    const user = await this.prisma.user.findUnique({ where: { id: withdrawal.userId } });
-    await this.emailService.sendWithdrawalApprovedEmail(user.email, user.name, Number(withdrawal.amount));
-    return withdrawal;
+    return this.withdrawalService.approveWithdrawal(id);
   }
 
   async rejectWithdrawal(id: string, reason: string) {
-    const withdrawal = await this.withdrawalService.rejectWithdrawal(id, reason);
-    const user = await this.prisma.user.findUnique({ where: { id: withdrawal.userId } });
-    await this.emailService.sendWithdrawalRejectedEmail(user.email, user.name, Number(withdrawal.amount), reason);
-    return withdrawal;
+    return this.withdrawalService.rejectWithdrawal(id, reason);
   }
 }

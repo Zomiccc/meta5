@@ -11,7 +11,7 @@ export class KycController {
 
   @Get()
   async getKyc(@CurrentUser() user: any) {
-    return this.kycService.findByUserId(user.userId);
+    return this.kycService.findByUserIdWithUrls(user.userId);
   }
 
   @Post('upload')

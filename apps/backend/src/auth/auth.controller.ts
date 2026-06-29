@@ -70,6 +70,20 @@ export class AuthController {
     return this.authService.verifyOtp(dto.email, dto.code);
   }
 
+  @Post('verify-email')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@CurrentUser() user: any, @Body() body: { code: string }) {
+    return this.authService.verifyEmail(user.userId, body.code);
+  }
+
+  @Post('resend-verification')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async resendVerification(@CurrentUser() user: any) {
+    return this.authService.resendVerification(user.userId);
+  }
+
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     const isProd = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', accessToken, {

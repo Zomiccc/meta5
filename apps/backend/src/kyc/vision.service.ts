@@ -1,14 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import vision, { ImageAnnotatorClient } from '@google-cloud/vision';
+import * as fs from 'fs';
 
 export interface KycAiResult {
   approved: boolean;
+  hardFail: boolean; // true = clearly invalid upload (blank/duplicate/corrupt) -> auto-reject
   name: string | null;
   cnicNumber: string | null;
   expiryDate: string | null;
   faceMatch: boolean;
   confidence: number;
+  flags: string[]; // advisory issues for the admin reviewer
   rejectionReason: string | null;
 }
 
@@ -19,8 +22,11 @@ export class VisionService {
 
   constructor(private readonly configService: ConfigService) {
     const keyFile = this.configService.get('GOOGLE_APPLICATION_CREDENTIALS');
-    if (keyFile && keyFile !== 'google-credentials.json') {
+    if (keyFile && fs.existsSync(keyFile)) {
       this.client = new vision.ImageAnnotatorClient({ keyFilename: keyFile });
+      this.logger.log('Google Vision client initialized from ' + keyFile);
+    } else {
+      this.logger.warn('Google Vision credentials file not found; falling back to local image checks');
     }
   }
 
@@ -86,13 +92,23 @@ export class VisionService {
         confidence = 0.7;
       }
 
+      const hardFail = !faceOnSelfie || adultContent;
+      const flags: string[] = [];
+      if (!faceOnCnic) flags.push('No face detected on ID document');
+      if (!faceOnSelfie) flags.push('No face detected in selfie');
+      if (!cnicNumber) flags.push('ID number not readable');
+      if (expiryDate && new Date(expiryDate) < new Date()) flags.push('Document may be expired');
+      if (adultContent) flags.push('Inappropriate content detected');
+
       return {
         approved,
+        hardFail,
         name,
         cnicNumber,
         expiryDate,
         faceMatch: faceOnCnic && faceOnSelfie,
         confidence,
+        flags,
         rejectionReason,
       };
     } catch (error) {
@@ -210,24 +226,30 @@ export class VisionService {
       }
     }
 
-    // Evaluate all checks
-    if (checks.length > 0) {
+    // Evaluate all checks. Integrity failures here are hard fails (auto-reject).
+    const hardFail = checks.length > 0;
+    if (hardFail) {
       approved = false;
       rejectionReason = checks.join(' ');
       confidence = 0.6;
-      this.logger.warn(`KYC rejected (local analysis): ${checks.length} issues found`);
+      this.logger.warn(`KYC integrity check failed (local analysis): ${checks.length} issues found`);
     } else {
-      this.logger.log('KYC approved via local document analysis (all checks passed)');
-      confidence = 0.82;
+      // Images are valid but identity is NOT auto-verified without Google Vision.
+      // Leave for admin manual review.
+      approved = false;
+      confidence = 0.5;
+      this.logger.log('KYC images passed integrity checks; routing to admin for manual review');
     }
 
     return {
       approved,
-      name: approved ? 'Verified User' : null,
-      cnicNumber: approved ? 'Verified' : null,
+      hardFail,
+      name: null,
+      cnicNumber: null,
       expiryDate: null,
-      faceMatch: approved,
+      faceMatch: false,
       confidence,
+      flags: hardFail ? checks : ['Awaiting manual admin verification'],
       rejectionReason,
     };
   }

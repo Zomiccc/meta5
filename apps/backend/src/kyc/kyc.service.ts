@@ -18,8 +18,12 @@ export class KycService {
   ) {}
 
   async uploadDocuments(userId: string, files: { cnicFront?: Express.Multer.File; cnicBack?: Express.Multer.File; selfie?: Express.Multer.File }) {
+    const account = await this.prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } });
+    if (!account?.emailVerified) {
+      throw new BadRequestException('Please verify your email before submitting KYC');
+    }
     if (!files.cnicFront || !files.cnicBack || !files.selfie) {
-      throw new BadRequestException('CNIC front, CNIC back, and selfie are required');
+      throw new BadRequestException('ID front, ID back, and selfie are required');
     }
 
     const front = await this.fileService.uploadKycImage(files.cnicFront, userId, 'cnic-front');
@@ -54,41 +58,43 @@ export class KycService {
       );
     } catch (error) {
       this.logger.error('KYC analysis error', error);
-      // On actual system error, keep pending for admin manual review
       aiResult = {
         approved: false,
+        hardFail: false,
         name: null,
         cnicNumber: null,
         expiryDate: null,
         faceMatch: false,
         confidence: 0,
-        rejectionReason: 'Pending manual review by admin',
+        flags: ['AI analysis failed - admin review required'],
+        rejectionReason: null,
       };
     }
 
-    // Auto-approve if analysis passed, auto-reject if it found issues
-    // Only fall back to pending manual review on actual system errors
-    const isSystemError = aiResult.confidence === 0 && aiResult.rejectionReason === 'Pending manual review by admin';
-    const newStatus = isSystemError ? 'pending' : (aiResult.approved ? 'approved' : 'rejected');
+    // Real logic:
+    //  - hardFail = obvious fake/corrupt/duplicate -> auto-reject
+    //  - approved = Google Vision verified faces + readable ID + no issues -> auto-approve
+    //  - otherwise = pending admin review (only happens when Google Vision is unavailable)
+    const newStatus = aiResult.hardFail ? 'rejected' : (aiResult.approved ? 'approved' : 'pending');
 
     await this.prisma.kYC.update({
       where: { userId },
       data: {
         aiResponse: aiResult as any,
         status: newStatus,
-        rejectionReason: aiResult.approved ? null : aiResult.rejectionReason,
+        rejectionReason: aiResult.hardFail ? aiResult.rejectionReason : null,
       },
     });
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (aiResult.approved && !isSystemError) {
+    if (aiResult.approved) {
       try {
         const mt5 = await this.mt5Service.createAccount(userId);
         await this.emailService.sendKycApprovedEmail(user.email, user.name, mt5.login, mt5.password, mt5.server);
       } catch (error) {
         this.logger.error('MT5/Email error after KYC approval', error);
       }
-    } else if (!aiResult.approved && !isSystemError && aiResult.rejectionReason) {
+    } else if (aiResult.hardFail && aiResult.rejectionReason) {
       try {
         await this.emailService.sendKycRejectedEmail(user.email, user.name, aiResult.rejectionReason);
       } catch (error) {
@@ -101,5 +107,27 @@ export class KycService {
 
   async findByUserId(userId: string) {
     return this.prisma.kYC.findUnique({ where: { userId } });
+  }
+
+  async findByUserIdWithUrls(userId: string) {
+    const kyc = await this.prisma.kYC.findUnique({ where: { userId } });
+    if (!kyc) return null;
+    return {
+      ...kyc,
+      cnicFrontUrl: kyc.cnicFrontUrl ? this.fileService.getSignedUrl(kyc.cnicFrontUrl) : null,
+      cnicBackUrl: kyc.cnicBackUrl ? this.fileService.getSignedUrl(kyc.cnicBackUrl) : null,
+      selfieUrl: kyc.selfieUrl ? this.fileService.getSignedUrl(kyc.selfieUrl) : null,
+    };
+  }
+
+  async findByIdWithUrls(id: string) {
+    const kyc = await this.prisma.kYC.findUnique({ where: { id } });
+    if (!kyc) return null;
+    return {
+      ...kyc,
+      cnicFrontUrl: kyc.cnicFrontUrl ? this.fileService.getSignedUrl(kyc.cnicFrontUrl) : null,
+      cnicBackUrl: kyc.cnicBackUrl ? this.fileService.getSignedUrl(kyc.cnicBackUrl) : null,
+      selfieUrl: kyc.selfieUrl ? this.fileService.getSignedUrl(kyc.selfieUrl) : null,
+    };
   }
 }

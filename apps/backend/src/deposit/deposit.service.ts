@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { Mt5Service } from '../mt5/mt5.service';
 import { BlockchainService } from './blockchain.service';
+import { TronService } from './tron.service';
 
 @Injectable()
 export class DepositService {
@@ -14,6 +15,7 @@ export class DepositService {
     private readonly configService: ConfigService,
     private readonly mt5Service: Mt5Service,
     private readonly blockchainService: BlockchainService,
+    private readonly tronService: TronService,
   ) {}
 
   async createDepositRequest(userId: string, amount: number, crypto: string) {
@@ -33,7 +35,11 @@ export class DepositService {
       },
     });
 
-    const address = this.blockchainService.getDepositAddress(crypto);
+    // Prefer the configured TRON hot wallet for USDT; fall back to legacy address
+    const useTron = (crypto === 'USDT' || crypto === 'USDT-TRC20') && this.tronService.isConfigured();
+    const address = useTron
+      ? this.tronService.getDepositAddress()
+      : this.blockchainService.getDepositAddress(crypto);
     const paymentId = 'PAY-' + deposit.id.slice(0, 8).toUpperCase();
 
     return {
@@ -57,11 +63,14 @@ export class DepositService {
 
     this.logger.log(`Checking blockchain for deposit ${depositId} (${deposit.cryptoCurrency} $${deposit.amount})`);
 
-    const result = await this.blockchainService.verifyDeposit(
-      deposit.cryptoCurrency,
-      Number(deposit.amount),
-      deposit.createdAt,
-    );
+    const useTron = (deposit.cryptoCurrency === 'USDT' || deposit.cryptoCurrency === 'USDT-TRC20') && this.tronService.isConfigured();
+    const result = useTron
+      ? await this.tronService.verifyDeposit(Number(deposit.amount), deposit.createdAt)
+      : await this.blockchainService.verifyDeposit(
+          deposit.cryptoCurrency,
+          Number(deposit.amount),
+          deposit.createdAt,
+        );
 
     if (result.confirmed) {
       // Auto-approve: credit the user's balance
@@ -92,7 +101,7 @@ export class DepositService {
         message: 'Deposit confirmed on blockchain!',
         txHash: result.txHash,
         receivedAmount: result.receivedAmount,
-        confirmations: result.confirmations,
+        confirmations: (result as any).confirmations,
       };
     }
 

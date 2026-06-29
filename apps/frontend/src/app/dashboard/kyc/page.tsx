@@ -150,9 +150,9 @@ export default function KycPage() {
                 const isCurrent = step === s.num;
                 return (
                   <div key={s.num} className="flex flex-1 items-center">
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                       <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all sm:h-10 sm:w-10 sm:rounded-xl ${
                           isDone
                             ? 'bg-green-500/10 text-green-400'
                             : isCurrent
@@ -160,12 +160,12 @@ export default function KycPage() {
                             : 'bg-navy-800 text-white/30'
                         }`}
                       >
-                        {isDone ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                        {isDone ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" /> : <Icon className="h-4 w-4 sm:h-5 sm:w-5" />}
                       </div>
-                      <span className={`text-xs ${isCurrent || isDone ? 'text-white' : 'text-white/30'}`}>{s.label}</span>
+                      <span className={`text-[10px] sm:text-xs ${isCurrent || isDone ? 'text-white' : 'text-white/30'}`}>{s.label}</span>
                     </div>
                     {idx < steps.length - 1 && (
-                      <div className={`mx-2 h-0.5 flex-1 ${isDone ? 'bg-green-500/30' : 'bg-navy-700'}`} />
+                      <div className={`mx-1 h-0.5 flex-1 sm:mx-2 ${isDone ? 'bg-green-500/30' : 'bg-navy-700'}`} />
                     )}
                   </div>
                 );

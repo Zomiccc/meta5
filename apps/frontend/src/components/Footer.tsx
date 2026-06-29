@@ -19,7 +19,7 @@ export default function Footer() {
                 <TrendingUp className="h-5 w-5 text-gold" />
               </div>
               <span className="text-lg font-bold tracking-tight text-white">
-                Aure<span className="text-gold">x</span>
+                FX<span className="text-gold">ONS</span>
               </span>
             </div>
             <p className="mt-4 text-sm leading-relaxed">

@@ -21,5 +21,13 @@ export class RegisterDto {
 
   @IsOptional()
   @IsString()
+  country?: string;
+
+  @IsOptional()
+  @IsString()
+  countryCode?: string;
+
+  @IsOptional()
+  @IsString()
   referralCode?: string;
 }

@@ -9,8 +9,6 @@ import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
-  private otpStore = new Map<string, { code: string; expires: Date }>();
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -41,6 +39,8 @@ export class AuthService {
         email: dto.email,
         password: hash,
         phone: dto.phone,
+        country: dto.country,
+        countryCode: dto.countryCode,
         referralCode,
         referredBy: referrerId,
       },
@@ -59,9 +59,50 @@ export class AuthService {
     });
 
     await this.emailService.sendWelcomeEmail(user.email, user.name);
+    await this.sendVerificationCode(user.email, user.name);
 
     const tokens = await this.generateTokens(user.id, user.role);
     return { user, ...tokens };
+  }
+
+  private async sendVerificationCode(email: string, name: string) {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.prisma.emailOtp.deleteMany({ where: { email, purpose: 'verify_email' } });
+    await this.prisma.emailOtp.create({
+      data: {
+        email,
+        code,
+        purpose: 'verify_email',
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+    await this.emailService.sendVerificationEmail(email, name, code);
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+    if (user.emailVerified) return { message: 'Email already verified' };
+    await this.sendVerificationCode(user.email, user.name);
+    return { message: 'Verification code sent' };
+  }
+
+  async verifyEmail(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+    if (user.emailVerified) return { verified: true };
+
+    const record = await this.prisma.emailOtp.findFirst({
+      where: { email: user.email, purpose: 'verify_email' },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!record || record.code !== code || record.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired code');
+    }
+
+    await this.prisma.user.update({ where: { id: userId }, data: { emailVerified: true } });
+    await this.prisma.emailOtp.deleteMany({ where: { email: user.email, purpose: 'verify_email' } });
+    return { verified: true };
   }
 
   async login(dto: LoginDto) {
@@ -112,19 +153,20 @@ export class AuthService {
   async requestOtp(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) throw new BadRequestException('Email not found');
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    this.otpStore.set(email, { code, expires: new Date(Date.now() + 10 * 60 * 1000) });
-    await this.emailService.sendOtpEmail(email, user.name, code);
+    await this.sendVerificationCode(email, user.name);
     return { message: 'OTP sent' };
   }
 
   async verifyOtp(email: string, code: string) {
-    const record = this.otpStore.get(email);
-    if (!record || record.code !== code || record.expires < new Date()) {
+    const record = await this.prisma.emailOtp.findFirst({
+      where: { email, purpose: 'verify_email' },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!record || record.code !== code || record.expiresAt < new Date()) {
       throw new BadRequestException('Invalid or expired OTP');
     }
-    this.otpStore.delete(email);
+    await this.prisma.user.updateMany({ where: { email }, data: { emailVerified: true } });
+    await this.prisma.emailOtp.deleteMany({ where: { email, purpose: 'verify_email' } });
     return { verified: true };
   }
 
