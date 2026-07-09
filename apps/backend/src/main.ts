@@ -25,11 +25,14 @@ async function bootstrap() {
       if (!origin) return callback(null, true);
       const allowed = [
         frontendUrl,
+        'https://fxons.com',
+        'https://www.fxons.com',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
         /^http:\/\/localhost(:\d+)?$/,
         /^http:\/\/127\.0\.0\.1(:\d+)?$/,
         /^https:\/\/.*\.vercel\.app$/,
+        /^https:\/\/.*\.onrender\.com$/,
       ];
       const isAllowed = allowed.some((a) => {
         if (typeof a === 'string') return origin === a;
