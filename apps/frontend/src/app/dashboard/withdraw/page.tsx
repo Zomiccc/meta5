@@ -8,7 +8,6 @@ import { ArrowUpCircle, Loader2, CheckCircle } from 'lucide-react';
 export default function WithdrawPage() {
   const [amount, setAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
-  const [crypto, setCrypto] = useState('USDT');
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,9 +18,9 @@ export default function WithdrawPage() {
     setMessage('');
     setSuccess(false);
     try {
-      await api.post('/withdrawals', { amount: Number(amount), walletAddress, crypto });
+      await api.post('/withdrawals', { amount: Number(amount), walletAddress, crypto: 'USDT' });
       setSuccess(true);
-      setMessage('Withdrawal request submitted successfully.');
+      setMessage('Withdrawal request submitted. It will be processed after admin approval.');
       setAmount('');
       setWalletAddress('');
     } catch (err: any) {
@@ -36,7 +35,7 @@ export default function WithdrawPage() {
     <DashboardShell>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Withdraw Funds</h1>
-        <p className="text-white/50">Withdraw to your crypto wallet</p>
+        <p className="text-white/50">Withdraw USDT to your personal TRC20 wallet</p>
       </div>
 
       <div className="mx-auto max-w-lg card animate-slide-up">
@@ -59,29 +58,13 @@ export default function WithdrawPage() {
             <p className="mt-1 text-xs text-white/40">Minimum withdrawal: $10</p>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">Wallet Address</label>
-            <input required placeholder="Enter your wallet address" value={walletAddress} onChange={(e) => setWalletAddress(e.target.value)} className="input-field" />
+            <label className="mb-1.5 block text-sm font-medium text-white/70">Your USDT Wallet Address (TRC20)</label>
+            <input required placeholder="Enter your USDT TRC20 wallet address (starts with T)" value={walletAddress} onChange={(e) => setWalletAddress(e.target.value)} className="input-field" />
+            <p className="mt-1 text-xs text-white/40">Funds are sent to this address on the Tron (TRC20) network only. Double-check it — transfers are irreversible.</p>
           </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">Cryptocurrency</label>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { value: 'USDT', label: 'USDT', network: 'TRC20' },
-                { value: 'BTC', label: 'Bitcoin', network: 'BTC' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setCrypto(option.value)}
-                  className={`rounded-lg border p-3 text-left transition-all ${
-                    crypto === option.value ? 'border-gold bg-gold/10' : 'border-navy-600 bg-navy-900/50 hover:border-navy-500'
-                  }`}
-                >
-                  <p className="font-medium text-white">{option.label}</p>
-                  <p className="text-xs text-white/40">{option.network}</p>
-                </button>
-              ))}
-            </div>
+          <div className="rounded-lg border border-gold/20 bg-gold/5 p-4">
+            <p className="font-medium text-white">USDT</p>
+            <p className="text-xs text-white/50">Tron Network (TRC20) — the only supported withdrawal method</p>
           </div>
           <button type="submit" disabled={loading} className="btn-gold w-full">
             {loading ? (

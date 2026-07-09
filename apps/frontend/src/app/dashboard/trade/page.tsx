@@ -7,16 +7,16 @@ import { useAuth } from '../../../lib/useAuth';
 import { api } from '../../../lib/api';
 import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle } from 'lucide-react';
 
-const watchlist = [
-  { label: 'EUR/USD', symbol: 'FX:EURUSD', price: 1.0856, contractSize: 100000 },
-  { label: 'GBP/USD', symbol: 'FX:GBPUSD', price: 1.2734, contractSize: 100000 },
-  { label: 'USD/JPY', symbol: 'FX:USDJPY', price: 148.32, contractSize: 100000 },
-  { label: 'Gold', symbol: 'OANDA:XAUUSD', price: 2034.5, contractSize: 100 },
-  { label: 'BTC/USD', symbol: 'BITSTAMP:BTCUSD', price: 43210, contractSize: 1 },
-  { label: 'ETH/USD', symbol: 'BITSTAMP:ETHUSD', price: 2280, contractSize: 1 },
-  { label: 'Crude Oil', symbol: 'TVC:USOIL', price: 78.4, contractSize: 1000 },
-  { label: 'S&P 500', symbol: 'FOREXCOM:SPXUSD', price: 5123, contractSize: 1 },
-];
+interface Instrument {
+  label: string;
+  symbol: string;
+  price: number;
+  contractSize: number;
+  category: string;
+}
+
+const DEFAULT_INSTRUMENT: Instrument = { label: 'EUR/USD', symbol: 'FX:EURUSD', price: 1.0856, contractSize: 100000, category: 'Forex' };
+const CATEGORY_ORDER = ['All', 'Forex', 'Crypto', 'Indices', 'Commodities', 'Stocks'];
 
 const LEVERAGE = 1000;
 
@@ -33,7 +33,10 @@ interface Trade {
 
 export default function TradePage() {
   const { user, loading } = useAuth();
-  const [active, setActive] = useState(watchlist[0]);
+  const [instruments, setInstruments] = useState<Instrument[]>([DEFAULT_INSTRUMENT]);
+  const [category, setCategory] = useState('All');
+  const [search, setSearch] = useState('');
+  const [active, setActive] = useState<Instrument>(DEFAULT_INSTRUMENT);
   const [side, setSide] = useState<'BUY' | 'SELL'>('BUY');
   const [volume, setVolume] = useState('0.10');
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -56,6 +59,34 @@ export default function TradePage() {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 4000);
   };
+
+  // Load the full instrument catalog from the backend
+  useEffect(() => {
+    api.get('/mt5/instruments')
+      .then((res) => {
+        const list: Instrument[] = res.data.map((i: any) => ({
+          label: i.label,
+          symbol: i.symbol,
+          price: i.basePrice,
+          contractSize: i.contractSize,
+          category: i.category || 'Other',
+        }));
+        if (list.length) {
+          setInstruments(list);
+          setActive((prev) => list.find((x) => x.symbol === prev.symbol) || list[0]);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return instruments.filter((i) => {
+      const matchesCat = category === 'All' || i.category === category;
+      const matchesSearch = !q || i.label.toLowerCase().includes(q) || i.symbol.toLowerCase().includes(q);
+      return matchesCat && matchesSearch;
+    });
+  }, [instruments, category, search]);
 
   const refreshAccount = useCallback(async () => {
     if (!hasMt5) return;
@@ -220,9 +251,32 @@ export default function TradePage() {
       <div className="grid gap-6 lg:grid-cols-4">
         {/* Watchlist */}
         <div className="lg:col-span-1">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/40">Watchlist</h3>
-          <div className="space-y-2">
-            {watchlist.map((item) => (
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-white/40">Instruments</h3>
+            <span className="text-xs text-white/30">{filtered.length}</span>
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search symbol..."
+            className="input-field mb-3 py-2 text-sm"
+          />
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {CATEGORY_ORDER.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                  category === cat ? 'bg-gold text-navy-950' : 'bg-navy-800 text-white/60 hover:bg-navy-700 hover:text-white'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
+            {filtered.map((item) => (
               <button
                 key={item.symbol}
                 onClick={() => setActive(item)}
@@ -234,6 +288,9 @@ export default function TradePage() {
                 <span className="font-mono text-sm text-white/60">{item.price}</span>
               </button>
             ))}
+            {filtered.length === 0 && (
+              <p className="py-6 text-center text-sm text-white/40">No instruments match your search.</p>
+            )}
           </div>
         </div>
 

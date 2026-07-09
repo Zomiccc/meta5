@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as sgMail from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class EmailService {
@@ -28,10 +28,17 @@ export class EmailService {
   }
 
   async sendVerificationEmail(to: string, name: string, code: string) {
-    return this.send(to, `Your ${this.brand} verification code`, this.wrap(
+    if (!this.enabled) {
+      this.logger.warn(`[MOCK EMAIL] Verification code for ${to}: ${code}`);
+    }
+    const result = await this.send(to, `Your ${this.brand} verification code`, this.wrap(
       'Verify your email',
       `<p>Hi ${name},</p><p>Use the code below to verify your email address. It expires in 10 minutes.</p>${this.codeBox(code)}`,
     ));
+    if (this.enabled && result && (result as any).sent === false) {
+      this.logger.warn(`[EMAIL FALLBACK] Send failed; verification code for ${to}: ${code}`);
+    }
+    return result;
   }
 
   async sendKycApprovedEmail(to: string, name: string, mt5Login: string, mt5Password: string, server: string) {

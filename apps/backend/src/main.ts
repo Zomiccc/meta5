@@ -27,6 +27,8 @@ async function bootstrap() {
         frontendUrl,
         'http://localhost:3000',
         'http://127.0.0.1:3000',
+        /^http:\/\/localhost(:\d+)?$/,
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
         /^https:\/\/.*\.vercel\.app$/,
       ];
       const isAllowed = allowed.some((a) => {

@@ -93,11 +93,12 @@ model Deposit {
   userId         String
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount         Decimal       @db.Decimal(18, 2)
+  uniqueAmount   Float         @default(0)
   currency       String        @default("USD")
   cryptoCurrency String        @default("USDT")
   cryptoAddress  String?
   txHash         String?
-  nowPaymentsId  String?
+  bitgetTxId     String?
   status         DepositStatus @default(pending)
   adminNote      String?
   createdAt      DateTime      @default(now())
@@ -105,19 +106,21 @@ model Deposit {
 
   @@index([userId])
   @@index([status])
-  @@index([nowPaymentsId])
+  @@index([bitgetTxId])
 }
 
 model Withdrawal {
   id              String           @id @default(uuid())
   userId          String
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Decimal          @db.Decimal(18, 2)
-  walletAddress   String
-  currency        String           @default("USD")
-  cryptoCurrency  String           @default("USDT")
-  status          WithdrawalStatus @default(pending)
-  txHash          String?
+  amount              Decimal          @db.Decimal(18, 2)
+  walletAddress       String
+  clientWalletAddress String           @default("")
+  currency            String           @default("USD")
+  cryptoCurrency      String           @default("USDT")
+  status              WithdrawalStatus @default(pending)
+  txHash              String?
+  bitgetTxId          String?
   processedAt     DateTime?
   rejectionReason String?
   adminNote       String?
@@ -215,6 +218,7 @@ enum DepositStatus {
   pending
   approved
   rejected
+  expired
 }
 
 enum WithdrawalStatus {
