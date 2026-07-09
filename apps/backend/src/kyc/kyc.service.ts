@@ -49,12 +49,32 @@ export class KycService {
       },
     });
 
+    // Process AI analysis asynchronously so the upload request returns immediately
+    this.processKycBackground(userId, files.cnicFront.buffer, files.cnicBack.buffer, files.selfie.buffer).catch((error) => {
+      this.logger.error('Background KYC processing error', error);
+    });
+
+    return this.prisma.kYC.findUnique({ where: { userId } });
+  }
+
+  private async processKycBackground(userId: string, cnicFrontBuffer: Buffer, cnicBackBuffer: Buffer, selfieBuffer: Buffer) {
     let aiResult: KycAiResult;
     try {
-      aiResult = await this.visionService.processKyc(
-        files.cnicFront.buffer,
-        files.cnicBack.buffer,
-        files.selfie.buffer,
+      // Add a 15 second timeout so the user never waits forever
+      aiResult = await this.promiseWithTimeout(
+        this.visionService.processKyc(cnicFrontBuffer, cnicBackBuffer, selfieBuffer),
+        15_000,
+        {
+          approved: false,
+          hardFail: false,
+          name: null,
+          cnicNumber: null,
+          expiryDate: null,
+          faceMatch: false,
+          confidence: 0,
+          flags: ['AI analysis timed out - admin review required'],
+          rejectionReason: null,
+        },
       );
     } catch (error) {
       this.logger.error('KYC analysis error', error);
@@ -87,6 +107,8 @@ export class KycService {
     });
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return;
+
     if (aiResult.approved) {
       try {
         const mt5 = await this.mt5Service.createAccount(userId);
@@ -101,8 +123,13 @@ export class KycService {
         this.logger.error('Email error after KYC rejection', error);
       }
     }
+  }
 
-    return this.prisma.kYC.findUnique({ where: { userId } });
+  private promiseWithTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('KYC processing timeout')), ms)),
+    ]).catch(() => fallback);
   }
 
   async findByUserId(userId: string) {
