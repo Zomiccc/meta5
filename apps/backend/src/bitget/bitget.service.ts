@@ -53,7 +53,10 @@ export class BitgetService {
 
   private sign(timestamp: string, method: string, requestPath: string, body: string): string {
     const prehash = timestamp + method.toUpperCase() + requestPath + body;
-    return crypto.createHmac('sha256', this.secretKey as string).update(prehash).digest('base64');
+    const sign = crypto.createHmac('sha256', this.secretKey as string).update(prehash).digest('base64');
+    this.logger.log(`Sign prehash: ${prehash}`);
+    this.logger.log(`Secret length: ${this.secretKey?.length}, Sign: ${sign.slice(0, 10)}...`);
+    return sign;
   }
 
   private async request<T = any>(method: string, path: string, query?: Record<string, any>, body?: any): Promise<T> {
@@ -64,7 +67,7 @@ export class BitgetService {
     const queryString = query
       ? '?' + Object.entries(query)
           .filter(([, v]) => v !== undefined && v !== null && v !== '')
-          .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+          .map(([k, v]) => `${k}=${String(v)}`)
           .join('&')
       : '';
     const requestPath = path + queryString;
