@@ -74,13 +74,12 @@ export class BitgetService {
       const data = (res as any)?.data;
       return Array.isArray(data) ? data : [];
     } catch (error: any) {
-      if (error.message?.includes('Invalid IP')) {
+      if (error.message?.includes('Invalid IP') || error?.body?.code === '40018') {
         this.logger.warn(
-          `getDepositRecords skipped: Bitget API key does not allow Render IP. Add 74.220.48.196 to your Bitget API whitelist.`,
+          `getDepositRecords skipped: Bitget API key does not allow this server IP. Add the server IP to your Bitget API whitelist.`,
         );
       } else {
         this.logger.error(`getDepositRecords failed: ${error.message}`);
-        this.logger.error(`Full error: ${JSON.stringify(error?.response?.data || error?.body || error)}`);
       }
       return [];
     }
