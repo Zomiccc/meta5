@@ -40,7 +40,7 @@ export class BitgetService {
     this.passphrase = this.configService.get<string>('BITGET_PASSPHRASE') || undefined;
 
     if (this.isConfigured()) {
-      this.logger.log('Bitget API configured');
+      this.logger.log(`Bitget API configured — key: ${this.apiKey!.slice(0, 6)}...${this.apiKey!.slice(-4)}, secret: ${this.secretKey!.slice(0, 6)}...${this.secretKey!.slice(-4)}, pass: ${this.passphrase!.slice(0, 2)}***${this.passphrase!.slice(-2)}`);
     } else {
       this.logger.warn('Bitget API not configured. Set BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE to enable deposits/withdrawals.');
     }
