@@ -13,9 +13,6 @@ packages/database/node_modules/.prisma/
 .env.local
 .env.*.local
 
-# Prisma
-packages/database/prisma/migrations/
-
 # Misc
 .DS_Store
 *.log

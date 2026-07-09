@@ -1,0 +1,23 @@
+
+> @broker/frontend@1.0.0 dev
+> next dev
+
+   ▲ Next.js 14.0.4
+   - Local:        http://localhost:3000
+
+ ✓ Ready in 8.3s
+ ○ Compiling / ...
+The user aborted a request.
+
+Retrying 1/3...
+The user aborted a request.
+
+Retrying 1/3...
+ ✓ Compiled / in 22.7s (522 modules)
+ ✓ Compiled in 885ms (250 modules)
+ ○ Compiling /not-found ...
+ ✓ Compiled /not-found in 2.6s (504 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /register in 8s (753 modules)
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 8.5s (785 modules)
