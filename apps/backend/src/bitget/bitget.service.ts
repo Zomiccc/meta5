@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RestClientV2 } from 'bitget-api';
+import * as crypto from 'crypto';
 
 export interface BitgetDepositRecord {
   orderId: string;
@@ -46,6 +47,12 @@ export class BitgetService {
         apiSecret: this.secretKey!,
         apiPass: this.passphrase!,
         recvWindow: 60000,
+        customSignMessageFn: async (message: string, secret: string) => {
+          const sign = crypto.createHmac('sha256', secret).update(message).digest('base64');
+          this.logger.log(`SDK sign message: ${message}`);
+          this.logger.log(`SDK secret length: ${secret.length}, first6: ${secret.slice(0, 6)}, last4: ${secret.slice(-4)}`);
+          return sign;
+        },
       });
       this.logger.log(`Server time: ${Date.now()}`);
     } else {
