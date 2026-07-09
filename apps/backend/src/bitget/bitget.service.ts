@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RestClientV2 } from 'bitget-api';
-import * as crypto from 'crypto';
 
 export interface BitgetDepositRecord {
   orderId: string;
@@ -47,17 +46,9 @@ export class BitgetService {
         apiSecret: this.secretKey!,
         apiPass: this.passphrase!,
         recvWindow: 60000,
-        customSignMessageFn: async (message: string, secret: string) => {
-          const sign = crypto.createHmac('sha256', secret).update(message).digest('base64');
-          this.logger.log(`SDK sign message: ${message}`);
-          this.logger.log(`SDK secret length: ${secret.length}, first6: ${secret.slice(0, 6)}, last4: ${secret.slice(-4)}`);
-          return sign;
-        },
       });
       this.logger.log(`Server time: ${Date.now()}`);
-      this.logger.log(`Secret hex: ${Buffer.from(this.secretKey!).toString('hex')}`);
-      this.logger.log(`Pass hex: ${Buffer.from(this.passphrase!).toString('hex')}`);
-      this.logger.log(`Key hex: ${Buffer.from(this.apiKey!).toString('hex')}`);
+      this.logger.log(`Node version: ${process.version}`);
     } else {
       this.logger.warn('Bitget API not configured. Set BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE to enable deposits/withdrawals.');
     }
