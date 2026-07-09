@@ -65,7 +65,7 @@ export class BitgetService {
     const start = startTime ?? now - 30 * 24 * 60 * 60 * 1000;
     const end = endTime ?? now;
     try {
-      const res = await this.client.getSpotDepositRecords({
+      const res = await this.client.getSpotDepositHistory({
         coin,
         startTime: String(start),
         endTime: String(end),
@@ -91,7 +91,7 @@ export class BitgetService {
   async withdraw(params: { coin?: string; chain?: string; address: string; size: number }): Promise<BitgetWithdrawResult> {
     if (!this.client) return { success: false, error: 'Bitget API not configured' };
     try {
-      const res = await this.client.submitSpotWithdrawal({
+      const res = await this.client.spotWithdraw({
         coin: params.coin || 'USDT',
         transferType: 'on_chain',
         address: params.address,
