@@ -83,6 +83,7 @@ export class BitgetService {
         );
       } else {
         this.logger.error(`getDepositRecords failed: ${error.message}`);
+        this.logger.error(`Full error body: ${JSON.stringify(error?.response?.data || error?.body || error, null, 2)}`);
       }
       return [];
     }
