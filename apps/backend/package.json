@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@broker/database": "*",
+    "@prisma/client": "^6.10.1",
     "@google-cloud/vision": "^4.0.2",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.1.1",

@@ -18,7 +18,7 @@
     "db:studio": "npm run db:studio --workspace=packages/database",
     "build:backend": "cd apps/backend && npm install && npx @nestjs/cli build",
     "build:frontend": "cd apps/frontend && npm install && npm run build",
-    "render:backend": "npm install && npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && npm run db:generate && npm run build --workspace=packages/database && cd apps/backend && npx @nestjs/cli build",
+    "render:backend": "npm install && npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && npx prisma generate --schema=packages/database/prisma/schema.prisma && npm run build --workspace=packages/database && cd apps/backend && npx @nestjs/cli build",
     "render:frontend": "npm install && npm run build --workspace=apps/frontend"
   },
   "devDependencies": {
