@@ -40,7 +40,7 @@ export class BitgetService {
     this.passphrase = (this.configService.get<string>('BITGET_PASSPHRASE') || '').trim() || undefined;
 
     if (this.isConfigured()) {
-      this.logger.log(`Bitget API configured — key: ${this.apiKey!.slice(0, 6)}...${this.apiKey!.slice(-4)}, secret: ${this.secretKey!.slice(0, 6)}...${this.secretKey!.slice(-4)}, pass: ${this.passphrase!.slice(0, 2)}***${this.passphrase!.slice(-2)}`);
+      this.logger.log(`Bitget API configured — key: ${this.apiKey!.slice(0, 6)}...${this.apiKey!.slice(-4)} (${this.apiKey!.length}), secret: ${this.secretKey!.slice(0, 6)}...${this.secretKey!.slice(-4)} (${this.secretKey!.length}), pass: ${this.passphrase!.slice(0, 2)}***${this.passphrase!.slice(-2)} (${this.passphrase!.length})`);
       this.client = new RestClientV2({
         apiKey: this.apiKey!,
         apiSecret: this.secretKey!,
