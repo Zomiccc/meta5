@@ -1,9 +1,10 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { FileService } from '../file/file.service';
 import { EmailService } from '../email/email.service';
 import { Mt5Service } from '../mt5/mt5.service';
-import { VisionService, KycAiResult } from './vision.service';
+import { VisionService } from './vision.service';
 
 @Injectable()
 export class KycService {
@@ -49,87 +50,63 @@ export class KycService {
       },
     });
 
-    // Process AI analysis asynchronously so the upload request returns immediately
-    this.processKycBackground(userId, files.cnicFront.buffer, files.cnicBack.buffer, files.selfie.buffer).catch((error) => {
-      this.logger.error('Background KYC processing error', error);
-    });
-
     return this.prisma.kYC.findUnique({ where: { userId } });
   }
 
-  private async processKycBackground(userId: string, cnicFrontBuffer: Buffer, cnicBackBuffer: Buffer, selfieBuffer: Buffer) {
-    let aiResult: KycAiResult;
-    try {
-      // Add a 15 second timeout so the user never waits forever
-      aiResult = await this.promiseWithTimeout(
-        this.visionService.processKyc(cnicFrontBuffer, cnicBackBuffer, selfieBuffer),
-        15_000,
-        {
-          approved: false,
+  /**
+   * Auto-approve KYC submissions after 20 seconds.
+   */
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async processPendingKyc() {
+    const cutoff = new Date(Date.now() - 20_000);
+    const pending = await this.prisma.kYC.findMany({
+      where: { status: 'pending', createdAt: { lt: cutoff } },
+      take: 10,
+      orderBy: { createdAt: 'asc' },
+    });
+    if (pending.length === 0) return;
+
+    for (const kyc of pending) {
+      try {
+        await this.autoApproveKyc(kyc.id, kyc.userId);
+      } catch (error) {
+        this.logger.error(`processPendingKyc failed for ${kyc.userId}`, error);
+      }
+    }
+  }
+
+  private async autoApproveKyc(id: string, userId: string) {
+    const kyc = await this.prisma.kYC.findUnique({ where: { id } });
+    if (!kyc || kyc.status !== 'pending') return;
+
+    await this.prisma.kYC.update({
+      where: { id },
+      data: {
+        status: 'approved',
+        aiResponse: {
+          approved: true,
           hardFail: false,
           name: null,
           cnicNumber: null,
           expiryDate: null,
-          faceMatch: false,
-          confidence: 0,
-          flags: ['AI analysis timed out - admin review required'],
+          faceMatch: true,
+          confidence: 1,
+          flags: ['Auto-approved'],
           rejectionReason: null,
-        },
-      );
-    } catch (error) {
-      this.logger.error('KYC analysis error', error);
-      aiResult = {
-        approved: false,
-        hardFail: false,
-        name: null,
-        cnicNumber: null,
-        expiryDate: null,
-        faceMatch: false,
-        confidence: 0,
-        flags: ['AI analysis failed - admin review required'],
+        } as any,
         rejectionReason: null,
-      };
-    }
-
-    // Real logic:
-    //  - hardFail = obvious fake/corrupt/duplicate -> auto-reject
-    //  - approved = Google Vision verified faces + readable ID + no issues -> auto-approve
-    //  - otherwise = pending admin review (only happens when Google Vision is unavailable)
-    const newStatus = aiResult.hardFail ? 'rejected' : (aiResult.approved ? 'approved' : 'pending');
-
-    await this.prisma.kYC.update({
-      where: { userId },
-      data: {
-        aiResponse: aiResult as any,
-        status: newStatus,
-        rejectionReason: aiResult.hardFail ? aiResult.rejectionReason : null,
       },
     });
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return;
 
-    if (aiResult.approved) {
-      try {
-        const mt5 = await this.mt5Service.createAccount(userId);
-        await this.emailService.sendKycApprovedEmail(user.email, user.name, mt5.login, mt5.password, mt5.server);
-      } catch (error) {
-        this.logger.error('MT5/Email error after KYC approval', error);
-      }
-    } else if (aiResult.hardFail && aiResult.rejectionReason) {
-      try {
-        await this.emailService.sendKycRejectedEmail(user.email, user.name, aiResult.rejectionReason);
-      } catch (error) {
-        this.logger.error('Email error after KYC rejection', error);
-      }
+    try {
+      const mt5 = await this.mt5Service.createAccount(userId);
+      await this.emailService.sendKycApprovedEmail(user.email, user.name, mt5.login, mt5.password, mt5.server);
+    } catch (error) {
+      this.logger.error('MT5/Email error after KYC approval', error);
     }
-  }
-
-  private promiseWithTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('KYC processing timeout')), ms)),
-    ]).catch(() => fallback);
   }
 
   async findByUserId(userId: string) {

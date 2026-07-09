@@ -76,4 +76,20 @@ export class FileService {
       Expires: expires,
     });
   }
+
+  async getFileBuffer(key: string): Promise<Buffer | null> {
+    if (this.s3) {
+      try {
+        const res = await this.s3.getObject({ Bucket: this.bucket, Key: key }).promise();
+        return res.Body as Buffer;
+      } catch (error) {
+        this.logger.error(`Failed to fetch ${key} from R2`, error);
+        return null;
+      }
+    }
+
+    const localPath = path.join(this.uploadDir, key);
+    if (!fs.existsSync(localPath)) return null;
+    return fs.readFileSync(localPath);
+  }
 }
