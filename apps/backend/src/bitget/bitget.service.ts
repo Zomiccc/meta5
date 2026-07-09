@@ -45,7 +45,9 @@ export class BitgetService {
         apiKey: this.apiKey!,
         apiSecret: this.secretKey!,
         apiPass: this.passphrase!,
+        recvWindow: 60000,
       });
+      this.logger.log(`Server time: ${Date.now()}`);
     } else {
       this.logger.warn('Bitget API not configured. Set BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE to enable deposits/withdrawals.');
     }
