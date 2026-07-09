@@ -18,7 +18,7 @@
     "db:studio": "npm run db:studio --workspace=packages/database",
     "build:backend": "cd apps/backend && npm install && npx @nestjs/cli build",
     "build:frontend": "cd apps/frontend && npm install && npm run build",
-    "render:backend": "npm install && npm run db:generate && npm run build --workspace=packages/database && npm run build --workspace=apps/backend",
+    "render:backend": "npm install && npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && npm run db:generate && npm run build --workspace=packages/database && npm run build --workspace=apps/backend",
     "render:frontend": "npm install && npm run build --workspace=apps/frontend"
   },
   "devDependencies": {
@@ -30,5 +30,8 @@
   },
   "dependencies": {
     "tronweb": "^6.0.0"
+  },
+  "prisma": {
+    "schema": "packages/database/prisma/schema.prisma"
   }
 }
