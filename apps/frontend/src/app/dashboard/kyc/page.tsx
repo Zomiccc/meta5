@@ -29,6 +29,17 @@ export default function KycPage() {
     api.get('/kyc').then((res) => setKyc(res.data)).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!kyc || kyc.status !== 'pending') return;
+    const interval = setInterval(() => {
+      api
+        .get('/kyc')
+        .then((res) => setKyc(res.data))
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [kyc?.status]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cnicFront || !cnicBack || !selfie) return;
