@@ -67,6 +67,7 @@ export class BitgetService {
     const queryString = query
       ? '?' + Object.entries(query)
           .filter(([, v]) => v !== undefined && v !== null && v !== '')
+          .sort(([a], [b]) => a.localeCompare(b))
           .map(([k, v]) => `${k}=${String(v)}`)
           .join('&')
       : '';
