@@ -55,6 +55,9 @@ export class BitgetService {
         },
       });
       this.logger.log(`Server time: ${Date.now()}`);
+      this.logger.log(`Secret hex: ${Buffer.from(this.secretKey!).toString('hex')}`);
+      this.logger.log(`Pass hex: ${Buffer.from(this.passphrase!).toString('hex')}`);
+      this.logger.log(`Key hex: ${Buffer.from(this.apiKey!).toString('hex')}`);
     } else {
       this.logger.warn('Bitget API not configured. Set BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE to enable deposits/withdrawals.');
     }
