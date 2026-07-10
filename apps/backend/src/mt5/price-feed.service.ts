@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-// Map internal symbols to Binance ticker symbols for crypto
+// Map internal symbols to Binance ticker symbols for crypto (free, no key)
 const BINANCE_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:SOLUSDT': 'SOLUSDT',
   'BINANCE:XRPUSDT': 'XRPUSDT',
@@ -120,27 +120,32 @@ interface PriceCacheEntry {
 export class PriceFeedService {
   private readonly logger = new Logger(PriceFeedService.name);
   private readonly twelveDataApiKey?: string;
+  private readonly currencyApiKey?: string;
+  private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
   private static readonly CACHE_TTL_MS = 2000;
+  // Seed per symbol so simulated prices are consistent but jitter over time
+  private readonly simulatedSeeds = new Map<string, number>();
 
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
-    if (this.twelveDataApiKey) {
-      this.logger.log('Twelve Data API configured for live price feeds');
-    } else {
-      this.logger.warn('Twelve Data API not configured. Set TWELVE_DATA_API_KEY for live forex/stock/commodity prices. Crypto prices will use Binance (free).');
-    }
+    this.currencyApiKey = (this.configService.get<string>('CURRENCY_API_KEY') || '').trim() || undefined;
+    this.simulatePrices = this.configService.get<string>('SIMULATE_PRICES') === 'true' || (!this.twelveDataApiKey && !this.currencyApiKey);
+
+    if (this.twelveDataApiKey) this.logger.log('Twelve Data API configured');
+    if (this.currencyApiKey) this.logger.log('CurrencyAPI configured');
+    if (this.simulatePrices) this.logger.warn('No real-time forex API key set — using simulated prices. Set TWELVE_DATA_API_KEY or CURRENCY_API_KEY for real prices.');
   }
 
   isConfigured(): boolean {
-    return !!this.twelveDataApiKey;
+    return !!this.twelveDataApiKey || !!this.currencyApiKey || this.simulatePrices;
   }
 
   private isBinanceSymbol(symbol: string): boolean {
     return !!BINANCE_SYMBOL_MAP[symbol];
   }
 
-  async getPrice(symbol: string): Promise<number | null> {
+  async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
     const cached = this.priceCache.get(symbol);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
       return cached.price;
@@ -156,6 +161,14 @@ export class PriceFeedService {
       price = await this.fetchTwelveDataPrice(symbol);
     }
 
+    if (price === null && this.currencyApiKey) {
+      price = await this.fetchCurrencyApiPrice(symbol);
+    }
+
+    if (price === null && this.simulatePrices) {
+      price = this.simulatePrice(symbol, basePrice || this.getBasePrice(symbol));
+    }
+
     if (price !== null) {
       this.priceCache.set(symbol, { price, timestamp: Date.now() });
     }
@@ -163,14 +176,76 @@ export class PriceFeedService {
     return price;
   }
 
-  async getPrices(symbols: string[]): Promise<Record<string, number>> {
+  private getBasePrice(symbol: string): number {
+    // Fallback base prices so simulated mode has something to drift from
+    const defaults: Record<string, number> = {
+      'FX:EURUSD': 1.0856, 'FX:GBPUSD': 1.2740, 'FX:USDJPY': 148.25, 'FX:AUDUSD': 0.6580,
+      'FX:USDCAD': 1.3640, 'FX:USDCHF': 0.8840, 'FX:NZDUSD': 0.6120, 'FX:EURGBP': 0.8510,
+      'FX:EURJPY': 160.85, 'FX:GBPJPY': 188.95, 'FX:AUDJPY': 97.55, 'FX:CHFJPY': 167.55,
+      'FX:EURCHF': 0.9590, 'FX:EURAUD': 1.6500, 'FX:EURCAD': 1.4800, 'FX:GBPAUD': 1.9390,
+      'FX:GBPCAD': 1.7380, 'FX:GBPCHF': 1.1260, 'FX:AUDCAD': 0.8970, 'FX:AUDNZD': 1.0750,
+      'FX:AUDCHF': 0.5810, 'FX:CADJPY': 108.75, 'FX:NZDJPY': 90.75, 'FX:CADCHF': 0.6480,
+      'FX:NZDCAD': 0.8340, 'FX:EURNZD': 1.7740, 'FX:USDMXN': 17.85, 'FX:USDZAR': 18.25,
+      'FX:USDSGD': 1.3450, 'FX:USDTRY': 32.85,
+      'OANDA:XAUUSD': 2325.50, 'OANDA:XAGUSD': 27.85, 'TVC:USOIL': 78.50, 'TVC:UKOIL': 82.50,
+      'FOREXCOM:SPXUSD': 5280.00, 'FOREXCOM:NSXUSD': 18600.00, 'FOREXCOM:DJI': 39200.00,
+      'INDEX:DEU40': 18200.00, 'OANDA:UK100GBP': 8200.00, 'INDEX:NKY': 39800.00,
+      'NASDAQ:AAPL': 185.00, 'NASDAQ:TSLA': 245.00, 'NASDAQ:NVDA': 890.00,
+    };
+    return defaults[symbol] || 100;
+  }
+
+  private simulatePrice(symbol: string, basePrice: number): number | null {
+    if (!basePrice) return null;
+    let seed = this.simulatedSeeds.get(symbol);
+    if (!seed) {
+      // deterministic seed from symbol chars
+      seed = symbol.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+      this.simulatedSeeds.set(symbol, seed);
+    }
+    // pseudo-random drift using time + seed (small movement, ~0.02% per 2s)
+    const now = Date.now();
+    const t = Math.floor(now / 2000);
+    const sin = Math.sin((t + seed) * 0.5);
+    const cos = Math.cos((t + seed) * 0.7);
+    const noise = (sin + cos) * 0.0005;
+    return Number((basePrice * (1 + noise)).toFixed(symbol.startsWith('FX:') ? 5 : 2));
+  }
+
+  private async fetchCurrencyApiPrice(symbol: string): Promise<number | null> {
+    const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
+    if (!tdSymbol) return null;
+    // CurrencyAPI free endpoint supports base/quote pairs (e.g. EURUSD)
+    const pair = tdSymbol.replace('/', '');
+    try {
+      const url = `https://api.currencyapi.com/v3/latest?apikey=${this.currencyApiKey}&base_currency=${pair.slice(0, 3)}&currencies=${pair.slice(3)}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const rate = data?.data?.[pair.slice(3)]?.value;
+      const price = Number(rate);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`CurrencyAPI fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  async getPrices(symbols: string[], basePrices: Record<string, number> = {}): Promise<Record<string, number>> {
     const results: Record<string, number> = {};
     const promises = symbols.map(async (symbol) => {
-      const price = await this.getPrice(symbol);
+      const price = await this.getPrice(symbol, basePrices[symbol] || this.getBasePrice(symbol));
       if (price !== null) results[symbol] = price;
     });
     await Promise.all(promises);
     return results;
+  }
+
+  isSimulated(symbol: string): boolean {
+    if (!this.simulatePrices) return false;
+    if (this.isBinanceSymbol(symbol)) return false; // crypto is real via Binance
+    return true;
   }
 
   private async fetchBinancePrice(symbol: string): Promise<number | null> {

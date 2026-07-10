@@ -46,6 +46,7 @@ export default function TradePage() {
   const [submitting, setSubmitting] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  const [simulated, setSimulated] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasMt5 = !!user?.mt5Account;
@@ -61,8 +62,12 @@ export default function TradePage() {
     toastTimer.current = setTimeout(() => setToast(null), 4000);
   };
 
-  // Load the full instrument catalog from the backend
+  // Load price config (simulated vs real) and instrument catalog
   useEffect(() => {
+    api.get('/mt5/price-config')
+      .then((res) => setSimulated(res.data.simulated))
+      .catch(() => undefined);
+
     api.get('/mt5/instruments')
       .then((res) => {
         const list: Instrument[] = res.data.map((i: any) => ({
@@ -227,6 +232,12 @@ export default function TradePage() {
         </div>
       )}
 
+      {simulated && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
+          <Info className="h-4 w-4" /> Prices are simulated for demo. Set TWELVE_DATA_API_KEY or CURRENCY_API_KEY on the backend for real market data.
+        </div>
+      )}
+
       {criticalMargin && (
         <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           <AlertTriangle className="h-4 w-4 animate-pulse" /> Margin call! Your margin level is {marginLevel.toFixed(1)}%. Positions may be liquidated soon. Consider closing positions or adding funds.
@@ -269,7 +280,12 @@ export default function TradePage() {
         {/* Watchlist */}
         <div className="lg:col-span-1">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-white/40">Instruments</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-white/40">Instruments</h3>
+              <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-bold text-green-400">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />LIVE
+              </span>
+            </div>
             <span className="text-xs text-white/30">{filtered.length}</span>
           </div>
           <input

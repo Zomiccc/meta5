@@ -56,4 +56,9 @@ export class Mt5Controller {
     const prices = await this.mt5Service.getLivePrices(list);
     return prices;
   }
+
+  @Get('price-config')
+  async priceConfig() {
+    return { simulated: this.mt5Service.isAnyPriceSimulated() };
+  }
 }

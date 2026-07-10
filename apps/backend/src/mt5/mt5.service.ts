@@ -592,7 +592,19 @@ export class Mt5Service {
 
   // Get live prices for multiple symbols
   async getLivePrices(symbols: string[]): Promise<Record<string, number>> {
-    return this.priceFeed.getPrices(symbols);
+    const basePrices: Record<string, number> = {};
+    for (const s of symbols) {
+      basePrices[s] = INSTRUMENTS[s]?.basePrice || 0;
+    }
+    return this.priceFeed.getPrices(symbols, basePrices);
+  }
+
+  isPriceSimulated(symbol: string): boolean {
+    return this.priceFeed.isSimulated(symbol);
+  }
+
+  isAnyPriceSimulated(): boolean {
+    return this.priceFeed.isSimulated('FX:EURUSD');
   }
 
   // ─── Bridge helpers ───
