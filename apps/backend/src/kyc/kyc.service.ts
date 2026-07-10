@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { FileService } from '../file/file.service';
 import { EmailService } from '../email/email.service';
@@ -62,7 +63,7 @@ export class KycService {
   async processPendingKyc() {
     const cutoff = new Date(Date.now() - 20_000);
     const pending = await this.prisma.kYC.findMany({
-      where: { status: 'pending', aiResponse: null, createdAt: { lt: cutoff } },
+      where: { status: 'pending', aiResponse: { equals: Prisma.DbNull }, createdAt: { lt: cutoff } },
       take: 10,
       orderBy: { createdAt: 'asc' },
     });
