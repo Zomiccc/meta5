@@ -62,7 +62,7 @@ export class KycService {
   async processPendingKyc() {
     const cutoff = new Date(Date.now() - 20_000);
     const pending = await this.prisma.kYC.findMany({
-      where: { status: 'pending', createdAt: { lt: cutoff } },
+      where: { status: 'pending', aiResponse: null, createdAt: { lt: cutoff } },
       take: 10,
       orderBy: { createdAt: 'asc' },
     });
@@ -110,16 +110,17 @@ export class KycService {
       return;
     }
 
-    // Uncertain — route to admin for manual review
+    // Uncertain — keep pending but store AI result so cron doesn't reprocess
+    // Admin can review from the admin panel using the AI flags
     await this.prisma.kYC.update({
       where: { id: kyc.id },
       data: {
-        status: 'manual_review',
+        status: 'pending',
         aiResponse: aiResult as any,
         rejectionReason: null,
       },
     });
-    this.logger.log(`KYC ${kyc.userId} routed to admin manual review (confidence=${aiResult.confidence})`);
+    this.logger.log(`KYC ${kyc.userId} kept pending for admin review (confidence=${aiResult.confidence})`);
   }
 
   private async approveKycAuto(id: string, userId: string, aiResult: any) {

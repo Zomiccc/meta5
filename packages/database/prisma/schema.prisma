@@ -211,7 +211,6 @@ enum KYCStatus {
   pending
   approved
   rejected
-  manual_review
 }
 
 enum DepositStatus {

@@ -17,7 +17,7 @@ export interface KycAiResult {
 export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly apiKey: string | null;
-  private readonly model = 'gemini-1.5-flash';
+  private readonly model = 'gemini-2.0-flash';
   private readonly endpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   constructor(private readonly configService: ConfigService) {
