@@ -1,0 +1,14 @@
+﻿Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "brokerdb", schema "public" at "127.0.0.1:5432"
+
+2 migrations found in prisma/migrations
+
+Applying migration `20260706180000_bitget_integration`
+
+The following migration(s) have been applied:
+
+migrations/
+  ΓööΓöÇ 20260706180000_bitget_integration/
+    ΓööΓöÇ migration.sql
+      
+All migrations have been successfully applied.

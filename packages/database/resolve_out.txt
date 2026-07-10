@@ -1,0 +1,5 @@
+﻿Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "brokerdb", schema "public" at "127.0.0.1:5432"
+
+Migration 20260706180000_bitget_integration marked as rolled back.
+
