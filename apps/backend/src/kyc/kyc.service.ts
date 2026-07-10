@@ -111,8 +111,13 @@ export class KycService {
       return;
     }
 
-    // Uncertain — keep pending but store AI result so cron doesn't reprocess
-    // Admin can review from the admin panel using the AI flags
+    if (!aiResult.approved && aiResult.confidence >= 0.6) {
+      // Gemini made a clear rejection decision (e.g. face mismatch, expired, not a real ID)
+      await this.rejectKycAuto(kyc.id, kyc.userId, aiResult);
+      return;
+    }
+
+    // Truly uncertain (confidence < 0.6) — keep pending for admin review
     await this.prisma.kYC.update({
       where: { id: kyc.id },
       data: {
