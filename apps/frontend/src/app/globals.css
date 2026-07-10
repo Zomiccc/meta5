@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-950: #050d1a;
+  --navy-900: #0a1628;
+  --navy-800: #0f1e32;
+  --navy-700: #162a44;
+  --navy-600: #1e3a5f;
+  --gold: #f0a500;
+  --gold-dark: #d18b00;
+  --gold-light: #ffc333;
+}
+
+html,
+body {
+  color: #ffffff;
+  background: #0a1628;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1e32;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e3a5f;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4a6f;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-navy-700/60 bg-navy-800/70 p-4 shadow-premium backdrop-blur-xl transition-all sm:p-6;
+  }
+  .card-premium {
+    @apply relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-navy-800/80 to-navy-900/60 p-5 shadow-premium backdrop-blur-xl transition-all duration-300 hover:border-gold/20 hover:shadow-glow sm:p-6;
+  }
+  .btn-gold {
+    @apply rounded-xl bg-gold-gradient px-5 py-3 font-semibold text-navy-950 shadow-gold transition-all duration-200 hover:shadow-gold-lg hover:brightness-105 active:scale-[0.98] sm:px-6;
+  }
+  .btn-outline {
+    @apply rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:border-gold/50 hover:bg-gold/5 hover:text-gold active:scale-[0.98] sm:px-6;
+  }
+  .input-field {
+    @apply min-h-[46px] w-full rounded-xl border border-white/10 bg-navy-900/60 px-4 py-2.5 text-[16px] text-white placeholder-white/30 outline-none transition-all focus:border-gold/60 focus:bg-navy-900/80 focus:ring-2 focus:ring-gold/20;
+  }
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .glass {
+    @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl;
+  }
+  .gradient-text {
+    @apply bg-gradient-to-r from-gold-light via-gold to-gold-dark bg-clip-text text-transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
