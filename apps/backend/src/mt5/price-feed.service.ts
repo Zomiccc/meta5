@@ -131,6 +131,18 @@ const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:GRTUSDT': 'the-graph',
 };
 
+// Map internal FX symbols to Yahoo Finance format (fallback for forex)
+const YAHOO_FOREX_SYMBOL_MAP: Record<string, string> = {
+  'FX:EURUSD': 'EURUSD=X',
+  'FX:GBPUSD': 'GBPUSD=X',
+  'FX:USDJPY': 'USDJPY=X',
+  'FX:AUDUSD': 'AUDUSD=X',
+  'FX:USDCAD': 'USDCAD=X',
+  'FX:USDCHF': 'USDCHF=X',
+  'FX:NZDUSD': 'NZDUSD=X',
+  'FX:EURGBP': 'EURGBP=X',
+};
+
 // Map internal symbols to Yahoo Finance format (fallback for stocks)
 const YAHOO_SYMBOL_MAP: Record<string, string> = {
   'NASDAQ:AAPL': 'AAPL',
@@ -290,6 +302,10 @@ export class PriceFeedService {
     return !!YAHOO_SYMBOL_MAP[symbol];
   }
 
+  private isYahooForexSymbol(symbol: string): boolean {
+    return !!YAHOO_FOREX_SYMBOL_MAP[symbol];
+  }
+
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
     const cached = this.priceCache.get(symbol);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
@@ -314,12 +330,12 @@ export class PriceFeedService {
       price = await this.fetchCoinGeckoPrice(symbol);
     }
 
-    if (price === null && this.twelveDataApiKey) {
-      price = await this.fetchTwelveDataPrice(symbol);
+    if (price === null && (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol))) {
+      price = await this.fetchYahooPrice(symbol);
     }
 
-    if (price === null && this.isYahooSymbol(symbol)) {
-      price = await this.fetchYahooPrice(symbol);
+    if (price === null && this.twelveDataApiKey) {
+      price = await this.fetchTwelveDataPrice(symbol);
     }
 
     if (price === null && this.currencyApiKey) {
@@ -427,7 +443,7 @@ export class PriceFeedService {
 
     let data: { time: number; open: number; high: number; low: number; close: number }[] | null = null;
 
-    if (this.isYahooSymbol(symbol)) {
+    if (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol)) {
       data = await this.fetchYahooHistory(symbol);
     }
 
@@ -470,7 +486,7 @@ export class PriceFeedService {
   }
 
   private async fetchYahooHistory(symbol: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
-    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol];
+    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol] || YAHOO_FOREX_SYMBOL_MAP[symbol];
     if (!yahooSymbol) return null;
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=15m&range=1d`;
@@ -628,17 +644,25 @@ export class PriceFeedService {
   }
 
   private async fetchYahooPrice(symbol: string): Promise<number | null> {
-    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol];
+    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol] || YAHOO_FOREX_SYMBOL_MAP[symbol];
     if (!yahooSymbol) return null;
 
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
-      const price = Number(data?.chart?.result?.[0]?.meta?.regularMarketPrice);
-      if (isNaN(price) || price <= 0) return null;
-      return price;
+      const result = data?.chart?.result?.[0];
+      if (!result) return null;
+      const price = Number(result?.meta?.regularMarketPrice);
+      if (!isNaN(price) && price > 0) return price;
+      // Fallback to last close if regularMarketPrice is missing
+      const close = result?.indicators?.quote?.[0]?.close;
+      if (Array.isArray(close) && close.length) {
+        const last = close[close.length - 1];
+        if (typeof last === 'number' && last > 0) return last;
+      }
+      return null;
     } catch (err: any) {
       this.logger.debug(`Yahoo price fetch failed for ${symbol}: ${err.message}`);
       return null;
