@@ -45,16 +45,16 @@ export class VisionService {
   }
 
   async verifyKyc(frontBuf: Buffer, selfieBuf: Buffer): Promise<KycAiResult> {
+    if (this.openRouterKey) {
+      const res = await this.verifyWithOpenRouter(frontBuf, selfieBuf);
+      if (!this.isQuotaError(res)) return res;
+    }
     if (this.openai) {
       const res = await this.verifyWithOpenAI(frontBuf, selfieBuf);
       if (!this.isQuotaError(res)) return res;
     }
     if (this.geminiKey) {
       const res = await this.verifyWithGemini(frontBuf, selfieBuf);
-      if (!this.isQuotaError(res)) return res;
-    }
-    if (this.openRouterKey) {
-      const res = await this.verifyWithOpenRouter(frontBuf, selfieBuf);
       if (!this.isQuotaError(res)) return res;
     }
     if (this.autoApproveOnQuota) {
@@ -361,26 +361,15 @@ Rules:
 
     try {
       const url = `${this.endpoint}/${this.geminiModel}:generateContent?key=${this.geminiKey}`;
-      let res: Response | null = null;
-      let lastErr = '';
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(45000),
-        });
-        if (res.ok) break;
-        lastErr = await res.text();
-        if (res.status === 429) {
-          this.logger.warn(`Gemini API rate limited (429), attempt ${attempt}/2. Retrying in 15s...`);
-          await new Promise((resolve) => setTimeout(resolve, 15000));
-          continue;
-        }
-        break;
-      }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(45000),
+      });
+      const lastErr = res.ok ? '' : await res.text();
 
-      if (!res || !res.ok) {
+      if (!res.ok) {
         this.logger.error(`Gemini API error ${res?.status || 'unknown'}: ${lastErr}`);
         const isQuota = lastErr.includes('RESOURCE_EXHAUSTED') || lastErr.includes('quota') || lastErr.includes('429');
         return {

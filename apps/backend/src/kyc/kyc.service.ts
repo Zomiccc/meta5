@@ -80,7 +80,7 @@ export class KycService {
     let rejectionReason: string | null = null;
 
     try {
-      this.logger.log(`Starting Gemini KYC verification for user ${userId}`);
+      this.logger.log(`Starting AI KYC verification for user ${userId}`);
       aiResult = await this.visionService.verifyKyc(files.cnicFront.buffer, files.selfie.buffer);
       this.logger.log(`KYC result for ${userId}: approved=${aiResult.approved}, confidence=${aiResult.confidence}, hardFail=${aiResult.hardFail}, flags=${aiResult.flags.join('; ')}`);
 
