@@ -156,6 +156,38 @@ export default function AdminKycPage() {
                 </div>
               )}
 
+              {kyc.aiResponse && (
+                <div className={`mb-4 rounded-lg border p-4 ${kyc.aiResponse.approved ? 'border-green-500/20 bg-green-500/10' : 'border-red-500/20 bg-red-500/10'}`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="flex items-center gap-2 text-sm font-bold text-white">
+                      {kyc.aiResponse.approved ? (
+                        <><Check className="h-4 w-4 text-green-400" /> AI recommends APPROVE</>
+                      ) : (
+                        <><X className="h-4 w-4 text-red-400" /> AI recommends REJECT</>
+                      )}
+                    </p>
+                    <span className={`rounded px-2 py-0.5 text-xs font-bold ${kyc.aiResponse.confidence >= 0.8 ? 'bg-green-500/20 text-green-400' : kyc.aiResponse.confidence >= 0.5 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                      Confidence {(kyc.aiResponse.confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="grid gap-2 text-xs sm:grid-cols-2">
+                    <div className="flex items-center gap-2 text-white/80">
+                      {kyc.aiResponse.faceMatch ? <Check className="h-3 w-3 text-green-400" /> : <X className="h-3 w-3 text-red-400" />}
+                      Face match: {kyc.aiResponse.faceMatch ? 'Yes' : 'No'}
+                    </div>
+                    {kyc.aiResponse.name && (
+                      <div className="text-white/80"><span className="font-semibold">Name:</span> {kyc.aiResponse.name}</div>
+                    )}
+                    {kyc.aiResponse.idNumber && (
+                      <div className="text-white/80"><span className="font-semibold">ID Number:</span> {kyc.aiResponse.idNumber}</div>
+                    )}
+                    {kyc.aiResponse.expiryDate && (
+                      <div className="text-white/80"><span className="font-semibold">Expiry:</span> {kyc.aiResponse.expiryDate}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-4 grid gap-3 sm:grid-cols-3">
                 {[
                   { key: 'cnicFrontUrl', label: 'ID Front' },

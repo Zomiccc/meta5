@@ -1,8 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { FileService } from '../file/file.service';
-import { EmailService } from '../email/email.service';
-import { Mt5Service } from '../mt5/mt5.service';
 import { VisionService } from './vision.service';
 
 @Injectable()
@@ -12,8 +10,6 @@ export class KycService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
-    private readonly emailService: EmailService,
-    private readonly mt5Service: Mt5Service,
     private readonly visionService: VisionService,
   ) {}
 
@@ -73,68 +69,28 @@ export class KycService {
       },
     });
 
-    // Immediately run Gemini verification using the in-memory file buffers
-    // (no need to download from storage — we have them right here)
+    // Run AI analysis for admin recommendation, but keep status pending for manual review.
+    // The user sees "Verification in Progress" while the admin reviews documents.
     let aiResult: any = null;
-    let finalStatus: 'pending' | 'approved' | 'rejected' = 'pending';
-    let rejectionReason: string | null = null;
 
     try {
-      this.logger.log(`Starting AI KYC verification for user ${userId}`);
+      this.logger.log(`Starting AI KYC analysis for user ${userId}`);
       aiResult = await this.visionService.analyzeKycDocuments(files.cnicFront.buffer, files.cnicBack.buffer, files.selfie.buffer);
-      this.logger.log(`KYC result for ${userId}: approved=${aiResult.approved}, confidence=${aiResult.confidence}, hardFail=${aiResult.hardFail}, flags=${aiResult.flags.join('; ')}`);
-
-      if (aiResult.hardFail) {
-        finalStatus = 'rejected';
-        rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed';
-      } else if (aiResult.approved && aiResult.confidence >= 0.8) {
-        finalStatus = 'approved';
-      } else if (aiResult.approved && aiResult.confidence < 0.8) {
-        // Low confidence or fallback — keep pending for admin review
-        finalStatus = 'pending';
-      } else {
-        // Not approved — reject automatically
-        finalStatus = 'rejected';
-        rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed - please upload clearer images';
-      }
+      this.logger.log(`KYC AI recommendation for ${userId}: approved=${aiResult.approved}, confidence=${aiResult.confidence}, hardFail=${aiResult.hardFail}, flags=${aiResult.flags.join('; ')}`);
     } catch (err: any) {
-      this.logger.error(`Gemini verification error for ${userId}: ${err.message}`);
-      aiResult = { error: err.message, flags: ['Verification error'] };
-      finalStatus = 'pending';
+      this.logger.error(`AI KYC analysis error for ${userId}: ${err.message}`);
+      aiResult = { error: err.message, flags: ['AI analysis unavailable'] };
     }
 
-    // Update KYC record with result
-    this.logger.log(`KYC final status for ${userId}: ${finalStatus}`);
+    // Always keep KYC pending until an admin manually approves/rejects it
     await this.prisma.kYC.update({
       where: { userId },
       data: {
-        status: finalStatus,
+        status: 'pending',
         aiResponse: aiResult as any,
-        rejectionReason,
+        rejectionReason: null,
       },
     });
-
-    // Send email notifications
-    if (finalStatus === 'approved') {
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        try {
-          const mt5 = await this.mt5Service.createAccount(userId);
-          await this.emailService.sendKycApprovedEmail(user.email, user.name, mt5.login, mt5.password, mt5.server);
-        } catch (error) {
-          this.logger.error('MT5/Email error after KYC approval', error);
-        }
-      }
-    } else if (finalStatus === 'rejected') {
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        try {
-          await this.emailService.sendKycRejectedEmail(user.email, user.name, rejectionReason || 'Document verification failed');
-        } catch (error) {
-          this.logger.error('Email error after KYC rejection', error);
-        }
-      }
-    }
 
     return this.prisma.kYC.findUnique({ where: { userId } });
   }

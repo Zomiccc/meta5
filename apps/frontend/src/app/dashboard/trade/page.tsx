@@ -5,7 +5,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api } from '../../../lib/api';
-import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
 
 interface Instrument {
   label: string;
@@ -46,7 +46,6 @@ export default function TradePage() {
   const [submitting, setSubmitting] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
-  const [simulated, setSimulated] = useState(false);
   const [priceSource, setPriceSource] = useState<string>('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -63,12 +62,8 @@ export default function TradePage() {
     toastTimer.current = setTimeout(() => setToast(null), 4000);
   };
 
-  // Load price config (simulated vs real) and instrument catalog
+  // Load instrument catalog
   useEffect(() => {
-    api.get('/mt5/price-config')
-      .then((res) => setSimulated(res.data.simulated))
-      .catch(() => undefined);
-
     api.get('/mt5/instruments')
       .then((res) => {
         const list: Instrument[] = res.data.map((i: any) => ({
@@ -233,12 +228,6 @@ export default function TradePage() {
           </button>
         )}
       </div>
-
-      {simulated && (
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
-          <Info className="h-4 w-4" /> Prices are simulated for demo. Set TWELVE_DATA_API_KEY or CURRENCY_API_KEY on the backend for real market data.
-        </div>
-      )}
 
       {criticalMargin && (
         <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">

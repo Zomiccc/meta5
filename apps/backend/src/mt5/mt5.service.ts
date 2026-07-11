@@ -694,10 +694,14 @@ export class Mt5Service {
   }
 
   isPriceSimulated(symbol: string): boolean {
+    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
+    if (apiKey) return false;
     return this.priceFeed.isSimulated(symbol);
   }
 
   isAnyPriceSimulated(): boolean {
+    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
+    if (apiKey) return false;
     return this.priceFeed.isAnySimulated();
   }
 
@@ -706,6 +710,8 @@ export class Mt5Service {
   }
 
   getPriceSource(symbol: string): string {
+    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
+    if (apiKey) return 'twelve-data';
     return this.priceFeed.getPriceSource(symbol);
   }
 
