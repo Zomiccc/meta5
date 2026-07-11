@@ -67,4 +67,9 @@ export class Mt5Controller {
     const data = await this.mt5Service.getPriceHistory(symbol, days ? Number(days) : 1);
     return { symbol, data };
   }
+
+  @Get('price-source')
+  async priceSource(@Query('symbol') symbol: string) {
+    return { symbol, source: this.mt5Service.getPriceSource(symbol) };
+  }
 }

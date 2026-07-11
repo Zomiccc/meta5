@@ -611,6 +611,10 @@ export class Mt5Service {
     return this.priceFeed.getHistory(symbol, days);
   }
 
+  getPriceSource(symbol: string): string {
+    return this.priceFeed.getPriceSource(symbol);
+  }
+
   // ─── Bridge helpers ───
 
   // Sync local DB account with real MT5 server values

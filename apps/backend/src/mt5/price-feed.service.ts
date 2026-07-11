@@ -318,6 +318,13 @@ export class PriceFeedService {
     }
   }
 
+  getPriceSource(symbol: string): string {
+    if (this.isBinanceSymbol(symbol)) return 'binance';
+    if (this.isCoinGeckoSymbol(symbol)) return 'coingecko';
+    if (TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
+    return 'simulated';
+  }
+
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
     if (this.isBinanceSymbol(symbol) || this.isCoinGeckoSymbol(symbol)) return false; // crypto is real via Binance/CoinGecko

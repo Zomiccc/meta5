@@ -47,6 +47,7 @@ export default function TradePage() {
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [simulated, setSimulated] = useState(false);
+  const [priceSource, setPriceSource] = useState<string>('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasMt5 = !!user?.mt5Account;
@@ -84,6 +85,13 @@ export default function TradePage() {
       })
       .catch(() => undefined);
   }, []);
+
+  // Fetch price source when active symbol changes
+  useEffect(() => {
+    api.get(`/mt5/price-source?symbol=${encodeURIComponent(active.symbol)}`)
+      .then((res) => setPriceSource(res.data?.source || ''))
+      .catch(() => setPriceSource(''));
+  }, [active.symbol]);
 
   // Poll live prices for all instruments every 2 seconds
   useEffect(() => {
@@ -351,7 +359,16 @@ export default function TradePage() {
                 {activeLivePrice.toFixed(active.price > 1000 ? 2 : active.price > 10 ? 4 : 5)}
               </span>
             </div>
-            <span className="text-xs text-white/40">Live · same feed as watchlist</span>
+            <div className="flex items-center gap-2">
+              {priceSource && (
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                  priceSource === 'simulated' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                }`}>
+                  {priceSource}
+                </span>
+              )}
+              <span className="text-xs text-white/40">Live · same feed as watchlist</span>
+            </div>
           </div>
           <div className="flex-1" style={{ minHeight: 460 }}>
             <LiveChart symbol={active.symbol} price={activeLivePrice} height={460} />
