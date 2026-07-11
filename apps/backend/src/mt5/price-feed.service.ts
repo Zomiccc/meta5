@@ -582,19 +582,10 @@ export class PriceFeedService {
   }
 
   private async fetchOpenExchangeRatePrice(symbol: string): Promise<number | null> {
-    // Map FX:EURUSD to the rate needed from a USD base
-    const fxMap: Record<string, { quote: string; divideByBase?: boolean; cross?: string }> = {
-      'FX:EURUSD': { quote: 'EUR' },
-      'FX:GBPUSD': { quote: 'GBP' },
-      'FX:USDJPY': { quote: 'JPY' },
-      'FX:AUDUSD': { quote: 'AUD' },
-      'FX:USDCAD': { quote: 'CAD' },
-      'FX:USDCHF': { quote: 'CHF' },
-      'FX:NZDUSD': { quote: 'NZD' },
-      'FX:EURGBP': { quote: 'EUR', cross: 'GBP' },
-    };
-    const cfg = fxMap[symbol];
-    if (!cfg) return null;
+    // Parse FX:EURUSD => base=EUR, quote=USD
+    const match = symbol.match(/^FX:([A-Z]{3})([A-Z]{3})$/);
+    if (!match) return null;
+    const [, base, quote] = match;
 
     try {
       const url = 'https://open.er-api.com/v6/latest/USD';
@@ -602,11 +593,10 @@ export class PriceFeedService {
       if (!res.ok) return null;
       const data = await res.json() as any;
       const rates: Record<string, number> = data?.rates || {};
-      if (!rates[cfg.quote]) return null;
-      if (cfg.cross && rates[cfg.cross]) {
-        return Number((rates[cfg.quote] / rates[cfg.cross]).toFixed(5));
-      }
-      const price = Number(rates[cfg.quote]);
+      if (!rates[base] || !rates[quote] || rates[base] <= 0 || rates[quote] <= 0) return null;
+      // Rates are USD-based (how much of each currency 1 USD buys).
+      // price = quote/base = (USD value of 1 base unit) expressed in quote currency.
+      const price = Number((rates[quote] / rates[base]).toFixed(5));
       if (isNaN(price) || price <= 0) return null;
       return price;
     } catch (err: any) {

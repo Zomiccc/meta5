@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import {
@@ -24,6 +24,10 @@ export default function KycPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(0);
+
+  const frontPreview = useMemo(() => (cnicFront ? URL.createObjectURL(cnicFront) : null), [cnicFront]);
+  const backPreview = useMemo(() => (cnicBack ? URL.createObjectURL(cnicBack) : null), [cnicBack]);
+  const selfiePreview = useMemo(() => (selfie ? URL.createObjectURL(selfie) : null), [selfie]);
 
   useEffect(() => {
     api.get('/kyc').then((res) => setKyc(res.data)).catch(() => {});
@@ -72,21 +76,43 @@ export default function KycPage() {
   const isRejected = kyc?.status === 'rejected';
   const isPending = kyc?.status === 'pending';
 
-  const FileUpload = ({ file, setFile, label, icon: Icon }: any) => (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-white/70">{label}</label>
+  const FileUpload = ({ file, setFile, label, description, icon: Icon, previewUrl }: any) => (
+    <div className="rounded-xl border border-navy-700/50 bg-navy-900/40 p-5">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10">
+          <Icon className="h-5 w-5 text-gold" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">{label}</p>
+          <p className="text-xs text-white/40">{description}</p>
+        </div>
+      </div>
       {file ? (
-        <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/5 p-4">
-          <CheckCircle className="h-5 w-5 text-green-400" />
-          <span className="flex-1 truncate text-sm text-white">{file.name}</span>
-          <button type="button" onClick={() => setFile(null)} className="text-white/40 hover:text-red-400">
-            <XCircle className="h-5 w-5" />
-          </button>
+        <div className="relative overflow-hidden rounded-lg border border-green-500/30 bg-navy-950">
+          {previewUrl && (
+            <img src={previewUrl} alt={label} className="h-40 w-full object-contain" />
+          )}
+          <div className="flex items-center justify-between border-t border-navy-800 bg-navy-900/80 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-400" />
+              <span className="truncate text-sm text-white/80">{file.name}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFile(null)}
+              className="rounded p-1 text-white/40 transition hover:bg-red-500/10 hover:text-red-400"
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       ) : (
-        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-navy-600 bg-navy-900/30 p-6 transition hover:border-gold hover:bg-navy-800/30">
-          <Icon className="h-8 w-8 text-white/30" />
-          <span className="text-sm text-white/50">Click to upload</span>
+        <label className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-navy-600 bg-navy-900/30 p-8 transition hover:border-gold hover:bg-navy-800/30">
+          <Icon className="h-10 w-10 text-white/20" />
+          <div className="text-center">
+            <span className="block text-sm font-medium text-white/70">Click or drag & drop</span>
+            <span className="mt-1 block text-xs text-white/40">JPG, PNG or WEBP up to 10MB</span>
+          </div>
           <input
             type="file"
             accept="image/*"
@@ -183,10 +209,48 @@ export default function KycPage() {
               })}
             </div>
 
-            <form onSubmit={submit} className="card animate-slide-up space-y-5">
-              <FileUpload file={cnicFront} setFile={setCnicFront} label="Step 1: CNIC Front Side" icon={CreditCard} />
-              <FileUpload file={cnicBack} setFile={setCnicBack} label="Step 2: CNIC Back Side" icon={FileText} />
-              <FileUpload file={selfie} setFile={setSelfie} label="Step 3: Selfie (Face Verification)" icon={ScanFace} />
+            <div className="mb-5 grid gap-3 rounded-xl border border-navy-700/50 bg-navy-900/40 p-4 text-xs text-white/50 sm:grid-cols-3">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+                <span>Document must be valid and not expired</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+                <span>All corners visible, glare-free, high resolution</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+                <span>Selfie clearly shows your face with good lighting</span>
+              </div>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <FileUpload
+                  file={cnicFront}
+                  setFile={setCnicFront}
+                  label="CNIC Front"
+                  description="Front side of national ID card"
+                  icon={CreditCard}
+                  previewUrl={frontPreview}
+                />
+                <FileUpload
+                  file={cnicBack}
+                  setFile={setCnicBack}
+                  label="CNIC Back"
+                  description="Back side of national ID card"
+                  icon={FileText}
+                  previewUrl={backPreview}
+                />
+                <FileUpload
+                  file={selfie}
+                  setFile={setSelfie}
+                  label="Selfie"
+                  description="Live selfie for face matching"
+                  icon={ScanFace}
+                  previewUrl={selfiePreview}
+                />
+              </div>
 
               {error && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -212,7 +276,7 @@ export default function KycPage() {
 
               <div className="flex items-start gap-2 rounded-lg bg-navy-900/50 p-3 text-xs text-white/40">
                 <Upload className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-                <p>Upload clear photos of your CNIC (both sides) and a selfie. Your documents will be reviewed and verified by our compliance team. You will be notified once your KYC is approved.</p>
+                <p>Your documents are encrypted and reviewed by our compliance team. Gemini AI checks document authenticity and matches your selfie to the ID photo before final approval.</p>
               </div>
             </form>
           </>
