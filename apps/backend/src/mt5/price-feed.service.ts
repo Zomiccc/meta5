@@ -425,15 +425,36 @@ export class PriceFeedService {
       return cached.data;
     }
 
+    let data: { time: number; open: number; high: number; low: number; close: number }[] | null = null;
+
+    if (this.isYahooSymbol(symbol)) {
+      data = await this.fetchYahooHistory(symbol);
+    }
+
+    if (!data && this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
+      data = await this.fetchTwelveDataHistory(symbol, days);
+    }
+
+    if (!data && this.isCoinGeckoSymbol(symbol)) {
+      data = await this.fetchCoinGeckoHistory(symbol, days);
+    }
+
+    if (data) {
+      this.historyCache.set(cacheKey, { data, timestamp: Date.now() });
+    }
+    return data || [];
+  }
+
+  private async fetchCoinGeckoHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
     const cgId = COINGECKO_SYMBOL_MAP[symbol];
-    if (!cgId) return [];
+    if (!cgId) return null;
     try {
       const url = `https://api.coingecko.com/api/v3/coins/${cgId}/ohlc?vs_currency=usd&days=${days}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      if (!res.ok) return [];
+      if (!res.ok) return null;
       const data = await res.json() as any;
-      if (!Array.isArray(data)) return [];
-      const parsed = data
+      if (!Array.isArray(data)) return null;
+      return data
         .filter((c) => Array.isArray(c) && c.length >= 5)
         .map((c) => ({
           time: Math.floor(c[0] / 1000),
@@ -442,11 +463,66 @@ export class PriceFeedService {
           low: Number(c[3]),
           close: Number(c[4]),
         }));
-      this.historyCache.set(cacheKey, { data: parsed, timestamp: Date.now() });
-      return parsed;
     } catch (err: any) {
       this.logger.debug(`CoinGecko history fetch failed for ${symbol}: ${err.message}`);
-      return [];
+      return null;
+    }
+  }
+
+  private async fetchYahooHistory(symbol: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
+    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol];
+    if (!yahooSymbol) return null;
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=15m&range=1d`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const result = data?.chart?.result?.[0];
+      if (!result) return null;
+      const timestamps: number[] = result.timestamp || [];
+      const quote = result.indicators?.quote?.[0] || {};
+      const opens: number[] = quote.open || [];
+      const highs: number[] = quote.high || [];
+      const lows: number[] = quote.low || [];
+      const closes: number[] = quote.close || [];
+      if (timestamps.length === 0) return null;
+      return timestamps.map((t, i) => ({
+        time: t,
+        open: Number(opens[i]),
+        high: Number(highs[i]),
+        low: Number(lows[i]),
+        close: Number(closes[i]),
+      })).filter((c) => c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
+    } catch (err: any) {
+      this.logger.debug(`Yahoo history fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async fetchTwelveDataHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
+    const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
+    if (!tdSymbol || !this.twelveDataApiKey) return null;
+    const interval = days <= 1 ? '5min' : '1h';
+    const outputsize = days <= 1 ? 288 : 24 * days;
+    try {
+      const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(tdSymbol)}&interval=${interval}&outputsize=${outputsize}&apikey=${this.twelveDataApiKey}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      if (data?.status === 'error' || !Array.isArray(data?.values)) return null;
+      return data.values
+        .map((v: any) => ({
+          time: Math.floor(new Date(v.datetime).getTime() / 1000),
+          open: Number(v.open),
+          high: Number(v.high),
+          low: Number(v.low),
+          close: Number(v.close),
+        }))
+        .filter((c: any) => c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0)
+        .reverse();
+    } catch (err: any) {
+      this.logger.debug(`Twelve Data history fetch failed for ${symbol}: ${err.message}`);
+      return null;
     }
   }
 
