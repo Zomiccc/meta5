@@ -30,25 +30,43 @@ export class KycService {
       throw new BadRequestException('ID front, ID back, and selfie are required');
     }
 
-    // Upload images to storage (R2 or local)
-    const front = await this.fileService.uploadKycImage(files.cnicFront, userId, 'cnic-front');
-    const back = await this.fileService.uploadKycImage(files.cnicBack, userId, 'cnic-back');
-    const selfie = await this.fileService.uploadKycImage(files.selfie, userId, 'selfie');
+    // Upload images to storage (R2 or local) — best-effort; verification works in-memory
+    let frontKey: string | null = null;
+    let backKey: string | null = null;
+    let selfieKey: string | null = null;
+    try {
+      const front = await this.fileService.uploadKycImage(files.cnicFront, userId, 'cnic-front');
+      frontKey = front.key;
+    } catch (err: any) {
+      this.logger.warn(`KYC front image storage failed for ${userId}: ${err.message}`);
+    }
+    try {
+      const back = await this.fileService.uploadKycImage(files.cnicBack, userId, 'cnic-back');
+      backKey = back.key;
+    } catch (err: any) {
+      this.logger.warn(`KYC back image storage failed for ${userId}: ${err.message}`);
+    }
+    try {
+      const selfie = await this.fileService.uploadKycImage(files.selfie, userId, 'selfie');
+      selfieKey = selfie.key;
+    } catch (err: any) {
+      this.logger.warn(`KYC selfie storage failed for ${userId}: ${err.message}`);
+    }
 
     // Create/update KYC record as pending
     await this.prisma.kYC.upsert({
       where: { userId },
       create: {
         userId,
-        cnicFrontUrl: front.key,
-        cnicBackUrl: back.key,
-        selfieUrl: selfie.key,
+        cnicFrontUrl: frontKey,
+        cnicBackUrl: backKey,
+        selfieUrl: selfieKey,
         status: 'pending',
       },
       update: {
-        cnicFrontUrl: front.key,
-        cnicBackUrl: back.key,
-        selfieUrl: selfie.key,
+        cnicFrontUrl: frontKey,
+        cnicBackUrl: backKey,
+        selfieUrl: selfieKey,
         status: 'pending',
         aiResponse: null,
         rejectionReason: null,

@@ -35,11 +35,11 @@ export class FileService {
   }
 
   async uploadKycImage(file: Express.Multer.File, userId: string, type: string) {
-    if (!file.mimetype.match(/image\/(jpeg|png)/)) {
-      throw new BadRequestException('Only JPG and PNG images are allowed');
+    if (!file.mimetype.match(/image\/(jpeg|png|webp)/)) {
+      throw new BadRequestException('Only JPG, PNG and WEBP images are allowed');
     }
-    if (file.size > 5 * 1024 * 1024) {
-      throw new BadRequestException('Max file size is 5MB');
+    if (file.size > 10 * 1024 * 1024) {
+      throw new BadRequestException('Max file size is 10MB');
     }
 
     const key = `kyc/${userId}/${type}-${Date.now()}.${file.mimetype.split('/')[1]}`;
@@ -61,8 +61,8 @@ export class FileService {
     }
 
     const localPath = path.join(this.uploadDir, key);
-    fs.mkdirSync(path.dirname(localPath), { recursive: true });
-    fs.writeFileSync(localPath, file.buffer);
+    await fs.promises.mkdir(path.dirname(localPath), { recursive: true });
+    await fs.promises.writeFile(localPath, file.buffer);
     return { key, url: `/uploads/${key}` };
   }
 
