@@ -31,7 +31,7 @@ export class VisionService {
     const openaiKey = this.configService.get<string>('OPENAI_API_KEY') || null;
     this.openai = openaiKey ? new OpenAI({ apiKey: openaiKey }) : null;
     this.openRouterKey = this.configService.get<string>('OPENROUTER_API_KEY') || null;
-    this.openRouterModel = this.configService.get<string>('OPENROUTER_MODEL') || 'meta-llama/llama-3.2-11b-vision-instruct';
+    this.openRouterModel = this.configService.get<string>('OPENROUTER_MODEL') || 'qwen/qwen2.5-vl-32b-instruct:free,meta-llama/llama-3.2-11b-vision-instruct:free,google/gemma-3-12b-it:free';
     this.autoApproveOnQuota = this.configService.get<string>('AUTO_APPROVE_KYC_ON_QUOTA') === 'true';
     if (this.openai) this.logger.log('OpenAI GPT-4o Vision KYC verifier ready');
     if (this.openRouterKey) this.logger.log(`OpenRouter KYC verifier ready (model: ${this.openRouterModel})`);
@@ -220,82 +220,98 @@ Rules:
 - confidence: 0.85+ for clear approvals, 0.6-0.84 for uncertain, below 0.6 for hard fails
 - Respond with ONLY the JSON, no other text`;
 
-    try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.openRouterKey}`,
-          'HTTP-Referer': 'https://meta5.example.com',
-          'X-Title': 'Meta5 KYC',
-        },
-        body: JSON.stringify({
-          model: this.openRouterModel,
-          max_tokens: 1024,
-          temperature: 0.1,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: prompt },
-                { type: 'image_url', image_url: { url: `data:${frontMime};base64,${frontB64}` } },
-                { type: 'image_url', image_url: { url: `data:${selfieMime};base64,${selfieB64}` } },
-              ],
-            },
-          ],
-        }),
-        signal: AbortSignal.timeout(45000),
-      });
+    const models = this.openRouterModel.split(',').map((m) => m.trim()).filter(Boolean);
+    let lastErr = 'No models configured';
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const isQuota = errText.toLowerCase().includes('quota') || errText.toLowerCase().includes('rate limit') || res.status === 429;
+    for (const model of models) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.openRouterKey}`,
+            'HTTP-Referer': 'https://meta5.example.com',
+            'X-Title': 'Meta5 KYC',
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 1024,
+            temperature: 0.1,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt },
+                  { type: 'image_url', image_url: { url: `data:${frontMime};base64,${frontB64}` } },
+                  { type: 'image_url', image_url: { url: `data:${selfieMime};base64,${selfieB64}` } },
+                ],
+              },
+            ],
+          }),
+          signal: AbortSignal.timeout(45000),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          lastErr = `OpenRouter ${model}: HTTP ${res.status} ${errText}`;
+          this.logger.warn(lastErr);
+          const isQuota = errText.toLowerCase().includes('quota') || errText.toLowerCase().includes('rate limit') || res.status === 429;
+          if (isQuota) {
+            return {
+              approved: false,
+              hardFail: false,
+              name: null,
+              idNumber: null,
+              expiryDate: null,
+              faceMatch: false,
+              confidence: 0,
+              flags: [`OpenRouter quota/rate limit: ${res.status}`],
+              rejectionReason: 'AI verification quota exhausted. Please check your OpenRouter plan or try again later.',
+            };
+          }
+          continue;
+        }
+
+        const data = await res.json() as any;
+        const text = data?.choices?.[0]?.message?.content || '';
+        if (!text) {
+          lastErr = `OpenRouter ${model}: empty response`;
+          this.logger.warn(lastErr);
+          continue;
+        }
+        this.logger.log(`OpenRouter ${model} response: ${text.substring(0, 500)}`);
+        const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const parsed = JSON.parse(jsonStr);
+
         return {
-          approved: false,
-          hardFail: false,
-          name: null,
-          idNumber: null,
-          expiryDate: null,
-          faceMatch: false,
-          confidence: 0,
-          flags: [`OpenRouter error: ${res.status}${isQuota ? ' (quota/rate limit)' : ''}`],
-          rejectionReason: isQuota
-            ? 'AI verification quota exhausted. Please check your OpenRouter plan or try again later.'
-            : 'Verification service temporarily unavailable',
+          approved: !!parsed.approved,
+          hardFail: !!parsed.hardFail,
+          name: parsed.name || null,
+          idNumber: parsed.idNumber || null,
+          expiryDate: parsed.expiryDate || null,
+          faceMatch: !!parsed.faceMatch,
+          confidence: Number(parsed.confidence) || 0.5,
+          flags: Array.isArray(parsed.flags) ? parsed.flags : [],
+          rejectionReason: parsed.rejectionReason || null,
         };
+      } catch (err: any) {
+        lastErr = `OpenRouter ${model}: ${err.message}`;
+        this.logger.warn(lastErr);
+        continue;
       }
-
-      const data = await res.json() as any;
-      const text = data?.choices?.[0]?.message?.content || '';
-      this.logger.log(`OpenRouter response: ${text.substring(0, 500)}`);
-      const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const parsed = JSON.parse(jsonStr);
-
-      return {
-        approved: !!parsed.approved,
-        hardFail: !!parsed.hardFail,
-        name: parsed.name || null,
-        idNumber: parsed.idNumber || null,
-        expiryDate: parsed.expiryDate || null,
-        faceMatch: !!parsed.faceMatch,
-        confidence: Number(parsed.confidence) || 0.5,
-        flags: Array.isArray(parsed.flags) ? parsed.flags : [],
-        rejectionReason: parsed.rejectionReason || null,
-      };
-    } catch (err: any) {
-      this.logger.error(`OpenRouter KYC failed: ${err.message}`);
-      return {
-        approved: false,
-        hardFail: false,
-        name: null,
-        idNumber: null,
-        expiryDate: null,
-        faceMatch: false,
-        confidence: 0,
-        flags: [`OpenRouter error: ${err.message}`],
-        rejectionReason: 'Verification service temporarily unavailable',
-      };
     }
+
+    return {
+      approved: false,
+      hardFail: false,
+      name: null,
+      idNumber: null,
+      expiryDate: null,
+      faceMatch: false,
+      confidence: 0,
+      flags: [`OpenRouter error: ${lastErr}`],
+      rejectionReason: 'Verification service temporarily unavailable',
+    };
   }
 
   private async verifyWithGemini(frontBuf: Buffer, selfieBuf: Buffer): Promise<KycAiResult> {
