@@ -5,7 +5,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api } from '../../../lib/api';
-import { Loader2, TrendingUp, TrendingDown, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
 
 interface Instrument {
   label: string;
