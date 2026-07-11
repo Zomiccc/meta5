@@ -103,7 +103,7 @@ export default function TradePage() {
         .catch(() => undefined);
     };
     fetchPrices();
-    const interval = setInterval(fetchPrices, 1200);
+    const interval = setInterval(fetchPrices, 800);
     return () => clearInterval(interval);
   }, [instruments]);
 

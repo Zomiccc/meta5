@@ -131,7 +131,7 @@ const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:GRTUSDT': 'the-graph',
 };
 
-// Map internal FX symbols to Yahoo Finance format (fallback for forex)
+// Map internal FX symbols to Yahoo Finance format (primary real-time FX source)
 const YAHOO_FOREX_SYMBOL_MAP: Record<string, string> = {
   'FX:EURUSD': 'EURUSD=X',
   'FX:GBPUSD': 'GBPUSD=X',
@@ -141,6 +141,28 @@ const YAHOO_FOREX_SYMBOL_MAP: Record<string, string> = {
   'FX:USDCHF': 'USDCHF=X',
   'FX:NZDUSD': 'NZDUSD=X',
   'FX:EURGBP': 'EURGBP=X',
+  'FX:EURJPY': 'EURJPY=X',
+  'FX:GBPJPY': 'GBPJPY=X',
+  'FX:AUDJPY': 'AUDJPY=X',
+  'FX:CHFJPY': 'CHFJPY=X',
+  'FX:EURCHF': 'EURCHF=X',
+  'FX:EURAUD': 'EURAUD=X',
+  'FX:EURCAD': 'EURCAD=X',
+  'FX:GBPAUD': 'GBPAUD=X',
+  'FX:GBPCAD': 'GBPCAD=X',
+  'FX:GBPCHF': 'GBPCHF=X',
+  'FX:AUDCAD': 'AUDCAD=X',
+  'FX:AUDNZD': 'AUDNZD=X',
+  'FX:AUDCHF': 'AUDCHF=X',
+  'FX:CADJPY': 'CADJPY=X',
+  'FX:NZDJPY': 'NZDJPY=X',
+  'FX:CADCHF': 'CADCHF=X',
+  'FX:NZDCAD': 'NZDCAD=X',
+  'FX:EURNZD': 'EURNZD=X',
+  'FX:USDMXN': 'USDMXN=X',
+  'FX:USDZAR': 'USDZAR=X',
+  'FX:USDSGD': 'USDSGD=X',
+  'FX:USDTRY': 'USDTRY=X',
 };
 
 // Map internal symbols to Yahoo Finance format (fallback for stocks)
@@ -318,6 +340,10 @@ export class PriceFeedService {
       price = await this.fetchBinancePrice(symbol);
     }
 
+    if (price === null && (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol))) {
+      price = await this.fetchYahooPrice(symbol);
+    }
+
     if (price === null && symbol.startsWith('FX:')) {
       price = await this.fetchOpenExchangeRatePrice(symbol);
     }
@@ -332,10 +358,6 @@ export class PriceFeedService {
 
     if (price === null && this.isCoinGeckoSymbol(symbol)) {
       price = await this.fetchCoinGeckoPrice(symbol);
-    }
-
-    if (price === null && (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol))) {
-      price = await this.fetchYahooPrice(symbol);
     }
 
     if (price === null && this.twelveDataApiKey) {

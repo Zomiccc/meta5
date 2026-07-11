@@ -158,7 +158,13 @@ export default function KycPage() {
               <p className={`font-medium ${isApproved ? 'text-green-300' : isRejected ? 'text-red-300' : 'text-yellow-300'}`}>
                 {isApproved ? 'Verified' : isRejected ? 'Verification Rejected' : 'Verification in Progress'}
               </p>
-              {isPending && <p className="text-xs text-white/50">Your documents are being analyzed. This may take a few moments.</p>}
+              {isPending && (
+                <p className="text-xs text-white/50">
+                  {kyc?.aiResponse
+                    ? 'AI review complete. Waiting for final admin approval.'
+                    : 'Your documents are being analyzed. This may take a few moments.'}
+                </p>
+              )}
               {isRejected && kyc.rejectionReason && (
                 <div className="mt-2 rounded bg-red-500/10 px-3 py-2 text-xs text-red-300/90">
                   <p className="font-semibold mb-1">Rejection reason:</p>
@@ -167,6 +173,27 @@ export default function KycPage() {
               )}
               {isApproved && <p className="text-xs text-green-300/80">Your identity has been verified. MT5 account is ready.</p>}
             </div>
+            {(isPending || isRejected) && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!confirm('Reset your KYC and upload new documents?')) return;
+                  try {
+                    await api.delete('/kyc/reset');
+                    setKyc(null);
+                    setCnicFront(null);
+                    setCnicBack(null);
+                    setSelfie(null);
+                    setStep(0);
+                  } catch (err: any) {
+                    setError(err.response?.data?.message || 'Failed to reset KYC');
+                  }
+                }}
+                className="ml-auto rounded-lg border border-navy-600 bg-navy-900/50 px-3 py-1.5 text-xs font-medium text-white/70 transition hover:bg-navy-800 hover:text-white"
+              >
+                Reset
+              </button>
+            )}
           </div>
         )}
 
