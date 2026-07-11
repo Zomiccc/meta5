@@ -31,7 +31,7 @@ export class VisionService {
     const openaiKey = this.configService.get<string>('OPENAI_API_KEY') || null;
     this.openai = openaiKey ? new OpenAI({ apiKey: openaiKey }) : null;
     this.openRouterKey = this.configService.get<string>('OPENROUTER_API_KEY') || null;
-    this.openRouterModel = this.configService.get<string>('OPENROUTER_MODEL') || 'qwen/qwen2.5-vl-32b-instruct:free,meta-llama/llama-3.2-11b-vision-instruct:free,google/gemma-3-12b-it:free';
+    this.openRouterModel = this.configService.get<string>('OPENROUTER_MODEL') || 'openrouter/free';
     this.autoApproveOnQuota = this.configService.get<string>('AUTO_APPROVE_KYC_ON_QUOTA') === 'true';
     if (this.openai) this.logger.log('OpenAI GPT-4o Vision KYC verifier ready');
     if (this.openRouterKey) this.logger.log(`OpenRouter KYC verifier ready (model: ${this.openRouterModel})`);
