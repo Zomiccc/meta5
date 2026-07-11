@@ -489,7 +489,10 @@ export class PriceFeedService {
     const yahooSymbol = YAHOO_SYMBOL_MAP[symbol] || YAHOO_FOREX_SYMBOL_MAP[symbol];
     if (!yahooSymbol) return null;
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=15m&range=1d`;
+      const isForex = !!YAHOO_FOREX_SYMBOL_MAP[symbol];
+      const interval = isForex ? '1h' : '15m';
+      const range = '5d';
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=${interval}&range=${range}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
@@ -648,19 +651,23 @@ export class PriceFeedService {
     if (!yahooSymbol) return null;
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=5d`;
       const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
       const result = data?.chart?.result?.[0];
       if (!result) return null;
-      const price = Number(result?.meta?.regularMarketPrice);
+      const meta = result.meta || {};
+      const price = Number(meta.regularMarketPrice);
       if (!isNaN(price) && price > 0) return price;
-      // Fallback to last close if regularMarketPrice is missing
+      const previousClose = Number(meta.previousClose || meta.chartPreviousClose);
+      if (!isNaN(previousClose) && previousClose > 0) return previousClose;
+      // Fallback to last close in candle data
       const close = result?.indicators?.quote?.[0]?.close;
       if (Array.isArray(close) && close.length) {
-        const last = close[close.length - 1];
-        if (typeof last === 'number' && last > 0) return last;
+        for (let i = close.length - 1; i >= 0; i--) {
+          if (typeof close[i] === 'number' && close[i] > 0) return close[i];
+        }
       }
       return null;
     } catch (err: any) {
