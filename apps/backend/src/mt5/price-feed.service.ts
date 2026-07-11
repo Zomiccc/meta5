@@ -318,6 +318,10 @@ export class PriceFeedService {
       price = await this.fetchBinancePrice(symbol);
     }
 
+    if (price === null && symbol.startsWith('FX:')) {
+      price = await this.fetchOpenExchangeRatePrice(symbol);
+    }
+
     if (price === null && this.isCoinbaseSymbol(symbol)) {
       price = await this.fetchCoinbasePrice(symbol);
     }
@@ -547,23 +551,26 @@ export class PriceFeedService {
 
   getPriceSource(symbol: string): string {
     if (this.simulatedSymbols.has(symbol)) return 'simulated';
+    if (symbol.startsWith('FX:')) return 'openexchange';
     if (this.isBinanceSymbol(symbol)) return 'binance';
     if (this.isCoinbaseSymbol(symbol)) return 'coinbase';
     if (this.isCryptoCompareSymbol(symbol)) return 'cryptocompare';
     if (this.isCoinGeckoSymbol(symbol)) return 'coingecko';
     if (TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
-    if (this.isYahooSymbol(symbol)) return 'yahoo';
+    if (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol)) return 'yahoo';
     return 'simulated';
   }
 
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
+    if (symbol.startsWith('FX:')) return false; // FX uses open exchange rates
     if (
       this.isBinanceSymbol(symbol) ||
       this.isCoinbaseSymbol(symbol) ||
       this.isCryptoCompareSymbol(symbol) ||
       this.isCoinGeckoSymbol(symbol) ||
-      this.isYahooSymbol(symbol)
+      this.isYahooSymbol(symbol) ||
+      this.isYahooForexSymbol(symbol)
     ) {
       return false; // real provider available
     }
@@ -572,6 +579,40 @@ export class PriceFeedService {
 
   isAnySimulated(): boolean {
     return this.simulatedSymbols.size > 0 || this.simulatePrices;
+  }
+
+  private async fetchOpenExchangeRatePrice(symbol: string): Promise<number | null> {
+    // Map FX:EURUSD to the rate needed from a USD base
+    const fxMap: Record<string, { quote: string; divideByBase?: boolean; cross?: string }> = {
+      'FX:EURUSD': { quote: 'EUR' },
+      'FX:GBPUSD': { quote: 'GBP' },
+      'FX:USDJPY': { quote: 'JPY' },
+      'FX:AUDUSD': { quote: 'AUD' },
+      'FX:USDCAD': { quote: 'CAD' },
+      'FX:USDCHF': { quote: 'CHF' },
+      'FX:NZDUSD': { quote: 'NZD' },
+      'FX:EURGBP': { quote: 'EUR', cross: 'GBP' },
+    };
+    const cfg = fxMap[symbol];
+    if (!cfg) return null;
+
+    try {
+      const url = 'https://open.er-api.com/v6/latest/USD';
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const rates: Record<string, number> = data?.rates || {};
+      if (!rates[cfg.quote]) return null;
+      if (cfg.cross && rates[cfg.cross]) {
+        return Number((rates[cfg.quote] / rates[cfg.cross]).toFixed(5));
+      }
+      const price = Number(rates[cfg.quote]);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`Open Exchange Rate fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
   }
 
   private async fetchBinancePrice(symbol: string): Promise<number | null> {
