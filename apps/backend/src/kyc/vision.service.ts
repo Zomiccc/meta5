@@ -21,6 +21,7 @@ export class VisionService {
   private readonly geminiModel: string;
   private readonly openai: OpenAI | null;
   private readonly openRouterKey: string | null;
+  private readonly openRouterModel: string;
   private readonly autoApproveOnQuota: boolean;
   private readonly endpoint = 'https://generativelanguage.googleapis.com/v1/models';
 
@@ -30,9 +31,10 @@ export class VisionService {
     const openaiKey = this.configService.get<string>('OPENAI_API_KEY') || null;
     this.openai = openaiKey ? new OpenAI({ apiKey: openaiKey }) : null;
     this.openRouterKey = this.configService.get<string>('OPENROUTER_API_KEY') || null;
+    this.openRouterModel = this.configService.get<string>('OPENROUTER_MODEL') || 'meta-llama/llama-3.2-11b-vision-instruct:free';
     this.autoApproveOnQuota = this.configService.get<string>('AUTO_APPROVE_KYC_ON_QUOTA') === 'true';
     if (this.openai) this.logger.log('OpenAI GPT-4o Vision KYC verifier ready');
-    if (this.openRouterKey) this.logger.log('OpenRouter KYC verifier ready');
+    if (this.openRouterKey) this.logger.log(`OpenRouter KYC verifier ready (model: ${this.openRouterModel})`);
     if (this.geminiKey) this.logger.log(`Gemini KYC using model: ${this.geminiModel}`);
     if (!this.openai && !this.openRouterKey && !this.geminiKey) {
       this.logger.warn('No KYC AI key configured (OPENAI_API_KEY, OPENROUTER_API_KEY, or GEMINI_API_KEY)');
@@ -228,7 +230,7 @@ Rules:
           'X-Title': 'Meta5 KYC',
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+          model: this.openRouterModel,
           max_tokens: 1024,
           temperature: 0.1,
           messages: [
