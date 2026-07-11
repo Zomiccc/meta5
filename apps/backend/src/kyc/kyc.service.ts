@@ -81,7 +81,7 @@ export class KycService {
 
     try {
       this.logger.log(`Starting AI KYC verification for user ${userId}`);
-      aiResult = await this.visionService.verifyKyc(files.cnicFront.buffer, files.selfie.buffer);
+      aiResult = await this.visionService.analyzeKycDocuments(files.cnicFront.buffer, files.cnicBack.buffer, files.selfie.buffer);
       this.logger.log(`KYC result for ${userId}: approved=${aiResult.approved}, confidence=${aiResult.confidence}, hardFail=${aiResult.hardFail}, flags=${aiResult.flags.join('; ')}`);
 
       if (aiResult.hardFail) {
