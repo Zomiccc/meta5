@@ -2,7 +2,7 @@
 
 import { useAuth } from '../../lib/useAuth';
 import DashboardShell from '../../components/DashboardShell';
-import { DollarSign, BarChart3, Wallet, Loader2 } from 'lucide-react';
+import { DollarSign, BarChart3, Shield, Wallet, Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user: profile, loading } = useAuth();
@@ -18,11 +18,18 @@ export default function DashboardPage() {
   }
 
   const mt5 = profile?.mt5Account;
+  const kyc = profile?.kyc;
 
   const cards = [
     { label: 'Balance', value: `$${mt5?.balance ? Number(mt5.balance).toFixed(2) : '0.00'}`, icon: Wallet },
     { label: 'Equity', value: `$${mt5?.equity ? Number(mt5.equity).toFixed(2) : '0.00'}`, icon: BarChart3 },
     { label: 'Margin', value: `$${mt5?.margin ? Number(mt5.margin).toFixed(2) : '0.00'}`, icon: DollarSign },
+    {
+      label: 'KYC Status',
+      value: kyc?.status || 'Not submitted',
+      icon: Shield,
+      color: kyc?.status === 'approved' ? 'text-green-400' : kyc?.status === 'rejected' ? 'text-red-400' : 'text-yellow-400',
+    },
   ];
 
   return (
@@ -41,7 +48,7 @@ export default function DashboardPage() {
                 <Icon className="h-5 w-5 text-gold" />
               </div>
               <p className="text-sm text-white/50">{card.label}</p>
-              <p className="mt-1 text-2xl font-bold capitalize text-white">{card.value}</p>
+              <p className={`mt-1 text-2xl font-bold capitalize ${card.color || 'text-white'}`}>{card.value}</p>
             </div>
           );
         })}

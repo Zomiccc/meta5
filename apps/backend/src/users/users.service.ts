@@ -9,7 +9,7 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: { id },
       omit: { password: true },
-      include: { mt5Account: true, affiliate: true },
+      include: { mt5Account: true, kyc: true, affiliate: true },
     });
   }
 

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard,
   Users,
+  FileText,
   ArrowDownCircle,
   ArrowUpCircle,
   Link2,
@@ -20,6 +21,7 @@ import { api } from '../lib/api';
 const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/clients', label: 'Clients', icon: Users },
+  { href: '/admin/kyc', label: 'KYC', icon: FileText },
   { href: '/admin/deposits', label: 'Deposits', icon: ArrowDownCircle },
   { href: '/admin/withdrawals', label: 'Withdrawals', icon: ArrowUpCircle },
   { href: '/admin/affiliates', label: 'Affiliates', icon: Link2 },

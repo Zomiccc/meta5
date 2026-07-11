@@ -6,6 +6,7 @@ import { join } from 'path';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { KycModule } from './kyc/kyc.module';
 import { Mt5Module } from './mt5/mt5.module';
 import { DepositModule } from './deposit/deposit.module';
 import { WithdrawalModule } from './withdrawal/withdrawal.module';
@@ -29,6 +30,7 @@ import { RiskModule } from './risk/risk.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    KycModule,
     Mt5Module,
     DepositModule,
     WithdrawalModule,

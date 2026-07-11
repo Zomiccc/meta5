@@ -42,12 +42,15 @@ export default function LiveChart({ symbol, height = 520 }: LiveChartProps) {
     if (!containerRef.current) return;
     if (typeof window === 'undefined') return;
 
+    const safeRemove = (w: { remove: () => void } | null) => {
+      if (!w) return;
+      try { w.remove(); } catch { /* widget may already be detached */ }
+    };
+
     const initWidget = () => {
       if (!window.TradingView || !containerRef.current) return;
-      if (widgetRef.current) {
-        widgetRef.current.remove();
-        widgetRef.current = null;
-      }
+      safeRemove(widgetRef.current);
+      widgetRef.current = null;
       containerRef.current.innerHTML = '';
       widgetRef.current = new window.TradingView.widget({
         container_id: id,
@@ -90,10 +93,8 @@ export default function LiveChart({ symbol, height = 520 }: LiveChartProps) {
     }
 
     return () => {
-      if (widgetRef.current) {
-        widgetRef.current.remove();
-        widgetRef.current = null;
-      }
+      safeRemove(widgetRef.current);
+      widgetRef.current = null;
     };
   }, [symbol, id, height]);
 

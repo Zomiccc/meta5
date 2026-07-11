@@ -135,11 +135,11 @@ export default function Home() {
             </div>
             <h2 className="text-3xl font-bold text-white md:text-4xl">The world's most powerful trading platform</h2>
             <p className="mt-4 text-white/60">
-              Register and instantly receive your MT5 login, password and server — just like the world's top brokers.
+              Complete KYC and we instantly issue your MT5 login, password and server — just like the world's top brokers.
               Trade on desktop, web and mobile with advanced charting and one-click execution.
             </p>
             <ul className="mt-6 space-y-3">
-              {['Instant MT5 credentials after registration', 'Advanced charting & 80+ indicators', 'One-click trading & EAs supported', 'Desktop, Web & Mobile apps'].map((t) => (
+              {['Instant MT5 credentials after verification', 'Advanced charting & 80+ indicators', 'One-click trading & EAs supported', 'Desktop, Web & Mobile apps'].map((t) => (
                 <li key={t} className="flex items-center gap-3 text-white/70">
                   <CheckCircle2 className="h-5 w-5 text-gold" /> {t}
                 </li>
@@ -178,8 +178,8 @@ export default function Home() {
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {[
               { step: '1', title: 'Register', desc: 'Open your account in under 2 minutes with basic details.' },
-              { step: '2', title: 'Fund', desc: 'Deposit with crypto to your wallet instantly.' },
-              { step: '3', title: 'Trade', desc: 'Receive your MT5 credentials and start trading global markets.' },
+              { step: '2', title: 'Verify KYC', desc: 'AI-powered document verification in real time.' },
+              { step: '3', title: 'Fund & Trade', desc: 'Deposit with crypto and receive your MT5 credentials instantly.' },
             ].map((item) => (
               <div key={item.step} className="relative rounded-2xl border border-navy-700/50 bg-navy-900/50 p-8">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gold/10 text-2xl font-bold text-gold">

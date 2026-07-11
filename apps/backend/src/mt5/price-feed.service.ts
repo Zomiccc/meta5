@@ -253,7 +253,7 @@ export class PriceFeedService {
   private readonly currencyApiKey?: string;
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
-  private static readonly CACHE_TTL_MS = 2000;
+  private static readonly CACHE_TTL_MS = 800;
   // Tracks symbols whose current price comes from simulation (global or fallback)
   private readonly simulatedSymbols = new Set<string>();
   // Seed per symbol so simulated prices are consistent but jitter over time

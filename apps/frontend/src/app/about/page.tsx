@@ -11,7 +11,7 @@ export default function AboutPage() {
             About <span className="text-gold">FXONS</span>
           </h1>
           <p className="mt-6 text-lg text-white/70">
-            FXONS is a global multi-asset broker built to give traders worldwide a world-class platform. We combine deep market access, transparent pricing, and instant account setup to deliver a seamless trading experience on MetaTrader 5.
+            FXONS is a global multi-asset broker built to give traders worldwide a world-class platform. We combine deep market access, transparent pricing, and AI-powered KYC to deliver a seamless trading experience on MetaTrader 5.
           </p>
         </div>
       </section>
