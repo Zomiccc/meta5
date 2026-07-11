@@ -294,6 +294,30 @@ export class PriceFeedService {
     return results;
   }
 
+  async getHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
+    const cgId = COINGECKO_SYMBOL_MAP[symbol];
+    if (!cgId) return [];
+    try {
+      const url = `https://api.coingecko.com/api/v3/coins/${cgId}/ohlc?vs_currency=usd&days=${days}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) return [];
+      const data = await res.json() as any;
+      if (!Array.isArray(data)) return [];
+      return data
+        .filter((c) => Array.isArray(c) && c.length >= 5)
+        .map((c) => ({
+          time: Math.floor(c[0] / 1000),
+          open: Number(c[1]),
+          high: Number(c[2]),
+          low: Number(c[3]),
+          close: Number(c[4]),
+        }));
+    } catch (err: any) {
+      this.logger.debug(`CoinGecko history fetch failed for ${symbol}: ${err.message}`);
+      return [];
+    }
+  }
+
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
     if (this.isBinanceSymbol(symbol) || this.isCoinGeckoSymbol(symbol)) return false; // crypto is real via Binance/CoinGecko

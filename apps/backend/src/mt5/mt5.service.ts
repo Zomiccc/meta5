@@ -607,6 +607,10 @@ export class Mt5Service {
     return this.priceFeed.isAnySimulated();
   }
 
+  async getPriceHistory(symbol: string, days?: number) {
+    return this.priceFeed.getHistory(symbol, days);
+  }
+
   // ─── Bridge helpers ───
 
   // Sync local DB account with real MT5 server values

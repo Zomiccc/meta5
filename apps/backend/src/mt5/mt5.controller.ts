@@ -61,4 +61,10 @@ export class Mt5Controller {
   async priceConfig() {
     return { simulated: this.mt5Service.isAnyPriceSimulated() };
   }
+
+  @Get('history')
+  async getHistory(@Query('symbol') symbol: string, @Query('days') days?: string) {
+    const data = await this.mt5Service.getPriceHistory(symbol, days ? Number(days) : 1);
+    return { symbol, data };
+  }
 }

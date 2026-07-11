@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   createChart,
   ColorType,
@@ -10,6 +10,15 @@ import {
   UTCTimestamp,
   AreaSeries,
 } from 'lightweight-charts';
+import { api } from '../lib/api';
+
+interface HistoryPoint {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
 
 interface LiveChartProps {
   price: number;
@@ -22,6 +31,7 @@ export default function LiveChart({ price, symbol, height = 520 }: LiveChartProp
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
   const lastTimeRef = useRef<number>(Math.floor(Date.now() / 1000));
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -70,15 +80,30 @@ export default function LiveChart({ price, symbol, height = 520 }: LiveChartProp
     };
   }, [height]);
 
-  // Reset chart when symbol changes
+  // Load history when symbol changes
   useEffect(() => {
-    if (seriesRef.current) {
-      seriesRef.current.setData([]);
-      lastTimeRef.current = Math.floor(Date.now() / 1000);
-    }
+    setHistory([]);
+    if (seriesRef.current) seriesRef.current.setData([]);
+    lastTimeRef.current = Math.floor(Date.now() / 1000);
+    api.get(`/mt5/history?symbol=${encodeURIComponent(symbol)}`)
+      .then((res) => {
+        if (Array.isArray(res.data?.data)) {
+          setHistory(res.data.data);
+        }
+      })
+      .catch(() => setHistory([]));
   }, [symbol]);
 
-  // Update price
+  // Populate history into chart
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    if (history.length === 0) return;
+    const lineData: LineData[] = history.map((h) => ({ time: h.time as UTCTimestamp, value: h.close }));
+    seriesRef.current.setData(lineData);
+    lastTimeRef.current = history[history.length - 1].time;
+  }, [history]);
+
+  // Update live price
   useEffect(() => {
     if (!seriesRef.current || !price) return;
 
