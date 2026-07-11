@@ -604,7 +604,7 @@ export class Mt5Service {
   }
 
   isAnyPriceSimulated(): boolean {
-    return this.priceFeed.isSimulated('FX:EURUSD');
+    return this.priceFeed.isAnySimulated();
   }
 
   // ─── Bridge helpers ───

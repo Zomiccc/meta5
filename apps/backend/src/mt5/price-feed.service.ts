@@ -124,13 +124,17 @@ export class PriceFeedService {
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
   private static readonly CACHE_TTL_MS = 2000;
+  // Tracks symbols whose current price comes from simulation (global or fallback)
+  private readonly simulatedSymbols = new Set<string>();
   // Seed per symbol so simulated prices are consistent but jitter over time
   private readonly simulatedSeeds = new Map<string, number>();
+  private readonly simulateOnFailure: boolean;
 
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
     this.currencyApiKey = (this.configService.get<string>('CURRENCY_API_KEY') || '').trim() || undefined;
     this.simulatePrices = this.configService.get<string>('SIMULATE_PRICES') === 'true' || (!this.twelveDataApiKey && !this.currencyApiKey);
+    this.simulateOnFailure = this.configService.get<string>('SIMULATE_ON_FAILURE') !== 'false'; // default true
 
     if (this.twelveDataApiKey) this.logger.log('Twelve Data API configured');
     if (this.currencyApiKey) this.logger.log('CurrencyAPI configured');
@@ -165,8 +169,14 @@ export class PriceFeedService {
       price = await this.fetchCurrencyApiPrice(symbol);
     }
 
-    if (price === null && this.simulatePrices) {
+    if (price === null && (this.simulatePrices || this.simulateOnFailure)) {
       price = this.simulatePrice(symbol, basePrice || this.getBasePrice(symbol));
+      this.simulatedSymbols.add(symbol);
+      this.logger.debug(`Using simulated fallback for ${symbol}`);
+    } else if (price !== null && this.simulatePrices) {
+      this.simulatedSymbols.add(symbol);
+    } else {
+      this.simulatedSymbols.delete(symbol);
     }
 
     if (price !== null) {
@@ -243,9 +253,13 @@ export class PriceFeedService {
   }
 
   isSimulated(symbol: string): boolean {
-    if (!this.simulatePrices) return false;
+    if (this.simulatedSymbols.has(symbol)) return true;
     if (this.isBinanceSymbol(symbol)) return false; // crypto is real via Binance
-    return true;
+    return this.simulatePrices;
+  }
+
+  isAnySimulated(): boolean {
+    return this.simulatedSymbols.size > 0 || this.simulatePrices;
   }
 
   private async fetchBinancePrice(symbol: string): Promise<number | null> {
