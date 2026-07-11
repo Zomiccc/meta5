@@ -12,7 +12,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "clear:kyc": "ts-node scripts/clear-kyc.ts"
+    "clear:kyc": "ts-node scripts/clear-kyc.ts",
+    "delete:non-admin-users": "ts-node scripts/delete-non-admin-users.ts"
   },
   "dependencies": {
     "@broker/database": "*",

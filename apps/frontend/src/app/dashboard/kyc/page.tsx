@@ -160,9 +160,7 @@ export default function KycPage() {
               </p>
               {isPending && (
                 <p className="text-xs text-white/50">
-                  {kyc?.aiResponse
-                    ? 'AI review complete. Waiting for final admin approval.'
-                    : 'Your documents are being analyzed. This may take a few moments.'}
+                  KYC submitted. Will be approved in 1-2 business days.
                 </p>
               )}
               {isRejected && kyc.rejectionReason && (
