@@ -329,7 +329,7 @@ export default function TradePage() {
 
         {/* Chart */}
         <div className="lg:col-span-2">
-          <AdvancedChart symbol={active.symbol} height={520} />
+          <AdvancedChart key={active.symbol} symbol={active.symbol} interval="15" height={520} allowSymbolChange={false} />
         </div>
 
         {/* Order ticket */}
