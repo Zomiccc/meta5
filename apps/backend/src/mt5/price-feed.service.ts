@@ -338,47 +338,63 @@ export class PriceFeedService {
     }
 
     let price: number | null = null;
+    let source = 'none';
 
     if (this.isBinanceSymbol(symbol)) {
       price = await this.fetchBinancePrice(symbol);
+      if (price !== null) source = 'binance';
     }
 
     // Dedicated FX branch — multiple real-time sources in priority order
     if (price === null && symbol.startsWith('FX:')) {
       if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
         price = await this.fetchTwelveDataPrice(symbol);
+        if (price !== null) source = 'twelvedata';
       }
       if (price === null) {
         price = await this.fetchCoinbaseFxRate(symbol);
+        if (price !== null) source = 'coinbase-fx';
       }
       if (price === null) {
         price = await this.fetchYahooPrice(symbol);
+        if (price !== null) source = 'yahoo';
       }
       if (price === null) {
         price = await this.fetchOpenExchangeRatePrice(symbol);
+        if (price !== null) source = 'openexchange';
       }
       if (price === null && this.currencyApiKey) {
         price = await this.fetchCurrencyApiPrice(symbol);
+        if (price !== null) source = 'currencyapi';
       }
       if (price === null) {
         price = await this.fetchExchangeRateApiPrice(symbol);
+        if (price !== null) source = 'exchangerate-api';
       }
     }
 
     if (price === null && this.isCoinbaseSymbol(symbol)) {
       price = await this.fetchCoinbasePrice(symbol);
+      if (price !== null) source = 'coinbase';
     }
 
     if (price === null && this.isCryptoCompareSymbol(symbol)) {
       price = await this.fetchCryptoComparePrice(symbol);
+      if (price !== null) source = 'cryptocompare';
     }
 
     if (price === null && this.isCoinGeckoSymbol(symbol)) {
       price = await this.fetchCoinGeckoPrice(symbol);
+      if (price !== null) source = 'coingecko';
     }
 
     if (price === null && this.isYahooSymbol(symbol)) {
       price = await this.fetchYahooPrice(symbol);
+      if (price !== null) source = 'yahoo';
+    }
+
+    if (price !== null) {
+      this.logger.log(`Price ${symbol} = ${price} (source: ${source})`);
     }
 
     if (price === null) {
