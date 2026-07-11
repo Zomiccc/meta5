@@ -17,13 +17,13 @@ export interface KycAiResult {
 export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly apiKey: string | null;
-  private readonly model = 'gemini-2.0-flash';
+  private readonly model = 'gemini-1.5-flash';
   private readonly endpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY') || null;
     if (this.apiKey) {
-      this.logger.log('Gemini 2.0 Flash KYC verification ready');
+      this.logger.log('Gemini 1.5 Flash KYC verification ready');
     } else {
       this.logger.warn('GEMINI_API_KEY not set — KYC verification will fail');
     }
@@ -94,7 +94,7 @@ Rules:
       const url = `${this.endpoint}/${this.model}:generateContent?key=${this.apiKey}`;
       let res: Response | null = null;
       let lastErr = '';
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
         res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -104,8 +104,8 @@ Rules:
         if (res.ok) break;
         lastErr = await res.text();
         if (res.status === 429) {
-          this.logger.warn(`Gemini API rate limited (429), attempt ${attempt}/3. Retrying in 35s...`);
-          await new Promise((resolve) => setTimeout(resolve, 35000));
+          this.logger.warn(`Gemini API rate limited (429), attempt ${attempt}/2. Retrying in 15s...`);
+          await new Promise((resolve) => setTimeout(resolve, 15000));
           continue;
         }
         break;
