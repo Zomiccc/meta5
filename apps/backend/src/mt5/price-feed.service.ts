@@ -35,6 +35,40 @@ const BINANCE_SYMBOL_MAP: Record<string, string> = {
   'BITSTAMP:ETHUSD': 'ETHUSDT',
 };
 
+// CoinGecko fallback (global, free, no key) — ids for USD price
+const COINGECKO_SYMBOL_MAP: Record<string, string> = {
+  'BITSTAMP:BTCUSD': 'bitcoin',
+  'BITSTAMP:ETHUSD': 'ethereum',
+  'BINANCE:SOLUSDT': 'solana',
+  'BINANCE:XRPUSDT': 'ripple',
+  'BINANCE:BNBUSDT': 'binancecoin',
+  'BINANCE:DOGEUSDT': 'dogecoin',
+  'BINANCE:ADAUSDT': 'cardano',
+  'BINANCE:AVAXUSDT': 'avalanche-2',
+  'BINANCE:DOTUSDT': 'polkadot',
+  'BINANCE:MATICUSDT': 'matic-network',
+  'BINANCE:LINKUSDT': 'chainlink',
+  'BINANCE:LTCUSDT': 'litecoin',
+  'BINANCE:TRXUSDT': 'tron',
+  'BINANCE:BCHUSDT': 'bitcoin-cash',
+  'BINANCE:ATOMUSDT': 'cosmos',
+  'BINANCE:UNIUSDT': 'uniswap',
+  'BINANCE:XLMUSDT': 'stellar',
+  'BINANCE:ETCUSDT': 'ethereum-classic',
+  'BINANCE:FILUSDT': 'filecoin',
+  'BINANCE:APTUSDT': 'aptos',
+  'BINANCE:ARBUSDT': 'arbitrum',
+  'BINANCE:OPUSDT': 'optimism',
+  'BINANCE:NEARUSDT': 'near',
+  'BINANCE:INJUSDT': 'injective-protocol',
+  'BINANCE:SUIUSDT': 'sui',
+  'BINANCE:AAVEUSDT': 'aave',
+  'BINANCE:MKRUSDT': 'maker',
+  'BINANCE:SANDUSDT': 'the-sandbox',
+  'BINANCE:AXSUSDT': 'axie-infinity',
+  'BINANCE:GRTUSDT': 'the-graph',
+};
+
 // Map internal symbols to Twelve Data format
 const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'FX:EURUSD': 'EUR/USD',
@@ -149,6 +183,10 @@ export class PriceFeedService {
     return !!BINANCE_SYMBOL_MAP[symbol];
   }
 
+  private isCoinGeckoSymbol(symbol: string): boolean {
+    return !!COINGECKO_SYMBOL_MAP[symbol];
+  }
+
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
     const cached = this.priceCache.get(symbol);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
@@ -159,6 +197,10 @@ export class PriceFeedService {
 
     if (this.isBinanceSymbol(symbol)) {
       price = await this.fetchBinancePrice(symbol);
+    }
+
+    if (price === null && this.isCoinGeckoSymbol(symbol)) {
+      price = await this.fetchCoinGeckoPrice(symbol);
     }
 
     if (price === null && this.twelveDataApiKey) {
@@ -254,7 +296,7 @@ export class PriceFeedService {
 
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
-    if (this.isBinanceSymbol(symbol)) return false; // crypto is real via Binance
+    if (this.isBinanceSymbol(symbol) || this.isCoinGeckoSymbol(symbol)) return false; // crypto is real via Binance/CoinGecko
     return this.simulatePrices;
   }
 
@@ -276,6 +318,24 @@ export class PriceFeedService {
       return price;
     } catch (err: any) {
       this.logger.debug(`Binance price fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async fetchCoinGeckoPrice(symbol: string): Promise<number | null> {
+    const cgId = COINGECKO_SYMBOL_MAP[symbol];
+    if (!cgId) return null;
+
+    try {
+      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${cgId}&vs_currencies=usd`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const price = Number(data?.[cgId]?.usd);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`CoinGecko price fetch failed for ${symbol}: ${err.message}`);
       return null;
     }
   }
