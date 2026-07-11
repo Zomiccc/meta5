@@ -89,8 +89,11 @@ export class KycService {
         rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed';
       } else if (aiResult.approved && aiResult.confidence >= 0.8) {
         finalStatus = 'approved';
+      } else if (aiResult.approved && aiResult.confidence < 0.8) {
+        // Low confidence or fallback — keep pending for admin review
+        finalStatus = 'pending';
       } else {
-        // Low confidence or not approved — reject automatically, no admin review
+        // Not approved — reject automatically
         finalStatus = 'rejected';
         rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed - please upload clearer images';
       }
