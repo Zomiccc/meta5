@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DashboardShell from '../../../components/DashboardShell';
-import AdvancedChart from '../../../components/tradingview/AdvancedChart';
+import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api } from '../../../lib/api';
-import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
 
 interface Instrument {
   label: string;
@@ -278,29 +278,32 @@ export default function TradePage() {
 
       <div className="grid gap-6 lg:grid-cols-4">
         {/* Watchlist */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 flex flex-col rounded-2xl border border-navy-700/50 bg-navy-900/40 p-3">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-white/40">Instruments</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-white/40">Markets</h3>
               <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-bold text-green-400">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />LIVE
               </span>
             </div>
             <span className="text-xs text-white/30">{filtered.length}</span>
           </div>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search symbol..."
-            className="input-field mb-3 py-2 text-sm"
-          />
-          <div className="mb-3 flex flex-wrap gap-1.5">
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search pair / symbol..."
+              className="input-field w-full py-2 pl-9 pr-3 text-sm"
+            />
+          </div>
+          <div className="mb-3 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
             {CATEGORY_ORDER.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition ${
                   category === cat ? 'bg-gold text-navy-950' : 'bg-navy-800 text-white/60 hover:bg-navy-700 hover:text-white'
                 }`}
               >
@@ -308,19 +311,31 @@ export default function TradePage() {
               </button>
             ))}
           </div>
-          <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
-            {filtered.map((item) => (
-              <button
-                key={item.symbol}
-                onClick={() => setActive(item)}
-                className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition ${
-                  active.symbol === item.symbol ? 'border-gold/50 bg-gold/10' : 'border-navy-700/50 bg-navy-900/40 hover:border-navy-600'
-                }`}
-              >
-                <span className="font-medium text-white">{item.label}</span>
-                <span className="font-mono text-sm text-white/60">{livePrices[item.symbol]?.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5) ?? item.price}</span>
-              </button>
-            ))}
+          <div className="flex-1 space-y-1 overflow-y-auto pr-1" style={{ maxHeight: 520 }}>
+            {filtered.map((item) => {
+              const live = livePrices[item.symbol];
+              const up = live ? live >= item.price : false;
+              return (
+                <button
+                  key={item.symbol}
+                  onClick={() => setActive(item)}
+                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition ${
+                    active.symbol === item.symbol ? 'border-gold/50 bg-gold/10' : 'border-navy-700/50 bg-navy-900/40 hover:border-navy-600'
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium text-white">{item.label}</span>
+                    <span className="text-[10px] text-white/40">{item.symbol}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className={`font-mono text-sm ${up ? 'text-green-400' : 'text-red-400'}`}>
+                      {live?.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5) ?? item.price.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5)}
+                    </span>
+                    <span className={`ml-2 text-[10px] ${up ? 'text-green-400' : 'text-red-400'}`}>{up ? '▲' : '▼'}</span>
+                  </div>
+                </button>
+              );
+            })}
             {filtered.length === 0 && (
               <p className="py-6 text-center text-sm text-white/40">No instruments match your search.</p>
             )}
@@ -328,8 +343,19 @@ export default function TradePage() {
         </div>
 
         {/* Chart */}
-        <div className="lg:col-span-2">
-          <AdvancedChart key={active.symbol} symbol={active.symbol} interval="15" height={520} allowSymbolChange={false} />
+        <div className="lg:col-span-2 flex flex-col rounded-2xl border border-navy-700/50 bg-navy-900/40 p-1">
+          <div className="flex items-center justify-between border-b border-navy-700/50 px-4 py-2">
+            <div>
+              <span className="font-semibold text-white">{active.label}</span>
+              <span className={`ml-2 font-mono text-sm ${activeLivePrice >= active.price ? 'text-green-400' : 'text-red-400'}`}>
+                {activeLivePrice.toFixed(active.price > 1000 ? 2 : active.price > 10 ? 4 : 5)}
+              </span>
+            </div>
+            <span className="text-xs text-white/40">Live · same feed as watchlist</span>
+          </div>
+          <div className="flex-1" style={{ minHeight: 460 }}>
+            <LiveChart symbol={active.symbol} price={activeLivePrice} height={460} />
+          </div>
         </div>
 
         {/* Order ticket */}
