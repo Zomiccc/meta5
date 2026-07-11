@@ -92,16 +92,28 @@ Rules:
 
     try {
       const url = `${this.endpoint}/${this.model}:generateContent?key=${this.apiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(20000),
-      });
+      let res: Response | null = null;
+      let lastErr = '';
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(20000),
+        });
+        if (res.ok) break;
+        lastErr = await res.text();
+        if (res.status === 429) {
+          this.logger.warn(`Gemini API rate limited (429), attempt ${attempt}/3. Retrying in 35s...`);
+          await new Promise((resolve) => setTimeout(resolve, 35000));
+          continue;
+        }
+        break;
+      }
 
-      if (!res.ok) {
-        const errText = await res.text();
-        this.logger.error(`Gemini API error ${res.status}: ${errText}`);
+      if (!res || !res.ok) {
+        this.logger.error(`Gemini API error ${res?.status || 'unknown'}: ${lastErr}`);
+        const isQuota = lastErr.includes('RESOURCE_EXHAUSTED') || lastErr.includes('quota') || lastErr.includes('429');
         return {
           approved: false,
           hardFail: false,
@@ -110,8 +122,10 @@ Rules:
           expiryDate: null,
           faceMatch: false,
           confidence: 0,
-          flags: [`Gemini API error: ${res.status}`],
-          rejectionReason: 'Verification service temporarily unavailable',
+          flags: [`Gemini API error: ${res?.status || 'unknown'}${isQuota ? ' (quota exhausted)' : ''}`],
+          rejectionReason: isQuota
+            ? 'AI verification quota exhausted. Please check your Gemini billing/plan or try again later.'
+            : 'Verification service temporarily unavailable',
         };
       }
 
