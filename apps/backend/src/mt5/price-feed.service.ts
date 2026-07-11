@@ -360,6 +360,9 @@ export class PriceFeedService {
       if (price === null && this.currencyApiKey) {
         price = await this.fetchCurrencyApiPrice(symbol);
       }
+      if (price === null) {
+        price = await this.fetchExchangeRateApiPrice(symbol);
+      }
     }
 
     if (price === null && this.isCoinbaseSymbol(symbol)) {
@@ -591,7 +594,7 @@ export class PriceFeedService {
     if (this.isBinanceSymbol(symbol)) return 'binance';
     if (symbol.startsWith('FX:')) {
       if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
-      return 'coinbase-fx';
+      return 'openexchange';
     }
     if (this.isCoinbaseSymbol(symbol)) return 'coinbase';
     if (this.isCryptoCompareSymbol(symbol)) return 'cryptocompare';
@@ -650,7 +653,7 @@ export class PriceFeedService {
 
     try {
       const url = `https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
       const price = Number(data?.price);
@@ -691,7 +694,7 @@ export class PriceFeedService {
         Date.now() - this.coinbaseFxRates.timestamp > PriceFeedService.COINBASE_FX_CACHE_TTL_MS
       ) {
         const url = 'https://api.coinbase.com/v2/exchange-rates?currency=USD';
-        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
         if (!res.ok) return null;
         const data = await res.json() as any;
         const rates: Record<string, number> = data?.data?.rates || {};
@@ -708,13 +711,34 @@ export class PriceFeedService {
     }
   }
 
+  private async fetchExchangeRateApiPrice(symbol: string): Promise<number | null> {
+    const match = symbol.match(/^FX:([A-Z]{3})([A-Z]{3})$/);
+    if (!match) return null;
+    const [, base, quote] = match;
+
+    try {
+      const url = 'https://api.exchangerate-api.com/v4/latest/USD';
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const rates: Record<string, number> = data?.rates || {};
+      if (!rates[base] || !rates[quote] || rates[base] <= 0 || rates[quote] <= 0) return null;
+      const price = Number((rates[quote] / rates[base]).toFixed(5));
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`ExchangeRate API fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
   private async fetchCryptoComparePrice(symbol: string): Promise<number | null> {
     const fsym = CRYPTOCOMPARE_SYMBOL_MAP[symbol];
     if (!fsym) return null;
 
     try {
       const url = `https://min-api.cryptocompare.com/data/price?fsym=${fsym}&tsyms=USD`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
       const price = Number(data?.USD);
@@ -732,7 +756,7 @@ export class PriceFeedService {
 
     try {
       const url = `https://api.coingecko.com/api/v3/simple/price?ids=${cgId}&vs_currencies=usd`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
       const price = Number(data?.[cgId]?.usd);

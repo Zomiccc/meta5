@@ -18,7 +18,7 @@ export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly apiKey: string | null;
   private readonly model = 'gemini-1.5-flash-latest';
-  private readonly endpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
+  private readonly endpoint = 'https://generativelanguage.googleapis.com/v1/models';
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY') || null;
@@ -99,7 +99,7 @@ Rules:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(45000),
         });
         if (res.ok) break;
         lastErr = await res.text();
