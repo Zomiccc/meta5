@@ -35,6 +35,68 @@ const BINANCE_SYMBOL_MAP: Record<string, string> = {
   'BITSTAMP:ETHUSD': 'ETHUSDT',
 };
 
+// Coinbase spot fallback (free, no key) — format: BTC-USD
+const COINBASE_SYMBOL_MAP: Record<string, string> = {
+  'BITSTAMP:BTCUSD': 'BTC-USD',
+  'BITSTAMP:ETHUSD': 'ETH-USD',
+  'BINANCE:SOLUSDT': 'SOL-USD',
+  'BINANCE:XRPUSDT': 'XRP-USD',
+  'BINANCE:BNBUSDT': 'BNB-USD',
+  'BINANCE:ADAUSDT': 'ADA-USD',
+  'BINANCE:AVAXUSDT': 'AVAX-USD',
+  'BINANCE:DOTUSDT': 'DOT-USD',
+  'BINANCE:LINKUSDT': 'LINK-USD',
+  'BINANCE:LTCUSDT': 'LTC-USD',
+  'BINANCE:BCHUSDT': 'BCH-USD',
+  'BINANCE:ATOMUSDT': 'ATOM-USD',
+  'BINANCE:UNIUSDT': 'UNI-USD',
+  'BINANCE:XLMUSDT': 'XLM-USD',
+  'BINANCE:ETCUSDT': 'ETC-USD',
+  'BINANCE:FILUSDT': 'FIL-USD',
+  'BINANCE:APTUSDT': 'APT-USD',
+  'BINANCE:ARBUSDT': 'ARB-USD',
+  'BINANCE:OPUSDT': 'OP-USD',
+  'BINANCE:NEARUSDT': 'NEAR-USD',
+  'BINANCE:INJUSDT': 'INJ-USD',
+  'BINANCE:SUIUSDT': 'SUI-USD',
+  'BINANCE:AAVEUSDT': 'AAVE-USD',
+  'BINANCE:MKRUSDT': 'MKR-USD',
+};
+
+// CryptoCompare fallback (free, no key) — fsym for USD
+const CRYPTOCOMPARE_SYMBOL_MAP: Record<string, string> = {
+  'BITSTAMP:BTCUSD': 'BTC',
+  'BITSTAMP:ETHUSD': 'ETH',
+  'BINANCE:SOLUSDT': 'SOL',
+  'BINANCE:XRPUSDT': 'XRP',
+  'BINANCE:BNBUSDT': 'BNB',
+  'BINANCE:DOGEUSDT': 'DOGE',
+  'BINANCE:ADAUSDT': 'ADA',
+  'BINANCE:AVAXUSDT': 'AVAX',
+  'BINANCE:DOTUSDT': 'DOT',
+  'BINANCE:MATICUSDT': 'MATIC',
+  'BINANCE:LINKUSDT': 'LINK',
+  'BINANCE:LTCUSDT': 'LTC',
+  'BINANCE:TRXUSDT': 'TRX',
+  'BINANCE:BCHUSDT': 'BCH',
+  'BINANCE:ATOMUSDT': 'ATOM',
+  'BINANCE:UNIUSDT': 'UNI',
+  'BINANCE:XLMUSDT': 'XLM',
+  'BINANCE:ETCUSDT': 'ETC',
+  'BINANCE:FILUSDT': 'FIL',
+  'BINANCE:APTUSDT': 'APT',
+  'BINANCE:ARBUSDT': 'ARB',
+  'BINANCE:OPUSDT': 'OP',
+  'BINANCE:NEARUSDT': 'NEAR',
+  'BINANCE:INJUSDT': 'INJ',
+  'BINANCE:SUIUSDT': 'SUI',
+  'BINANCE:AAVEUSDT': 'AAVE',
+  'BINANCE:MKRUSDT': 'MKR',
+  'BINANCE:SANDUSDT': 'SAND',
+  'BINANCE:AXSUSDT': 'AXS',
+  'BINANCE:GRTUSDT': 'GRT',
+};
+
 // CoinGecko fallback (global, free, no key) — ids for USD price
 const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BITSTAMP:BTCUSD': 'bitcoin',
@@ -163,6 +225,9 @@ export class PriceFeedService {
   // Seed per symbol so simulated prices are consistent but jitter over time
   private readonly simulatedSeeds = new Map<string, number>();
   private readonly simulateOnFailure: boolean;
+  // Cache OHLC history for a few minutes to avoid hitting CoinGecko rate limits
+  private readonly historyCache = new Map<string, { data: { time: number; open: number; high: number; low: number; close: number }[]; timestamp: number }>();
+  private static readonly HISTORY_CACHE_TTL_MS = 5 * 60 * 1000;
 
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
@@ -183,6 +248,14 @@ export class PriceFeedService {
     return !!BINANCE_SYMBOL_MAP[symbol];
   }
 
+  private isCoinbaseSymbol(symbol: string): boolean {
+    return !!COINBASE_SYMBOL_MAP[symbol];
+  }
+
+  private isCryptoCompareSymbol(symbol: string): boolean {
+    return !!CRYPTOCOMPARE_SYMBOL_MAP[symbol];
+  }
+
   private isCoinGeckoSymbol(symbol: string): boolean {
     return !!COINGECKO_SYMBOL_MAP[symbol];
   }
@@ -197,6 +270,14 @@ export class PriceFeedService {
 
     if (this.isBinanceSymbol(symbol)) {
       price = await this.fetchBinancePrice(symbol);
+    }
+
+    if (price === null && this.isCoinbaseSymbol(symbol)) {
+      price = await this.fetchCoinbasePrice(symbol);
+    }
+
+    if (price === null && this.isCryptoCompareSymbol(symbol)) {
+      price = await this.fetchCryptoComparePrice(symbol);
     }
 
     if (price === null && this.isCoinGeckoSymbol(symbol)) {
@@ -295,6 +376,12 @@ export class PriceFeedService {
   }
 
   async getHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
+    const cacheKey = `${symbol}:${days}`;
+    const cached = this.historyCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < PriceFeedService.HISTORY_CACHE_TTL_MS) {
+      return cached.data;
+    }
+
     const cgId = COINGECKO_SYMBOL_MAP[symbol];
     if (!cgId) return [];
     try {
@@ -303,7 +390,7 @@ export class PriceFeedService {
       if (!res.ok) return [];
       const data = await res.json() as any;
       if (!Array.isArray(data)) return [];
-      return data
+      const parsed = data
         .filter((c) => Array.isArray(c) && c.length >= 5)
         .map((c) => ({
           time: Math.floor(c[0] / 1000),
@@ -312,6 +399,8 @@ export class PriceFeedService {
           low: Number(c[3]),
           close: Number(c[4]),
         }));
+      this.historyCache.set(cacheKey, { data: parsed, timestamp: Date.now() });
+      return parsed;
     } catch (err: any) {
       this.logger.debug(`CoinGecko history fetch failed for ${symbol}: ${err.message}`);
       return [];
@@ -319,7 +408,10 @@ export class PriceFeedService {
   }
 
   getPriceSource(symbol: string): string {
+    if (this.simulatedSymbols.has(symbol)) return 'simulated';
     if (this.isBinanceSymbol(symbol)) return 'binance';
+    if (this.isCoinbaseSymbol(symbol)) return 'coinbase';
+    if (this.isCryptoCompareSymbol(symbol)) return 'cryptocompare';
     if (this.isCoinGeckoSymbol(symbol)) return 'coingecko';
     if (TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
     return 'simulated';
@@ -327,7 +419,14 @@ export class PriceFeedService {
 
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
-    if (this.isBinanceSymbol(symbol) || this.isCoinGeckoSymbol(symbol)) return false; // crypto is real via Binance/CoinGecko
+    if (
+      this.isBinanceSymbol(symbol) ||
+      this.isCoinbaseSymbol(symbol) ||
+      this.isCryptoCompareSymbol(symbol) ||
+      this.isCoinGeckoSymbol(symbol)
+    ) {
+      return false; // crypto is real via one of the providers
+    }
     return this.simulatePrices;
   }
 
@@ -349,6 +448,42 @@ export class PriceFeedService {
       return price;
     } catch (err: any) {
       this.logger.debug(`Binance price fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async fetchCoinbasePrice(symbol: string): Promise<number | null> {
+    const cbSymbol = COINBASE_SYMBOL_MAP[symbol];
+    if (!cbSymbol) return null;
+
+    try {
+      const url = `https://api.coinbase.com/v2/prices/${cbSymbol}/spot`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const price = Number(data?.data?.amount);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`Coinbase price fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async fetchCryptoComparePrice(symbol: string): Promise<number | null> {
+    const fsym = CRYPTOCOMPARE_SYMBOL_MAP[symbol];
+    if (!fsym) return null;
+
+    try {
+      const url = `https://min-api.cryptocompare.com/data/price?fsym=${fsym}&tsyms=USD`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const price = Number(data?.USD);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`CryptoCompare price fetch failed for ${symbol}: ${err.message}`);
       return null;
     }
   }
