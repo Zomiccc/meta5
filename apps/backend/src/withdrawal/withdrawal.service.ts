@@ -51,6 +51,11 @@ export class WithdrawalService {
     const amount = Number(existing.amount);
     const destination = existing.clientWalletAddress || existing.walletAddress;
 
+    // Verify the client has a funded account before approving
+    const account = await this.prisma.mT5Account.findUnique({ where: { userId: existing.userId } });
+    if (!account) throw new BadRequestException('Client has no MT5 account');
+    if (Number(account.balance) < amount) throw new BadRequestException('Insufficient balance to approve withdrawal');
+
     let txHash: string | undefined;
     let bitgetTxId: string | undefined;
 
@@ -67,12 +72,17 @@ export class WithdrawalService {
       this.logger.warn(`Withdrawal ${id} approved manually (Bitget not configured).`);
     }
 
-    const withdrawal = await this.prisma.withdrawal.update({
-      where: { id },
-      data: { status: 'approved', txHash, bitgetTxId, processedAt: new Date() },
-    });
-
-    await this.mt5Service.debitAccount(withdrawal.userId, amount);
+    // Approve withdrawal and debit account atomically
+    const [withdrawal] = await this.prisma.$transaction([
+      this.prisma.withdrawal.update({
+        where: { id },
+        data: { status: 'approved', txHash, bitgetTxId, processedAt: new Date() },
+      }),
+      this.prisma.mT5Account.update({
+        where: { userId: existing.userId },
+        data: { balance: { decrement: amount }, equity: { decrement: amount } },
+      }),
+    ]);
 
     const user = await this.prisma.user.findUnique({ where: { id: withdrawal.userId } });
     if (user) {

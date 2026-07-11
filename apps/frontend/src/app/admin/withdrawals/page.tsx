@@ -6,6 +6,7 @@ import AdminShell from '../../../components/AdminShell';
 
 export default function AdminWithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const load = () => api.get('/admin/withdrawals').then((res) => setWithdrawals(res.data));
 
@@ -14,15 +15,29 @@ export default function AdminWithdrawalsPage() {
   }, []);
 
   const approve = async (id: string) => {
-    await api.post(`/admin/withdrawals/${id}/approve`);
-    load();
+    setLoadingId(id);
+    try {
+      await api.post(`/admin/withdrawals/${id}/approve`);
+      load();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to approve withdrawal');
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   const reject = async (id: string) => {
     const reason = prompt('Rejection reason');
     if (!reason) return;
-    await api.post(`/admin/withdrawals/${id}/reject`, { reason });
-    load();
+    setLoadingId(id);
+    try {
+      await api.post(`/admin/withdrawals/${id}/reject`, { reason });
+      load();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to reject withdrawal');
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   const isTxHash = (v?: string) => !!v && /^[0-9a-fA-F]{64}$/.test(v);
@@ -60,8 +75,20 @@ export default function AdminWithdrawalsPage() {
                 <td className="px-4 py-3">
                   {w.status === 'pending' && (
                     <div className="flex gap-2">
-                      <button onClick={() => approve(w.id)} className="rounded bg-green-600 px-3 py-1 text-xs font-bold text-white hover:bg-green-700">Approve</button>
-                      <button onClick={() => reject(w.id)} className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700">Reject</button>
+                      <button
+                        onClick={() => approve(w.id)}
+                        disabled={loadingId === w.id}
+                        className="rounded bg-green-600 px-3 py-1 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {loadingId === w.id ? '...' : 'Approve'}
+                      </button>
+                      <button
+                        onClick={() => reject(w.id)}
+                        disabled={loadingId === w.id}
+                        className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                      >
+                        Reject
+                      </button>
                     </div>
                   )}
                 </td>

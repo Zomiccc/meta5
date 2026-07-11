@@ -297,6 +297,10 @@ export class Mt5Service {
   }
 
   async debitAccount(userId: string, amount: number) {
+    const account = await this.prisma.mT5Account.findUnique({ where: { userId } });
+    if (!account) throw new BadRequestException('No MT5 account found for this user');
+    if (Number(account.balance) < amount) throw new BadRequestException('Insufficient balance');
+
     await this.prisma.mT5Account.update({
       where: { userId },
       data: { balance: { decrement: amount }, equity: { decrement: amount } },
