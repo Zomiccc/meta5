@@ -234,12 +234,6 @@ export default function TradePage() {
         )}
       </div>
 
-      {!hasMt5 && (
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-300">
-          <Info className="h-4 w-4" /> Complete KYC verification to receive your MT5 account and start trading.
-        </div>
-      )}
-
       {simulated && (
         <div className="mb-6 flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
           <Info className="h-4 w-4" /> Prices are simulated for demo. Set TWELVE_DATA_API_KEY or CURRENCY_API_KEY on the backend for real market data.

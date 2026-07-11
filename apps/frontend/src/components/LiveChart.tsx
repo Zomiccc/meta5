@@ -1,23 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import {
-  createChart,
-  ColorType,
-  IChartApi,
-  ISeriesApi,
-  LineData,
-  UTCTimestamp,
-  AreaSeries,
-} from 'lightweight-charts';
-import { api } from '../lib/api';
+import { useEffect, useRef } from 'react';
 
-interface HistoryPoint {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
+declare global {
+  interface Window {
+    TradingView?: {
+      widget: new (options: Record<string, unknown>) => {
+        remove: () => void;
+      };
+    };
+  }
 }
 
 interface LiveChartProps {
@@ -26,101 +18,84 @@ interface LiveChartProps {
   height?: number;
 }
 
-export default function LiveChart({ price, symbol, height = 520 }: LiveChartProps) {
+const EXCHANGE_TO_TRADINGVIEW: Record<string, string> = {
+  BINANCE: 'BINANCE',
+  FX: 'FX',
+  NASDAQ: 'NASDAQ',
+  NYSE: 'NYSE',
+  COMMODITY: 'COMEX',
+  INDEX: 'CAPITALCOM',
+};
+
+function toTradingViewSymbol(symbol: string): string {
+  // Already in TradingView format like BINANCE:BTCUSDT, FX:EURUSD
+  if (symbol.includes(':')) return symbol;
+  return symbol;
+}
+
+export default function LiveChart({ symbol, height = 520 }: LiveChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
-  const lastTimeRef = useRef<number>(Math.floor(Date.now() / 1000));
-  const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const widgetRef = useRef<{ remove: () => void } | null>(null);
+  const id = `tv-chart-${symbol.replace(/[^a-zA-Z0-9]/g, '-')}`;
 
   useEffect(() => {
     if (!containerRef.current) return;
-    if (chartRef.current) return;
+    if (typeof window === 'undefined') return;
 
-    const chart = createChart(containerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: 'rgba(11, 17, 32, 1)' },
-        textColor: 'rgba(255,255,255,0.6)',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255,255,255,0.06)' },
-        horzLines: { color: 'rgba(255,255,255,0.06)' },
-      },
-      crosshair: { mode: 0 },
-      rightPriceScale: {
-        borderColor: 'rgba(255,255,255,0.1)',
-      },
-      timeScale: {
-        borderColor: 'rgba(255,255,255,0.1)',
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      autoSize: true,
-    });
-
-    const series = chart.addSeries(AreaSeries, {
-      lineColor: '#22c55e',
-      topColor: 'rgba(34, 197, 94, 0.3)',
-      bottomColor: 'rgba(34, 197, 94, 0.01)',
-      lineWidth: 2,
-    });
-
-    chartRef.current = chart;
-    seriesRef.current = series;
-
-    const resize = () => chart.applyOptions({ width: containerRef.current?.clientWidth, height });
-    resize();
-    window.addEventListener('resize', resize);
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      chart.remove();
-      chartRef.current = null;
-      seriesRef.current = null;
+    const initWidget = () => {
+      if (!window.TradingView || !containerRef.current) return;
+      if (widgetRef.current) {
+        widgetRef.current.remove();
+        widgetRef.current = null;
+      }
+      containerRef.current.innerHTML = '';
+      widgetRef.current = new window.TradingView.widget({
+        container_id: id,
+        symbol: toTradingViewSymbol(symbol),
+        interval: '15',
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#0B1120',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        hide_side_toolbar: false,
+        withdateranges: true,
+        details: false,
+        hotlist: false,
+        calendar: false,
+        studies: [],
+        autosize: true,
+        height,
+      });
     };
-  }, [height]);
 
-  // Load history when symbol changes
-  useEffect(() => {
-    setHistory([]);
-    if (seriesRef.current) seriesRef.current.setData([]);
-    lastTimeRef.current = Math.floor(Date.now() / 1000);
-    api.get(`/mt5/history?symbol=${encodeURIComponent(symbol)}`)
-      .then((res) => {
-        if (Array.isArray(res.data?.data)) {
-          setHistory(res.data.data);
-        }
-      })
-      .catch(() => setHistory([]));
-  }, [symbol]);
-
-  // Populate history into chart
-  useEffect(() => {
-    if (!seriesRef.current) return;
-    if (history.length === 0) return;
-    const lineData: LineData[] = history.map((h) => ({ time: h.time as UTCTimestamp, value: h.close }));
-    seriesRef.current.setData(lineData);
-    lastTimeRef.current = history[history.length - 1].time;
-  }, [history]);
-
-  // Update live price
-  useEffect(() => {
-    if (!seriesRef.current || !price) return;
-
-    const now = Math.floor(Date.now() / 1000);
-    if (now <= lastTimeRef.current) {
-      lastTimeRef.current += 1;
+    const existingScript = document.getElementById('tradingview-widget-script') as HTMLScriptElement | null;
+    if (existingScript && existingScript.dataset.loaded === 'true') {
+      initWidget();
+    } else if (existingScript) {
+      existingScript.addEventListener('load', initWidget);
     } else {
-      lastTimeRef.current = now;
+      const script = document.createElement('script');
+      script.id = 'tradingview-widget-script';
+      script.src = 'https://s3.tradingview.com/tv.js';
+      script.async = true;
+      script.dataset.loaded = 'false';
+      script.onload = () => {
+        script.dataset.loaded = 'true';
+        initWidget();
+      };
+      document.body.appendChild(script);
     }
 
-    const data: LineData = {
-      time: lastTimeRef.current as UTCTimestamp,
-      value: price,
+    return () => {
+      if (widgetRef.current) {
+        widgetRef.current.remove();
+        widgetRef.current = null;
+      }
     };
+  }, [symbol, id, height]);
 
-    seriesRef.current.update(data);
-  }, [price]);
-
-  return <div ref={containerRef} className="h-full w-full" />;
+  return <div ref={containerRef} id={id} className="h-full w-full" />;
 }

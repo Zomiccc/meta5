@@ -23,7 +23,7 @@ export class EmailService {
   async sendWelcomeEmail(to: string, name: string) {
     return this.send(to, `Welcome to ${this.brand}`, this.wrap(
       'Welcome aboard',
-      `<p>Hi ${name},</p><p>Your ${this.brand} account has been created. Verify your email and complete KYC to start trading global markets.</p>`,
+      `<p>Hi ${name},</p><p>Your ${this.brand} account has been created. Verify your email and start trading global markets.</p>`,
     ));
   }
 
@@ -39,21 +39,6 @@ export class EmailService {
       this.logger.warn(`[EMAIL FALLBACK] Send failed; verification code for ${to}: ${code}`);
     }
     return result;
-  }
-
-  async sendKycApprovedEmail(to: string, name: string, mt5Login: string, mt5Password: string, server: string) {
-    return this.send(to, `${this.brand} — KYC Approved`, this.wrap(
-      'KYC Approved',
-      `<p>Hi ${name},</p><p>Your identity verification is complete. Your trading account is ready:</p>` +
-      `<p><b>Login:</b> ${mt5Login}<br/><b>Password:</b> ${mt5Password}<br/><b>Server:</b> ${server}</p>`,
-    ));
-  }
-
-  async sendKycRejectedEmail(to: string, name: string, reason: string) {
-    return this.send(to, `${this.brand} — KYC Update`, this.wrap(
-      'KYC Needs Attention',
-      `<p>Hi ${name},</p><p>We could not verify your documents. Reason: <b>${reason}</b></p><p>Please re-upload clear photos.</p>`,
-    ));
   }
 
   async sendDepositApprovedEmail(to: string, name: string, amount: number) {

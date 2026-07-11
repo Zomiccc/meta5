@@ -221,7 +221,7 @@ export class Mt5Service {
   // ─── Test funding (instant, no deposit record) ───
   async testFund(userId: string, amount: number) {
     const account = await this.prisma.mT5Account.findUnique({ where: { userId } });
-    if (!account) throw new BadRequestException('No MT5 account found. Complete KYC first.');
+    if (!account) throw new BadRequestException('No MT5 account found. Contact support to create your MT5 account.');
 
     await this.creditAccount(userId, amount);
 
@@ -239,7 +239,7 @@ export class Mt5Service {
   // ─── Open a new trade ───
   async openTrade(userId: string, symbol: string, type: 'BUY' | 'SELL', volume: number) {
     const account = await this.prisma.mT5Account.findUnique({ where: { userId } });
-    if (!account) throw new BadRequestException('No MT5 account. Complete KYC first.');
+    if (!account) throw new BadRequestException('No MT5 account. Contact support to create your MT5 account.');
 
     const instrument = INSTRUMENTS[symbol];
     if (!instrument) throw new BadRequestException('Unsupported symbol: ' + symbol);

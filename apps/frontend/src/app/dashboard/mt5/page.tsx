@@ -77,7 +77,7 @@ export default function Mt5Page() {
               <Monitor className="h-8 w-8 text-white/30" />
             </div>
             <h3 className="text-lg font-semibold text-white">No MT5 Account</h3>
-            <p className="mt-2 text-sm text-white/50">Complete KYC verification to receive your MT5 account credentials.</p>
+            <p className="mt-2 text-sm text-white/50">Your MT5 account will be provisioned shortly. Contact support if it is not available.</p>
           </div>
         )}
       </div>

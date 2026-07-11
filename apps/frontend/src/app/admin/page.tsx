@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 import AdminShell from '../../components/AdminShell';
-import { Users, DollarSign, ArrowUpCircle, FileText, Activity, Loader2 } from 'lucide-react';
+import { Users, DollarSign, ArrowUpCircle, Activity, Loader2 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<any>(null);
@@ -37,7 +37,6 @@ export default function AdminDashboardPage() {
     { label: 'Total Clients', value: stats?.totalClients || 0, icon: Users },
     { label: 'Total Deposits', value: `$${stats?.totalDeposits || 0}`, icon: DollarSign },
     { label: 'Total Withdrawals', value: `$${stats?.totalWithdrawals || 0}`, icon: ArrowUpCircle },
-    { label: 'Pending KYC', value: stats?.pendingKYC || 0, icon: FileText },
     { label: 'Open Trades', value: stats?.openTrades || 0, icon: Activity },
   ];
 

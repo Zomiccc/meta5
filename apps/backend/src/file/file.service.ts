@@ -27,43 +27,11 @@ export class FileService {
         region: 'auto',
         signatureVersion: 'v4',
       });
-      this.bucket = this.configService.get('R2_BUCKET') || 'broker-kyc';
+      this.bucket = this.configService.get('R2_BUCKET') || 'broker-uploads';
     } else {
       this.logger.warn('R2 not configured (or placeholder values); files will be stored locally');
       this.bucket = 'local';
     }
-  }
-
-  async uploadKycImage(file: Express.Multer.File, userId: string, type: string) {
-    if (!file.mimetype.match(/image\/(jpeg|png|webp)/)) {
-      throw new BadRequestException('Only JPG, PNG and WEBP images are allowed');
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      throw new BadRequestException('Max file size is 10MB');
-    }
-
-    const key = `kyc/${userId}/${type}-${Date.now()}.${file.mimetype.split('/')[1]}`;
-
-    if (this.s3) {
-      try {
-        await this.s3
-          .putObject({
-            Bucket: this.bucket,
-            Key: key,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-          })
-          .promise();
-        return { key, url: this.getSignedUrl(key) };
-      } catch (error) {
-        this.logger.warn(`R2 upload failed (${(error as Error).message}); storing locally`);
-      }
-    }
-
-    const localPath = path.join(this.uploadDir, key);
-    await fs.promises.mkdir(path.dirname(localPath), { recursive: true });
-    await fs.promises.writeFile(localPath, file.buffer);
-    return { key, url: `/uploads/${key}` };
   }
 
   getSignedUrl(key: string, expires = 3600) {

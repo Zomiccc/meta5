@@ -144,7 +144,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       omit: { password: true },
-      include: { mt5Account: true, kyc: true, affiliate: true },
+      include: { mt5Account: true, affiliate: true },
     });
     if (!user) throw new UnauthorizedException('User not found');
     return user;

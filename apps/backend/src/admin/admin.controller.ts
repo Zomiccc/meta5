@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -18,36 +18,6 @@ export class AdminController {
   @Get('clients')
   async clients() {
     return this.adminService.getClients();
-  }
-
-  @Get('kyc/pending')
-  async pendingKyc() {
-    return this.adminService.getPendingKyc();
-  }
-
-  @Get('kyc')
-  async allKyc(@Query('status') status: string) {
-    return this.adminService.getAllKyc(status);
-  }
-
-  @Post('kyc/:id/approve')
-  async approveKyc(@Param('id') id: string) {
-    return this.adminService.approveKyc(id);
-  }
-
-  @Post('kyc/:id/reject')
-  async rejectKyc(@Param('id') id: string, @Body('reason') reason: string) {
-    return this.adminService.rejectKyc(id, reason);
-  }
-
-  @Post('kyc/:id/reset')
-  async resetKyc(@Param('id') id: string) {
-    return this.adminService.resetKyc(id);
-  }
-
-  @Delete('kyc')
-  async deleteAllKyc() {
-    return this.adminService.deleteAllKyc();
   }
 
   @Get('deposits')
