@@ -273,6 +273,7 @@ export class PriceFeedService {
   private readonly logger = new Logger(PriceFeedService.name);
   private readonly twelveDataApiKey?: string;
   private readonly currencyApiKey?: string;
+  private readonly priceProxyUrl?: string;
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
   private static readonly CACHE_TTL_MS = 800;
@@ -294,6 +295,7 @@ export class PriceFeedService {
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
     this.currencyApiKey = (this.configService.get<string>('CURRENCY_API_KEY') || '').trim() || undefined;
+    this.priceProxyUrl = (this.configService.get<string>('PRICE_PROXY_URL') || '').trim() || undefined;
     this.simulatePrices = this.configService.get<string>('SIMULATE_PRICES') === 'true';
     this.simulateOnFailure = this.configService.get<string>('SIMULATE_ON_FAILURE') === 'true';
 
@@ -481,12 +483,46 @@ export class PriceFeedService {
 
   async getPrices(symbols: string[], basePrices: Record<string, number> = {}): Promise<Record<string, number>> {
     const results: Record<string, number> = {};
-    const promises = symbols.map(async (symbol) => {
+
+    if (this.priceProxyUrl && symbols.length > 0) {
+      try {
+        const proxyResults = await this.fetchFromProxy(symbols);
+        Object.assign(results, proxyResults);
+      } catch (err: any) {
+        this.logger.warn(`Price proxy failed: ${err.message}`);
+      }
+    }
+
+    const remaining = symbols.filter((s) => results[s] === undefined);
+    const promises = remaining.map(async (symbol) => {
       const price = await this.getPrice(symbol, basePrices[symbol] || this.getBasePrice(symbol));
       if (price !== null) results[symbol] = price;
     });
     await Promise.all(promises);
     return results;
+  }
+
+  private async fetchFromProxy(symbols: string[]): Promise<Record<string, number>> {
+    const url = `${this.priceProxyUrl}/prices`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbols }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
+    const data = await res.json() as any;
+    const map: Record<string, number> = {};
+    for (const [symbol, info] of Object.entries(data?.prices || {})) {
+      const p = (info as any)?.price;
+      if (typeof p === 'number' && p > 0) {
+        map[symbol] = p;
+        this.priceCache.set(symbol, { price: p, timestamp: Date.now() });
+        this.lastKnownPrice.set(symbol, { price: p, timestamp: Date.now() });
+      }
+    }
+    this.logger.log(`Proxy returned ${Object.keys(map).length}/${symbols.length} prices`);
+    return map;
   }
 
   async getHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
