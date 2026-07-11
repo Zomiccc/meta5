@@ -1,0 +1,6 @@
+name = "meta5-price-proxy"
+main = "price-proxy.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Add TWELVE_DATA_API_KEY here or via Cloudflare dashboard secrets
