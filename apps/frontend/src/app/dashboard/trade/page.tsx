@@ -336,10 +336,10 @@ export default function TradePage() {
                     <span className="text-[10px] text-white/40">{item.symbol}</span>
                   </div>
                   <div className="text-right">
-                    <span className={`font-mono text-sm ${up ? 'text-green-400' : 'text-red-400'}`}>
-                      {live?.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5) ?? item.price.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5)}
+                    <span className={`font-mono text-sm ${live ? (up ? 'text-green-400' : 'text-red-400') : 'text-white/30'}`}>
+                      {live ? live.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5) : '—'}
                     </span>
-                    <span className={`ml-2 text-[10px] ${up ? 'text-green-400' : 'text-red-400'}`}>{up ? '▲' : '▼'}</span>
+                    {live && <span className={`ml-2 text-[10px] ${up ? 'text-green-400' : 'text-red-400'}`}>{up ? '▲' : '▼'}</span>}
                   </div>
                 </button>
               );
@@ -355,8 +355,8 @@ export default function TradePage() {
           <div className="flex items-center justify-between border-b border-navy-700/50 px-4 py-2">
             <div>
               <span className="font-semibold text-white">{active.label}</span>
-              <span className={`ml-2 font-mono text-sm ${activeLivePrice >= active.price ? 'text-green-400' : 'text-red-400'}`}>
-                {activeLivePrice.toFixed(active.price > 1000 ? 2 : active.price > 10 ? 4 : 5)}
+              <span className={`ml-2 font-mono text-sm ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-green-400' : 'text-red-400') : 'text-white/30'}`}>
+                {livePrices[active.symbol] ? activeLivePrice.toFixed(active.price > 1000 ? 2 : active.price > 10 ? 4 : 5) : '—'}
               </span>
             </div>
             <div className="flex items-center gap-2">

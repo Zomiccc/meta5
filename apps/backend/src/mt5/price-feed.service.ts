@@ -232,12 +232,13 @@ export class PriceFeedService {
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
     this.currencyApiKey = (this.configService.get<string>('CURRENCY_API_KEY') || '').trim() || undefined;
-    this.simulatePrices = this.configService.get<string>('SIMULATE_PRICES') === 'true' || (!this.twelveDataApiKey && !this.currencyApiKey);
-    this.simulateOnFailure = this.configService.get<string>('SIMULATE_ON_FAILURE') !== 'false'; // default true
+    this.simulatePrices = this.configService.get<string>('SIMULATE_PRICES') === 'true';
+    this.simulateOnFailure = this.configService.get<string>('SIMULATE_ON_FAILURE') === 'true';
 
     if (this.twelveDataApiKey) this.logger.log('Twelve Data API configured');
     if (this.currencyApiKey) this.logger.log('CurrencyAPI configured');
-    if (this.simulatePrices) this.logger.warn('No real-time forex API key set — using simulated prices. Set TWELVE_DATA_API_KEY or CURRENCY_API_KEY for real prices.');
+    if (this.simulatePrices) this.logger.warn('SIMULATE_PRICES=true — prices are simulated.');
+    if (this.simulateOnFailure) this.logger.warn('SIMULATE_ON_FAILURE=true — prices will be simulated when real APIs fail.');
   }
 
   isConfigured(): boolean {
