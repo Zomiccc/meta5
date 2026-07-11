@@ -10,21 +10,21 @@ export function useAuth() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    api
-      .get('/auth/me')
-      .then((res) => {
-        setUser(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
+    // Try to restore session from HttpOnly cookie via /auth/me.
+    // The global axios interceptor will auto-refresh expired access tokens.
+    const restore = async () => {
+      try {
+        const me = await api.get('/auth/me');
+        setUser(me.data);
+      } catch {
         localStorage.removeItem('accessToken');
         router.push('/login');
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    restore();
   }, [router]);
 
   return { user, loading };

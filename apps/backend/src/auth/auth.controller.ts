@@ -86,16 +86,19 @@ export class AuthController {
 
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     const isProd = process.env.NODE_ENV === 'production';
+    // SameSite=None is required for cross-domain auth (frontend on Vercel, backend on Render)
+    const sameSite = isProd ? 'none' : 'lax';
+    const secure = isProd || sameSite === 'none';
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      secure,
+      sameSite,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      secure,
+      sameSite,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }

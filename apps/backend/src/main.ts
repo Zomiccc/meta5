@@ -58,7 +58,14 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT') || 3001;
   await app.listen(port, '0.0.0.0');
+
+  const twelveKey = configService.get<string>('TWELVE_DATA_API_KEY');
+  const currencyKey = configService.get<string>('CURRENCY_API_KEY');
+  const geminiKey = configService.get<string>('GEMINI_API_KEY');
+  const simPrices = configService.get<string>('SIMULATE_PRICES');
   console.log(`Backend running on http://localhost:${port}/api`);
+  console.log(`Price feeds: TWELVE=${!!twelveKey} CURRENCY=${!!currencyKey} SIMULATE=${simPrices}`);
+  console.log(`Gemini KYC: ${!!geminiKey}`);
 }
 
 bootstrap();
