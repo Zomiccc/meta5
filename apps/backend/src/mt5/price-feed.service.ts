@@ -131,6 +131,28 @@ const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:GRTUSDT': 'the-graph',
 };
 
+// Map internal symbols to Yahoo Finance format (fallback for stocks)
+const YAHOO_SYMBOL_MAP: Record<string, string> = {
+  'NASDAQ:AAPL': 'AAPL',
+  'NASDAQ:TSLA': 'TSLA',
+  'NASDAQ:NVDA': 'NVDA',
+  'NASDAQ:AMZN': 'AMZN',
+  'NASDAQ:MSFT': 'MSFT',
+  'NASDAQ:META': 'META',
+  'NASDAQ:GOOGL': 'GOOGL',
+  'NASDAQ:NFLX': 'NFLX',
+  'NASDAQ:AMD': 'AMD',
+  'NASDAQ:INTC': 'INTC',
+  'NASDAQ:ADBE': 'ADBE',
+  'NASDAQ:PYPL': 'PYPL',
+  'NASDAQ:PLTR': 'PLTR',
+  'NYSE:BABA': 'BABA',
+  'NYSE:DIS': 'DIS',
+  'NYSE:KO': 'KO',
+  'NYSE:JPM': 'JPM',
+  'NYSE:V': 'V',
+};
+
 // Map internal symbols to Twelve Data format
 const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'FX:EURUSD': 'EUR/USD',
@@ -261,6 +283,10 @@ export class PriceFeedService {
     return !!COINGECKO_SYMBOL_MAP[symbol];
   }
 
+  private isYahooSymbol(symbol: string): boolean {
+    return !!YAHOO_SYMBOL_MAP[symbol];
+  }
+
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
     const cached = this.priceCache.get(symbol);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
@@ -287,6 +313,10 @@ export class PriceFeedService {
 
     if (price === null && this.twelveDataApiKey) {
       price = await this.fetchTwelveDataPrice(symbol);
+    }
+
+    if (price === null && this.isYahooSymbol(symbol)) {
+      price = await this.fetchYahooPrice(symbol);
     }
 
     if (price === null && this.currencyApiKey) {
@@ -415,6 +445,7 @@ export class PriceFeedService {
     if (this.isCryptoCompareSymbol(symbol)) return 'cryptocompare';
     if (this.isCoinGeckoSymbol(symbol)) return 'coingecko';
     if (TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
+    if (this.isYahooSymbol(symbol)) return 'yahoo';
     return 'simulated';
   }
 
@@ -424,9 +455,10 @@ export class PriceFeedService {
       this.isBinanceSymbol(symbol) ||
       this.isCoinbaseSymbol(symbol) ||
       this.isCryptoCompareSymbol(symbol) ||
-      this.isCoinGeckoSymbol(symbol)
+      this.isCoinGeckoSymbol(symbol) ||
+      this.isYahooSymbol(symbol)
     ) {
-      return false; // crypto is real via one of the providers
+      return false; // real provider available
     }
     return this.simulatePrices;
   }
@@ -507,13 +539,31 @@ export class PriceFeedService {
     }
   }
 
+  private async fetchYahooPrice(symbol: string): Promise<number | null> {
+    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol];
+    if (!yahooSymbol) return null;
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const price = Number(data?.chart?.result?.[0]?.meta?.regularMarketPrice);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`Yahoo price fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
   private async fetchTwelveDataPrice(symbol: string): Promise<number | null> {
     const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
     if (!tdSymbol) return null;
 
     try {
       const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(tdSymbol)}&apikey=${this.twelveDataApiKey}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
       if (data?.status === 'error') {
