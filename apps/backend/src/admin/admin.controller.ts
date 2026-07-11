@@ -20,6 +20,11 @@ export class AdminController {
     return this.adminService.getClients();
   }
 
+  @Delete('clients')
+  async deleteAllClients() {
+    return this.adminService.deleteAllNonAdminUsers();
+  }
+
   @Get('kyc/pending')
   async pendingKyc() {
     return this.adminService.getPendingKyc();

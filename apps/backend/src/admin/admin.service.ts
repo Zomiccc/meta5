@@ -54,6 +54,28 @@ export class AdminService {
     });
   }
 
+  async deleteAllNonAdminUsers() {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'admin' },
+      select: { id: true, email: true },
+    });
+
+    await this.prisma.user.updateMany({
+      where: { role: { not: 'admin' } },
+      data: { referredBy: null },
+    });
+
+    const trades = await this.prisma.openTrade.deleteMany({
+      where: { userId: { notIn: admins.map((a) => a.id) } },
+    });
+
+    const users = await this.prisma.user.deleteMany({
+      where: { role: { not: 'admin' } },
+    });
+
+    return { deletedUsers: users.count, deletedTrades: trades.count, keptAdmins: admins.length };
+  }
+
   async getPendingKyc() {
     const items = await this.prisma.kYC.findMany({
       where: { status: 'pending' },
