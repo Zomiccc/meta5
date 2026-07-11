@@ -104,6 +104,7 @@ export class KycService {
     }
 
     // Update KYC record with result
+    this.logger.log(`KYC final status for ${userId}: ${finalStatus}`);
     await this.prisma.kYC.update({
       where: { userId },
       data: {
@@ -162,5 +163,11 @@ export class KycService {
       cnicBackUrl: kyc.cnicBackUrl ? this.fileService.getSignedUrl(kyc.cnicBackUrl) : null,
       selfieUrl: kyc.selfieUrl ? this.fileService.getSignedUrl(kyc.selfieUrl) : null,
     };
+  }
+
+  async resetMyKyc(userId: string) {
+    const result = await this.prisma.kYC.deleteMany({ where: { userId } });
+    this.logger.log(`User ${userId} reset their KYC (${result.count} record deleted)`);
+    return { deleted: result.count };
   }
 }

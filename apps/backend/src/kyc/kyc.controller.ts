@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, Get, Post, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { KycService } from './kyc.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -36,5 +36,10 @@ export class KycController {
       cnicBack: files.cnicBack?.[0],
       selfie: files.selfie?.[0],
     });
+  }
+
+  @Delete('reset')
+  async reset(@CurrentUser() user: any) {
+    return this.kycService.resetMyKyc(user.userId);
   }
 }
