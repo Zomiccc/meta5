@@ -17,13 +17,13 @@ export interface KycAiResult {
 export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly apiKey: string | null;
-  private readonly model = 'gemini-1.5-flash-latest';
+  private readonly model = 'gemini-2.0-flash';
   private readonly endpoint = 'https://generativelanguage.googleapis.com/v1/models';
 
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY') || null;
     if (this.apiKey) {
-      this.logger.log('Gemini 1.5 Flash KYC verification ready');
+      this.logger.log('Gemini 2.0 Flash KYC verification ready');
     } else {
       this.logger.warn('GEMINI_API_KEY not set — KYC verification will fail');
     }
