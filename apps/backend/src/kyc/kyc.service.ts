@@ -89,13 +89,10 @@ export class KycService {
         rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed';
       } else if (aiResult.approved && aiResult.confidence >= 0.8) {
         finalStatus = 'approved';
-      } else if (!aiResult.approved && aiResult.confidence >= 0.6) {
-        finalStatus = 'rejected';
-        rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed';
       } else {
-        // Uncertain — keep pending for admin review
-        finalStatus = 'pending';
-        this.logger.log(`KYC ${userId} kept pending for admin review (confidence=${aiResult.confidence})`);
+        // Low confidence or not approved — reject automatically, no admin review
+        finalStatus = 'rejected';
+        rejectionReason = aiResult.rejectionReason || aiResult.flags.join(' ') || 'Document verification failed - please upload clearer images';
       }
     } catch (err: any) {
       this.logger.error(`Gemini verification error for ${userId}: ${err.message}`);
