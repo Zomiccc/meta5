@@ -125,6 +125,11 @@ export class AdminService {
     return this.withKycUrls(kyc);
   }
 
+  async deleteAllKyc() {
+    const result = await this.prisma.kYC.deleteMany({});
+    return { deleted: result.count };
+  }
+
   async approveDeposit(id: string) {
     const deposit = await this.depositService.approveDeposit(id);
     const user = await this.prisma.user.findUnique({ where: { id: deposit.userId } });

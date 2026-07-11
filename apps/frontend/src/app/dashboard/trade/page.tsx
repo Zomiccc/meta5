@@ -93,7 +93,7 @@ export default function TradePage() {
       .catch(() => setPriceSource(''));
   }, [active.symbol]);
 
-  // Poll live prices for all instruments every 2 seconds
+  // Poll live prices for all instruments every 5 seconds
   useEffect(() => {
     if (instruments.length === 0) return;
     const fetchPrices = () => {
@@ -103,7 +103,7 @@ export default function TradePage() {
         .catch(() => undefined);
     };
     fetchPrices();
-    const interval = setInterval(fetchPrices, 2000);
+    const interval = setInterval(fetchPrices, 5000);
     return () => clearInterval(interval);
   }, [instruments]);
 

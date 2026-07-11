@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
-import { RotateCcw, Check, X, Loader2, Eye, AlertTriangle } from 'lucide-react';
+import { RotateCcw, Check, X, Loader2, Eye, AlertTriangle, Trash2 } from 'lucide-react';
 
 export default function AdminKycPage() {
   const [kycs, setKycs] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [resettingId, setResettingId] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -49,6 +50,19 @@ export default function AdminKycPage() {
     }
   };
 
+  const deleteAll = async () => {
+    if (!confirm('WARNING: This will permanently delete ALL KYC records. Are you sure?')) return;
+    setDeletingAll(true);
+    try {
+      await api.delete('/admin/kyc');
+      load();
+    } catch {
+      alert('Failed to delete all KYC');
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
   const statusColors: Record<string, string> = {
     pending: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     approved: 'bg-green-500/10 text-green-400 border-green-500/20',
@@ -66,7 +80,7 @@ export default function AdminKycPage() {
     <AdminShell>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">KYC Management</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {['all', 'pending', 'approved', 'rejected'].map((s) => (
             <button
               key={s}
@@ -78,6 +92,14 @@ export default function AdminKycPage() {
               {s}
             </button>
           ))}
+          <button
+            onClick={deleteAll}
+            disabled={deletingAll}
+            className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+          >
+            {deletingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+            Delete all
+          </button>
         </div>
       </div>
 

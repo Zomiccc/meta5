@@ -250,6 +250,9 @@ export class PriceFeedService {
   // Cache OHLC history for a few minutes to avoid hitting CoinGecko rate limits
   private readonly historyCache = new Map<string, { data: { time: number; open: number; high: number; low: number; close: number }[]; timestamp: number }>();
   private static readonly HISTORY_CACHE_TTL_MS = 5 * 60 * 1000;
+  // Keep the last known real price so we can return it when live APIs fail instead of going blank
+  private readonly lastKnownPrice = new Map<string, { price: number; timestamp: number }>();
+  private static readonly LAST_KNOWN_TTL_MS = 30 * 60 * 1000;
 
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
@@ -323,6 +326,14 @@ export class PriceFeedService {
       price = await this.fetchCurrencyApiPrice(symbol);
     }
 
+    if (price === null) {
+      const lastKnown = this.lastKnownPrice.get(symbol);
+      if (lastKnown && Date.now() - lastKnown.timestamp < PriceFeedService.LAST_KNOWN_TTL_MS) {
+        price = lastKnown.price;
+        this.logger.debug(`Using last known price for ${symbol}: ${price}`);
+      }
+    }
+
     if (price === null && (this.simulatePrices || this.simulateOnFailure)) {
       price = this.simulatePrice(symbol, basePrice || this.getBasePrice(symbol));
       this.simulatedSymbols.add(symbol);
@@ -335,6 +346,7 @@ export class PriceFeedService {
 
     if (price !== null) {
       this.priceCache.set(symbol, { price, timestamp: Date.now() });
+      this.lastKnownPrice.set(symbol, { price, timestamp: Date.now() });
     }
 
     return price;
