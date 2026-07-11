@@ -22,6 +22,9 @@ export class VisionService {
   private readonly openai: OpenAI | null;
   private readonly openRouterKey: string | null;
   private readonly openRouterModel: string;
+  private readonly cloudflareAccountId: string | null;
+  private readonly cloudflareApiToken: string | null;
+  private readonly cloudflareModel: string;
   private readonly autoApproveOnQuota: boolean;
   private readonly endpoint = 'https://generativelanguage.googleapis.com/v1/models';
 
@@ -32,12 +35,16 @@ export class VisionService {
     this.openai = openaiKey ? new OpenAI({ apiKey: openaiKey }) : null;
     this.openRouterKey = this.configService.get<string>('OPENROUTER_API_KEY') || null;
     this.openRouterModel = this.configService.get<string>('OPENROUTER_MODEL') || 'openrouter/free';
+    this.cloudflareAccountId = this.configService.get<string>('CLOUDFLARE_ACCOUNT_ID') || null;
+    this.cloudflareApiToken = this.configService.get<string>('CLOUDFLARE_API_TOKEN') || null;
+    this.cloudflareModel = this.configService.get<string>('CLOUDFLARE_AI_MODEL') || '@cf/meta/llama-3.2-11b-vision-instruct';
     this.autoApproveOnQuota = this.configService.get<string>('AUTO_APPROVE_KYC_ON_QUOTA') === 'true';
     if (this.openai) this.logger.log('OpenAI GPT-4o Vision KYC verifier ready');
     if (this.openRouterKey) this.logger.log(`OpenRouter KYC verifier ready (model: ${this.openRouterModel})`);
+    if (this.cloudflareAccountId && this.cloudflareApiToken) this.logger.log(`Cloudflare Workers AI KYC verifier ready (model: ${this.cloudflareModel})`);
     if (this.geminiKey) this.logger.log(`Gemini KYC using model: ${this.geminiModel}`);
-    if (!this.openai && !this.openRouterKey && !this.geminiKey) {
-      this.logger.warn('No KYC AI key configured (OPENAI_API_KEY, OPENROUTER_API_KEY, or GEMINI_API_KEY)');
+    if (!this.openai && !this.openRouterKey && !(this.cloudflareAccountId && this.cloudflareApiToken) && !this.geminiKey) {
+      this.logger.warn('No KYC AI key configured (OPENAI_API_KEY, OPENROUTER_API_KEY, CLOUDFLARE_ACCOUNT_ID+TOKEN, or GEMINI_API_KEY)');
     }
     if (this.autoApproveOnQuota) {
       this.logger.warn('AUTO_APPROVE_KYC_ON_QUOTA=true — KYC will auto-approve if all AI providers fail');
@@ -51,6 +58,10 @@ export class VisionService {
     }
     if (this.openai) {
       const res = await this.verifyWithOpenAI(frontBuf, selfieBuf);
+      if (!this.isQuotaError(res)) return res;
+    }
+    if (this.cloudflareAccountId && this.cloudflareApiToken) {
+      const res = await this.verifyWithCloudflare(frontBuf, selfieBuf);
       if (!this.isQuotaError(res)) return res;
     }
     if (this.geminiKey) {
@@ -312,6 +323,138 @@ Rules:
       flags: [`OpenRouter error: ${lastErr}`],
       rejectionReason: 'Verification service temporarily unavailable',
     };
+  }
+
+  private async verifyWithCloudflare(frontBuf: Buffer, selfieBuf: Buffer): Promise<KycAiResult> {
+    if (!this.cloudflareAccountId || !this.cloudflareApiToken) {
+      return {
+        approved: false,
+        hardFail: false,
+        name: null,
+        idNumber: null,
+        expiryDate: null,
+        faceMatch: false,
+        confidence: 0,
+        flags: ['Cloudflare credentials not configured'],
+        rejectionReason: 'Server not configured for KYC verification',
+      };
+    }
+
+    const frontB64 = frontBuf.toString('base64');
+    const selfieB64 = selfieBuf.toString('base64');
+
+    const prompt = `You are a KYC verification officer. You are given 2 images:
+1. ID document front (first image)
+2. Selfie photo (second image)
+
+Analyze them carefully and respond with ONLY a JSON object (no markdown, no backticks) with these exact fields:
+
+{
+  "approved": boolean,
+  "hardFail": boolean,
+  "name": string | null,
+  "idNumber": string | null,
+  "expiryDate": string | null,
+  "faceMatch": boolean,
+  "confidence": number,
+  "flags": string[],
+  "rejectionReason": string | null
+}
+
+Rules:
+- If the ID document is not a real identity document (random photo, screenshot, blank image, drawing), set hardFail=true, approved=false
+- If the selfie does not contain a real human face, set hardFail=true, approved=false
+- If the face in the selfie does NOT match the face on the ID document, set approved=false, faceMatch=false
+- If the document is expired, set approved=false
+- If the document is valid, the face matches, and everything looks genuine, set approved=true, faceMatch=true
+- confidence: 0.85+ for clear approvals, 0.6-0.84 for uncertain, below 0.6 for hard fails
+- Respond with ONLY the JSON, no other text`;
+
+    try {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${this.cloudflareAccountId}/ai/run/${this.cloudflareModel}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.cloudflareApiToken}`,
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image', image: frontB64 },
+                { type: 'image', image: selfieB64 },
+              ],
+            },
+          ],
+        }),
+        signal: AbortSignal.timeout(45000),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        const isQuota = errText.toLowerCase().includes('quota') || errText.toLowerCase().includes('rate limit') || res.status === 429 || errText.toLowerCase().includes('unauthorized');
+        return {
+          approved: false,
+          hardFail: false,
+          name: null,
+          idNumber: null,
+          expiryDate: null,
+          faceMatch: false,
+          confidence: 0,
+          flags: [`Cloudflare AI error: ${res.status}${isQuota ? ' (quota/rate limit)' : ''}`],
+          rejectionReason: isQuota
+            ? 'AI verification quota exhausted. Please check your Cloudflare plan or try again later.'
+            : 'Verification service temporarily unavailable',
+        };
+      }
+
+      const data = await res.json() as any;
+      const text = data?.result?.response || '';
+      if (!text) {
+        return {
+          approved: false,
+          hardFail: false,
+          name: null,
+          idNumber: null,
+          expiryDate: null,
+          faceMatch: false,
+          confidence: 0,
+          flags: ['Cloudflare AI error: empty response'],
+          rejectionReason: 'Verification service temporarily unavailable',
+        };
+      }
+      this.logger.log(`Cloudflare AI response: ${text.substring(0, 500)}`);
+      const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(jsonStr);
+
+      return {
+        approved: !!parsed.approved,
+        hardFail: !!parsed.hardFail,
+        name: parsed.name || null,
+        idNumber: parsed.idNumber || null,
+        expiryDate: parsed.expiryDate || null,
+        faceMatch: !!parsed.faceMatch,
+        confidence: Number(parsed.confidence) || 0.5,
+        flags: Array.isArray(parsed.flags) ? parsed.flags : [],
+        rejectionReason: parsed.rejectionReason || null,
+      };
+    } catch (err: any) {
+      this.logger.error(`Cloudflare AI KYC failed: ${err.message}`);
+      return {
+        approved: false,
+        hardFail: false,
+        name: null,
+        idNumber: null,
+        expiryDate: null,
+        faceMatch: false,
+        confidence: 0,
+        flags: [`Cloudflare AI error: ${err.message}`],
+        rejectionReason: 'Verification service temporarily unavailable',
+      };
+    }
   }
 
   private async verifyWithGemini(frontBuf: Buffer, selfieBuf: Buffer): Promise<KycAiResult> {
