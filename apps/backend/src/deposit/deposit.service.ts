@@ -112,13 +112,25 @@ export class DepositService {
     const deposit = await this.prisma.deposit.findUnique({ where: { id: depositId } });
     if (!deposit || deposit.status !== 'pending') return;
 
-    await this.prisma.deposit.update({
-      where: { id: depositId },
-      data: { status: 'approved', txHash, bitgetTxId },
-    });
+    const account = await this.prisma.mT5Account.findUnique({ where: { userId: deposit.userId } });
+    if (!account) {
+      this.logger.error(`Cannot auto-credit deposit ${depositId}: client has no trading account`);
+      return;
+    }
 
     const amount = Number(deposit.amount);
-    await this.mt5Service.creditAccount(deposit.userId, amount);
+
+    await this.prisma.$transaction([
+      this.prisma.deposit.update({
+        where: { id: depositId },
+        data: { status: 'approved', txHash, bitgetTxId },
+      }),
+      this.prisma.mT5Account.update({
+        where: { userId: deposit.userId },
+        data: { balance: { increment: amount }, equity: { increment: amount } },
+      }),
+    ]);
+
     await this.creditReferralCommission(deposit.userId, amount);
 
     const user = await this.prisma.user.findUnique({ where: { id: deposit.userId } });
@@ -164,13 +176,41 @@ export class DepositService {
   }
 
   async approveDeposit(id: string) {
-    const deposit = await this.prisma.deposit.update({
-      where: { id },
-      data: { status: 'approved' },
-    });
-    await this.mt5Service.creditAccount(deposit.userId, Number(deposit.amount));
-    await this.creditReferralCommission(deposit.userId, Number(deposit.amount));
-    return deposit;
+    const deposit = await this.prisma.deposit.findUnique({ where: { id } });
+    if (!deposit) throw new BadRequestException('Deposit not found');
+    if (deposit.status === 'approved') return deposit;
+
+    const account = await this.prisma.mT5Account.findUnique({ where: { userId: deposit.userId } });
+    if (!account) throw new BadRequestException('Client has no trading account');
+
+    const amount = Number(deposit.amount);
+
+    const [approved] = await this.prisma.$transaction([
+      this.prisma.deposit.update({
+        where: { id },
+        data: { status: 'approved' },
+      }),
+      this.prisma.mT5Account.update({
+        where: { userId: deposit.userId },
+        data: { balance: { increment: amount }, equity: { increment: amount } },
+      }),
+    ]);
+
+    await this.creditReferralCommission(deposit.userId, amount);
+
+    const user = await this.prisma.user.findUnique({ where: { id: deposit.userId } });
+    if (user) {
+      await this.emailService.sendDepositApprovedEmail(user.email, user.name, amount).catch(() => undefined);
+      await this.prisma.notification.create({
+        data: {
+          userId: deposit.userId,
+          title: 'Deposit approved',
+          message: `Your deposit of $${amount.toFixed(2)} has been credited to your account.`,
+        },
+      }).catch(() => undefined);
+    }
+
+    return approved;
   }
 
   async rejectDeposit(id: string) {

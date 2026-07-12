@@ -395,6 +395,12 @@ export class PriceFeedService {
       if (price !== null) source = 'yahoo';
     }
 
+    // Twelve Data fallback for any mapped symbol (commodities, indices, stocks)
+    if (price === null && this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
+      price = await this.fetchTwelveDataPrice(symbol);
+      if (price !== null) source = 'twelvedata';
+    }
+
     if (price !== null) {
       this.logger.log(`Price ${symbol} = ${price} (source: ${source})`);
     }

@@ -143,87 +143,21 @@ export class Mt5Service {
   }
 
   private async getRealPrice(symbol: string): Promise<number> {
-    try {
-      const cleanSymbol = symbol
-        .replace('FX:', '')
-        .replace('CRYPTO:', '')
-        .replace('BITSTAMP:', '')
-        .replace('BINANCE:', '')
-        .replace('OANDA:', '')
-        .replace('FOREXCOM:', '')
-        .replace('INDEX:', '')
-        .replace('TVC:', '')
-        .replace('NASDAQ:', '')
-        .replace('NYSE:', '')
-        .replace('COMEX:', '')
-        .replace('NYMEX:', '')
-        .replace('ICEUS:', '')
-        .replace('CBOT:', '')
-        .replace('/', '');
-
-      const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
-      if (!apiKey) {
-        throw new Error('TWELVE_DATA_API_KEY not configured');
-      }
-
-      const response = await fetch(
-        `https://api.twelvedata.com/price?symbol=${cleanSymbol}&apikey=${apiKey}`
-      );
-      const data = await response.json() as any;
-
-      if (data.price) {
-        return parseFloat(data.price);
-      }
-      throw new Error(`No price returned for ${symbol}: ${JSON.stringify(data)}`);
-    } catch (error: any) {
-      this.logger.error(`Price fetch failed for ${symbol}: ${error.message}`);
-      throw new Error(`Cannot get real price for ${symbol}`);
+    const price = await this.priceFeed.getPrice(symbol);
+    if (price === null || this.priceFeed.isSimulated(symbol)) {
+      throw new Error(`No real-time price available for ${symbol}`);
     }
+    return price;
   }
 
   private async getRealPrices(symbols: string[]): Promise<Record<string, number>> {
+    const prices = await this.priceFeed.getPrices(symbols);
     const result: Record<string, number> = {};
-    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
-    if (!apiKey) {
-      this.logger.warn('TWELVE_DATA_API_KEY not configured');
-      return result;
-    }
-
-    const cleanSymbols = symbols.map((s) =>
-      s
-        .replace('FX:', '')
-        .replace('CRYPTO:', '')
-        .replace('BITSTAMP:', '')
-        .replace('BINANCE:', '')
-        .replace('OANDA:', '')
-        .replace('FOREXCOM:', '')
-        .replace('INDEX:', '')
-        .replace('TVC:', '')
-        .replace('NASDAQ:', '')
-        .replace('NYSE:', '')
-        .replace('COMEX:', '')
-        .replace('NYMEX:', '')
-        .replace('ICEUS:', '')
-        .replace('CBOT:', '')
-        .replace('/', '')
-    );
-
-    try {
-      const response = await fetch(
-        `https://api.twelvedata.com/price?symbol=${cleanSymbols.join(',')}&apikey=${apiKey}`
-      );
-      const data = await response.json() as any;
-
-      for (let i = 0; i < symbols.length; i++) {
-        const raw = data[cleanSymbols[i]]?.price || data.price;
-        if (raw) {
-          result[symbols[i]] = parseFloat(raw);
-        }
+    for (const [symbol, price] of Object.entries(prices)) {
+      if (!this.priceFeed.isSimulated(symbol)) {
+        result[symbol] = price;
       }
-    } catch (error: any) {
-      this.logger.error(`Batch price fetch failed: ${error.message}`);
     }
-
     return result;
   }
 
@@ -388,14 +322,8 @@ export class Mt5Service {
 
       await this.syncAccountFromBridge(userId);
     } else {
-      // Mock trading — use real price from Twelve Data API
-      try {
-        entryPrice = await this.getRealPrice(symbol);
-      } catch (error: any) {
-        // Fall back to base price if real price fetch fails
-        this.logger.warn(`Real price fetch failed for ${symbol}: ${error.message}. Using base price fallback.`);
-        entryPrice = instrument.basePrice;
-      }
+      // Mock trading — always use real-time price
+      entryPrice = await this.getRealPrice(symbol);
 
       const notional = volume * instrument.contractSize * entryPrice;
       const requiredMargin = notional / LEVERAGE;
@@ -486,13 +414,8 @@ export class Mt5Service {
       const updatedAccount = await this.prisma.mT5Account.findUnique({ where: { userId } });
       newBalance = Number(updatedAccount?.balance || 0);
     } else {
-      // Mock close — use real price from Twelve Data
-      try {
-        closePrice = await this.getRealPrice(trade.symbol);
-      } catch (error: any) {
-        this.logger.warn(`Real price fetch failed for ${trade.symbol} on close: ${error.message}. Using stored current price.`);
-        closePrice = Number(trade.currentPrice);
-      }
+      // Mock close — always use real-time price
+      closePrice = await this.getRealPrice(trade.symbol);
 
       pnl = this.calculatePnL(trade.type, Number(trade.openPrice), closePrice, Number(trade.volume), instrument.contractSize);
 
@@ -578,11 +501,11 @@ export class Mt5Service {
       const instrument = INSTRUMENTS[trade.symbol];
       if (!instrument) continue;
 
-      // Use real price if available, fall back to current price
-      let newPrice = livePrices[trade.symbol];
+      // Only update P&L when a real-time price is available
+      const newPrice = livePrices[trade.symbol];
       if (!newPrice) {
-        this.logger.warn(`No real price for ${trade.symbol}, using stored current price`);
-        newPrice = Number(trade.currentPrice);
+        this.logger.warn(`No real-time price for ${trade.symbol}, skipping P&L update`);
+        continue;
       }
       const pnl = this.calculatePnL(trade.type, Number(trade.openPrice), newPrice, Number(trade.volume), instrument.contractSize);
       totalProfit += pnl;
