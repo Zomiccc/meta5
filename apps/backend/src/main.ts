@@ -17,13 +17,14 @@ async function seedAdmin(configService: ConfigService) {
     const referralCode = `ADMIN-${Date.now()}`;
     await prisma.user.upsert({
       where: { email },
-      update: { password, role: 'admin', status: 'active' },
+      update: { password, role: 'admin', status: 'active', emailVerified: true },
       create: {
         name: 'Admin',
         email,
         password,
         role: 'admin',
         status: 'active',
+        emailVerified: true,
         referralCode,
       },
     });

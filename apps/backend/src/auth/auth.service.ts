@@ -113,6 +113,7 @@ export class AuthService {
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     if (user.status === 'suspended') throw new UnauthorizedException('Account suspended');
+    if (!user.emailVerified && user.role !== 'admin') throw new UnauthorizedException('Please verify your email before logging in');
 
     const tokens = await this.generateTokens(user.id, user.role);
     const { password, ...safeUser } = user;
