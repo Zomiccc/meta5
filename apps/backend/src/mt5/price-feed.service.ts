@@ -219,11 +219,17 @@ const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'FX:USDZAR': 'USD/ZAR',
   'FX:USDSGD': 'USD/SGD',
   'FX:USDTRY': 'USD/TRY',
+  'BITSTAMP:BTCUSD': 'BTC/USD',
+  'BITSTAMP:ETHUSD': 'ETH/USD',
+  'BINANCE:BNBUSDT': 'BNB/USD',
+  'BINANCE:XRPUSDT': 'XRP/USD',
+  'BINANCE:SOLUSDT': 'SOL/USD',
   'OANDA:XAUUSD': 'XAU/USD',
   'OANDA:XAGUSD': 'XAG/USD',
   'TVC:USOIL': 'WTI',
   'TVC:UKOIL': 'BRENT',
   'NYMEX:NG1!': 'NG',
+  'OANDA:XNGUSD': 'XNG/USD',
   'COMEX:HG1!': 'HG',
   'TVC:PLATINUM': 'PLN',
   'TVC:PALLADIUM': 'PA',
@@ -233,6 +239,7 @@ const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'ICEUS:SB1!': 'SB',
   'FOREXCOM:SPXUSD': 'SPX',
   'FOREXCOM:NSXUSD': 'NDX',
+  'NASDAQ:IXIC': 'IXIC',
   'FOREXCOM:DJI': 'DJI',
   'INDEX:DEU40': 'DAX',
   'OANDA:UK100GBP': 'FTSE',
@@ -342,7 +349,12 @@ export class PriceFeedService {
     let price: number | null = null;
     let source = 'none';
 
-    if (this.isBinanceSymbol(symbol)) {
+    if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
+      price = await this.fetchTwelveDataPrice(symbol);
+      if (price !== null) source = 'twelvedata';
+    }
+
+    if (price === null && this.isBinanceSymbol(symbol)) {
       price = await this.fetchBinancePrice(symbol);
       if (price !== null) source = 'binance';
     }
@@ -499,6 +511,14 @@ export class PriceFeedService {
       }
     }
 
+    if (this.twelveDataApiKey) {
+      const mapped = symbols.filter((symbol) => results[symbol] === undefined && TWELVE_DATA_SYMBOL_MAP[symbol]);
+      for (let index = 0; index < mapped.length; index += 50) {
+        const batch = await this.fetchTwelveDataPrices(mapped.slice(index, index + 50));
+        Object.assign(results, batch);
+      }
+    }
+
     const remaining = symbols.filter((s) => results[s] === undefined);
     const promises = remaining.map(async (symbol) => {
       const price = await this.getPrice(symbol, basePrices[symbol] || this.getBasePrice(symbol));
@@ -649,6 +669,7 @@ export class PriceFeedService {
 
   getPriceSource(symbol: string): string {
     if (this.simulatedSymbols.has(symbol)) return 'simulated';
+    if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
     if (this.isBinanceSymbol(symbol)) return 'binance';
     if (symbol.startsWith('FX:')) {
       if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
@@ -669,6 +690,7 @@ export class PriceFeedService {
       this.isCoinbaseSymbol(symbol) ||
       this.isCryptoCompareSymbol(symbol) ||
       this.isCoinGeckoSymbol(symbol) ||
+      (!!this.twelveDataApiKey && !!TWELVE_DATA_SYMBOL_MAP[symbol]) ||
       this.isYahooSymbol(symbol) ||
       this.isYahooForexSymbol(symbol)
     ) {
@@ -859,6 +881,36 @@ export class PriceFeedService {
       this.logger.debug(`Yahoo price fetch failed for ${symbol}: ${err.message}`);
       return null;
     }
+  }
+
+  private async fetchTwelveDataPrices(symbols: string[]): Promise<Record<string, number>> {
+    const prices: Record<string, number> = {};
+    if (!this.twelveDataApiKey || symbols.length === 0) return prices;
+
+    const mappedSymbols = symbols.map((symbol) => TWELVE_DATA_SYMBOL_MAP[symbol]);
+    try {
+      const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(mappedSymbols.join(','))}&apikey=${this.twelveDataApiKey}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) return prices;
+      const data = await res.json() as any;
+      if (data?.status === 'error') return prices;
+
+      symbols.forEach((symbol, index) => {
+        const mappedSymbol = mappedSymbols[index];
+        const value = symbols.length === 1 ? data?.price : data?.[mappedSymbol]?.price;
+        const price = Number(value);
+        if (!isNaN(price) && price > 0) {
+          prices[symbol] = price;
+          this.priceCache.set(symbol, { price, timestamp: Date.now() });
+          this.lastKnownPrice.set(symbol, { price, timestamp: Date.now() });
+          this.simulatedSymbols.delete(symbol);
+        }
+      });
+    } catch (err: any) {
+      this.logger.debug(`Twelve Data batch price fetch failed: ${err.message}`);
+    }
+
+    return prices;
   }
 
   private async fetchTwelveDataPrice(symbol: string): Promise<number | null> {

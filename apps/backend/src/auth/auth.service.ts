@@ -20,6 +20,14 @@ export class AuthService {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
 
+    const normalizedPhone = dto.phone.replace(/\D/g, '');
+    if (!normalizedPhone) throw new BadRequestException('Phone number is required');
+
+    const existingPhone = await this.prisma.user.findFirst({ where: { phone: normalizedPhone } });
+    if (existingPhone) {
+      throw new ConflictException('This phone number is already registered. Each phone number can only have one account.');
+    }
+
     const hash = await bcrypt.hash(dto.password, 12);
     const referralCode = this.generateReferralCode();
 
@@ -33,19 +41,27 @@ export class AuthService {
       referrerId = referrer?.id ?? null;
     }
 
-    const user = await this.prisma.user.create({
-      data: {
-        name: dto.name,
-        email: dto.email,
-        password: hash,
-        phone: dto.phone,
-        country: dto.country,
-        countryCode: dto.countryCode,
-        referralCode,
-        referredBy: referrerId,
-      },
-      omit: { password: true },
-    });
+    let user;
+    try {
+      user = await this.prisma.user.create({
+        data: {
+          name: dto.name,
+          email: dto.email,
+          password: hash,
+          phone: normalizedPhone,
+          country: dto.country,
+          countryCode: dto.countryCode,
+          referralCode,
+          referredBy: referrerId,
+        },
+        omit: { password: true },
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2002' && String(error?.meta?.target || '').includes('phone')) {
+        throw new ConflictException('This phone number is already registered. Each phone number can only have one account.');
+      }
+      throw error;
+    }
 
     if (referrerId) {
       await this.prisma.affiliate.updateMany({

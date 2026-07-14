@@ -38,7 +38,7 @@ export default function WithdrawPage() {
         <p className="text-white/50">Withdraw USDT to your personal TRC20 wallet</p>
       </div>
 
-      <div className="mx-auto max-w-lg card animate-slide-up">
+      <div className="mx-auto w-full max-w-lg card animate-slide-up">
         {message && (
           <div
             className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${

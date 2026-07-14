@@ -89,7 +89,7 @@ export default function DepositPage() {
         <p className="text-white/50">Fund your account with USDT (TRC20) — credited automatically</p>
       </div>
 
-      <div className="mx-auto max-w-lg">
+      <div className="mx-auto w-full max-w-lg">
         {!result ? (
           <div className="card animate-slide-up">
             <form onSubmit={submit} className="space-y-5">
@@ -157,7 +157,7 @@ export default function DepositPage() {
 
             {/* QR code */}
             <div className="flex justify-center">
-              <div className="rounded-xl bg-white p-3">
+              <div className="w-fit max-w-full rounded-xl bg-white p-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`}
@@ -171,14 +171,14 @@ export default function DepositPage() {
             <div>
               <p className="mb-2 text-sm text-white/50">Send USDT (TRC20) to this address:</p>
               <div className="flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-900/50 p-3">
-                <p className="flex-1 break-all font-mono text-sm text-gold">{result.address}</p>
-                <button onClick={copyAddress} className="rounded-lg p-2 text-white/60 hover:bg-navy-700 hover:text-white">
+                <p className="min-w-0 flex-1 break-all font-mono text-sm text-gold">{result.address}</p>
+                <button onClick={copyAddress} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-white/60 hover:bg-navy-700 hover:text-white" aria-label="Copy deposit address">
                   {copied ? <CheckCircle className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg bg-navy-900/50 p-4">
                 <p className="text-xs text-white/50">Exact Amount to Send</p>
                 <p className="mt-1 text-xl font-bold text-white">{uniqueAmount.toFixed(2)} USDT</p>
@@ -246,7 +246,7 @@ export default function DepositPage() {
               <p>The unique amount identifies your deposit. Your balance is credited automatically once the transaction confirms. This request expires after 24 hours.</p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               {result.deposit.status === 'pending' && (
                 <button
                   onClick={checkPayment}

@@ -43,7 +43,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   };
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
-    <aside className={`flex-col border-r border-navy-700/50 bg-navy-900/50 backdrop-blur-sm ${mobile ? 'flex h-full w-64' : 'hidden w-64 md:flex'}`}>
+    <aside className={`flex-col border-r border-navy-700/50 bg-navy-900/50 backdrop-blur-sm ${mobile ? 'flex h-full w-[min(18rem,85vw)]' : 'hidden w-64 md:flex'}`}> 
       <Link href="/" className="flex items-center gap-2 px-6 py-5" onClick={() => mobile && setMobileOpen(false)}>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-gold to-gold-dark">
           <CandlestickChart className="h-5 w-5 text-navy-950" />
@@ -85,7 +85,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   );
 
   return (
-    <div className="flex min-h-screen bg-navy-950">
+    <div className="flex min-h-screen overflow-x-hidden bg-navy-950">
       <Sidebar />
 
       {/* Mobile header */}
@@ -96,7 +96,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
           <span className="text-base font-bold text-white">FX<span className="text-gold">ONS</span></span>
         </Link>
-        <button onClick={() => setMobileOpen(true)} className="text-white">
+        <button onClick={() => setMobileOpen(true)} className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-white" aria-label="Open navigation">
           <Menu className="h-6 w-6" />
         </button>
       </div>
@@ -110,14 +110,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="absolute right-4 top-4 rounded-full bg-navy-800 p-1 text-white"
+            className="absolute right-3 top-3 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-navy-800 text-white"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
       )}
 
-      <main className="flex-1 overflow-y-auto px-4 pb-24 pt-20 md:px-8 md:pb-8 md:pt-8">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pb-24 pt-20 sm:px-4 md:px-8 md:pb-8 md:pt-8">{children}</main>
     </div>
   );
 }

@@ -39,7 +39,7 @@ export default function DashboardPage() {
         <p className="text-white/50">Here is your account overview</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (

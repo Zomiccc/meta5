@@ -66,7 +66,7 @@ export default function HistoryPage() {
       <div className="mb-8 card animate-slide-up">
         <h3 className="mb-4 text-lg font-semibold text-white">Deposits</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[640px] w-full text-left text-sm">
             <thead className="border-b border-navy-700 text-white/50">
               <tr>
                 <th className="py-3 font-medium">Date</th>
@@ -97,7 +97,7 @@ export default function HistoryPage() {
       <div className="card animate-slide-up">
         <h3 className="mb-4 text-lg font-semibold text-white">Withdrawals</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[640px] w-full text-left text-sm">
             <thead className="border-b border-navy-700 text-white/50">
               <tr>
                 <th className="py-3 font-medium">Date</th>

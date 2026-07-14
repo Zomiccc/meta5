@@ -77,7 +77,7 @@ export default function KycPage() {
   const isPending = kyc?.status === 'pending';
 
   const FileUpload = ({ file, setFile, label, description, icon: Icon, previewUrl }: any) => (
-    <div className="rounded-xl border border-navy-700/50 bg-navy-900/40 p-5">
+    <div className="rounded-xl border border-navy-700/50 bg-navy-900/40 p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10">
           <Icon className="h-5 w-5 text-gold" />
@@ -100,14 +100,14 @@ export default function KycPage() {
             <button
               type="button"
               onClick={() => setFile(null)}
-              className="rounded p-1 text-white/40 transition hover:bg-red-500/10 hover:text-red-400"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/40 transition hover:bg-red-500/10 hover:text-red-400"
             >
               <XCircle className="h-4 w-4" />
             </button>
           </div>
         </div>
       ) : (
-        <label className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-navy-600 bg-navy-900/30 p-8 transition hover:border-gold hover:bg-navy-800/30">
+        <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-navy-600 bg-navy-900/30 p-6 transition hover:border-gold hover:bg-navy-800/30 sm:p-8">
           <Icon className="h-10 w-10 text-white/20" />
           <div className="text-center">
             <span className="block text-sm font-medium text-white/70">Click or drag & drop</span>
@@ -139,7 +139,7 @@ export default function KycPage() {
       <div className="mx-auto max-w-2xl">
         {kyc && (isApproved || isPending || isRejected) && (
           <div
-            className={`mb-6 flex items-center gap-3 rounded-xl border p-4 animate-slide-up ${
+            className={`mb-6 flex flex-col items-start gap-3 rounded-xl border p-4 sm:flex-row sm:items-center animate-slide-up ${
               isApproved
                 ? 'border-green-500/20 bg-green-500/10'
                 : isRejected
@@ -187,7 +187,7 @@ export default function KycPage() {
                     setError(err.response?.data?.message || 'Failed to reset KYC');
                   }
                 }}
-                className="ml-auto rounded-lg border border-navy-600 bg-navy-900/50 px-3 py-1.5 text-xs font-medium text-white/70 transition hover:bg-navy-800 hover:text-white"
+                className="min-h-11 w-full rounded-lg border border-navy-600 bg-navy-900/50 px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-navy-800 hover:text-white sm:ml-auto sm:w-auto"
               >
                 Reset
               </button>
@@ -286,7 +286,7 @@ export default function KycPage() {
               <button
                 type="submit"
                 disabled={loading || !cnicFront || !cnicBack || !selfie}
-                className="btn-gold w-full"
+                className="btn-gold min-h-12 w-full"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

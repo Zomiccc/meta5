@@ -20,9 +20,9 @@ export class AdminController {
     return this.adminService.getClients();
   }
 
-  @Delete('clients')
-  async deleteAllClients() {
-    return this.adminService.deleteAllNonAdminUsers();
+  @Delete('clients/:id')
+  async deleteClient(@Param('id') id: string) {
+    return this.adminService.deleteClient(id);
   }
 
   @Get('kyc/pending')

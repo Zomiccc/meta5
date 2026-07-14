@@ -54,26 +54,26 @@ export class AdminService {
     });
   }
 
-  async deleteAllNonAdminUsers() {
-    const admins = await this.prisma.user.findMany({
-      where: { role: 'admin' },
-      select: { id: true, email: true },
+  async deleteClient(clientId: string) {
+    const client = await this.prisma.user.findUnique({
+      where: { id: clientId },
+      select: { id: true, role: true },
     });
 
-    await this.prisma.user.updateMany({
-      where: { role: { not: 'admin' } },
-      data: { referredBy: null },
-    });
+    if (!client || client.role !== 'client') {
+      throw new BadRequestException('Client not found');
+    }
 
-    const trades = await this.prisma.openTrade.deleteMany({
-      where: { userId: { notIn: admins.map((a) => a.id) } },
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.updateMany({
+        where: { referredBy: clientId },
+        data: { referredBy: null },
+      }),
+      this.prisma.openTrade.deleteMany({ where: { userId: clientId } }),
+      this.prisma.user.delete({ where: { id: clientId } }),
+    ]);
 
-    const users = await this.prisma.user.deleteMany({
-      where: { role: { not: 'admin' } },
-    });
-
-    return { deletedUsers: users.count, deletedTrades: trades.count, keptAdmins: admins.length };
+    return { message: 'Client deleted successfully' };
   }
 
   async getPendingKyc() {

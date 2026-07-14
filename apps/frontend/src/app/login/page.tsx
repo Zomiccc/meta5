@@ -34,7 +34,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-navy-950">
       <Navbar />
-      <section className="flex min-h-[80vh] items-center justify-center py-12">
+      <section className="flex min-h-[80vh] items-center justify-center px-4 py-12">
         <div className="w-full max-w-md animate-slide-up">
           <div className="mb-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gold/10">

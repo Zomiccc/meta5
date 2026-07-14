@@ -15,7 +15,7 @@ export default function AdminRiskPage() {
     <AdminShell>
       <h1 className="mb-6 text-2xl font-bold text-white">Risk Monitoring</h1>
       <div className="overflow-x-auto rounded border border-navy-700 bg-navy-800">
-        <table className="w-full text-left text-sm">
+        <table className="min-w-[820px] w-full text-left text-sm">
           <thead className="border-b border-navy-600 text-white/60">
             <tr>
               <th className="px-4 py-3">MT5 Login</th>

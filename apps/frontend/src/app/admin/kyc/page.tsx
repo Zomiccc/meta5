@@ -110,9 +110,9 @@ export default function AdminKycPage() {
       ) : (
         <div className="space-y-4">
           {kycs.map((kyc) => (
-            <div key={kyc.id} className="rounded border border-navy-700 bg-navy-800 p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div key={kyc.id} className="rounded border border-navy-700 bg-navy-800 p-4 sm:p-6">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-3">
                   <div>
                     <p className="font-semibold text-white">{kyc.user.name}</p>
                     <p className="text-sm text-white/60">{kyc.user.email}</p>
@@ -126,13 +126,13 @@ export default function AdminKycPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                   {kyc.status === 'pending' && (
                     <>
-                      <button onClick={() => approve(kyc.id)} className="flex items-center gap-1 rounded bg-green-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-700">
+                      <button onClick={() => approve(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-green-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-700 sm:flex-none">
                         <Check className="h-3 w-3" /> Approve
                       </button>
-                      <button onClick={() => reject(kyc.id)} className="flex items-center gap-1 rounded bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700">
+                      <button onClick={() => reject(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700 sm:flex-none">
                         <X className="h-3 w-3" /> Reject
                       </button>
                     </>
@@ -141,7 +141,7 @@ export default function AdminKycPage() {
                     <button
                       onClick={() => reset(kyc.id)}
                       disabled={resettingId === kyc.id}
-                      className="flex items-center gap-1 rounded bg-navy-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-600 disabled:opacity-50"
+                      className="flex min-h-11 w-full items-center justify-center gap-1 rounded bg-navy-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-600 disabled:opacity-50 sm:w-auto"
                     >
                       {resettingId === kyc.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
                       Reset KYC

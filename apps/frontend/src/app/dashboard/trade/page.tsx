@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
-import { api } from '../../../lib/api';
+import { api, consumeSse } from '../../../lib/api';
 import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
 
 interface Instrument {
@@ -16,7 +16,7 @@ interface Instrument {
 }
 
 const DEFAULT_INSTRUMENT: Instrument = { label: 'EUR/USD', symbol: 'FX:EURUSD', price: 1.0856, contractSize: 100000, category: 'Forex' };
-const CATEGORY_ORDER = ['All', 'Forex', 'Crypto', 'Indices', 'Commodities', 'Stocks'];
+const CATEGORY_ORDER = ['All', 'Forex', 'Crypto', 'Stocks', 'Commodities', 'Indices'];
 
 const LEVERAGE = 1000;
 
@@ -29,6 +29,14 @@ interface Trade {
   currentPrice: number;
   profit: number;
   openTime: string;
+}
+
+interface TradingSnapshot {
+  account: any;
+  trades: Trade[];
+  prices: Record<string, number>;
+  serverTime: number;
+  error?: string;
 }
 
 export default function TradePage() {
@@ -47,6 +55,7 @@ export default function TradePage() {
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [priceSource, setPriceSource] = useState<string>('');
+  const [streamConnected, setStreamConnected] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasMt5 = !!user?.mt5Account;
@@ -90,17 +99,36 @@ export default function TradePage() {
 
   // Poll live prices for all instruments every 5 seconds
   useEffect(() => {
-    if (instruments.length === 0) return;
-    const fetchPrices = () => {
-      const symbols = instruments.map((i) => i.symbol).join(',');
-      api.get(`/mt5/prices?symbols=${encodeURIComponent(symbols)}`)
-        .then((res) => setLivePrices(res.data))
-        .catch(() => undefined);
+    if (loading || instruments.length === 0) return;
+
+    const controller = new AbortController();
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    const symbols = encodeURIComponent(instruments.map((instrument) => instrument.symbol).join(','));
+
+    const connect = async () => {
+      try {
+        await consumeSse<TradingSnapshot>(`/mt5/stream?symbols=${symbols}`, (snapshot) => {
+          if (snapshot.error) return;
+          setStreamConnected(true);
+          setLivePrices((current) => ({ ...current, ...snapshot.prices }));
+          setTrades(snapshot.trades);
+          setAccount(snapshot.account);
+        }, controller.signal);
+      } catch {
+        if (!controller.signal.aborted) {
+          setStreamConnected(false);
+          retryTimer = setTimeout(connect, 1000);
+        }
+      }
     };
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 800);
-    return () => clearInterval(interval);
-  }, [instruments]);
+
+    connect();
+
+    return () => {
+      controller.abort();
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [loading, instruments]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -138,10 +166,6 @@ export default function TradePage() {
     if (loading || !hasMt5) return;
     refreshAccount();
     refreshTrades();
-    const interval = setInterval(() => {
-      refreshTrades();
-    }, 3000);
-    return () => clearInterval(interval);
   }, [loading, hasMt5, refreshAccount, refreshTrades]);
 
   const activeLivePrice = livePrices[active.symbol] ?? active.price;
@@ -221,7 +245,7 @@ export default function TradePage() {
           <button
             onClick={addTestFunds}
             disabled={funding}
-            className="flex items-center gap-2 rounded-xl border border-gold/30 bg-gold/10 px-4 py-2.5 text-sm font-bold text-gold transition hover:bg-gold/20 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-gold/30 bg-gold/10 px-4 py-2.5 text-sm font-bold text-gold transition hover:bg-gold/20 disabled:opacity-50 sm:w-auto"
           >
             <Zap className="h-4 w-4" />
             {funding ? 'Adding...' : 'Add $10,000 Test Funds'}
@@ -267,14 +291,15 @@ export default function TradePage() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-4">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-4">
         {/* Watchlist */}
-        <div className="lg:col-span-1 flex flex-col rounded-2xl border border-navy-700/50 bg-navy-900/40 p-3">
+        <div className="flex min-w-0 flex-col rounded-2xl border border-navy-700/50 bg-navy-900/40 p-3 lg:col-span-1">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-white/40">Markets</h3>
-              <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-bold text-green-400">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />LIVE
+              <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${streamConnected ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${streamConnected ? 'bg-green-400' : 'bg-yellow-400'}`} />
+                {streamConnected ? 'LIVE' : 'CONNECTING'}
               </span>
             </div>
             <span className="text-xs text-white/30">{filtered.length}</span>
@@ -302,7 +327,7 @@ export default function TradePage() {
               </button>
             ))}
           </div>
-          <div className="flex-1 space-y-1 overflow-y-auto pr-1" style={{ maxHeight: 520 }}>
+          <div className="max-h-80 flex-1 space-y-1 overflow-y-auto pr-1 lg:max-h-[520px]">
             {filtered.map((item) => {
               const live = livePrices[item.symbol];
               const up = live ? live >= item.price : false;
@@ -334,8 +359,8 @@ export default function TradePage() {
         </div>
 
         {/* Chart */}
-        <div className="lg:col-span-2 flex flex-col rounded-2xl border border-navy-700/50 bg-navy-900/40 p-1">
-          <div className="flex items-center justify-between border-b border-navy-700/50 px-4 py-2">
+        <div className="flex min-w-0 flex-col rounded-2xl border border-navy-700/50 bg-navy-900/40 p-1 lg:col-span-2">
+          <div className="flex flex-col gap-2 border-b border-navy-700/50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2">
             <div>
               <span className="font-semibold text-white">{active.label}</span>
               <span className={`ml-2 font-mono text-sm ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-green-400' : 'text-red-400') : 'text-white/30'}`}>
@@ -353,7 +378,7 @@ export default function TradePage() {
               <span className="text-xs text-white/40">Live · same feed as watchlist</span>
             </div>
           </div>
-          <div className="flex-1" style={{ minHeight: 460 }}>
+          <div className="h-[360px] w-full flex-1 sm:h-[460px]">
             <LiveChart symbol={active.symbol} price={activeLivePrice} height={460} />
           </div>
         </div>
@@ -445,7 +470,7 @@ export default function TradePage() {
             <p className="py-6 text-center text-white/40">No open positions. Place an order to start trading.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="min-w-[760px] w-full text-left text-sm">
                 <thead className="border-b border-navy-700 text-white/50">
                   <tr>
                     <th className="py-2 font-medium">Symbol</th>

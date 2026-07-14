@@ -74,6 +74,7 @@ const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; lab
   // ─── Indices (contract size 1) ───
   'FOREXCOM:SPXUSD': { contractSize: 1, basePrice: 5123, label: 'S&P 500', category: 'Indices' },
   'FOREXCOM:NSXUSD': { contractSize: 1, basePrice: 17950, label: 'Nasdaq 100', category: 'Indices' },
+  'NASDAQ:IXIC': { contractSize: 1, basePrice: 16000, label: 'NASDAQ Composite', category: 'Indices' },
   'FOREXCOM:DJI': { contractSize: 1, basePrice: 38650, label: 'Dow 30', category: 'Indices' },
   'INDEX:DEU40': { contractSize: 1, basePrice: 16900, label: 'DAX 40', category: 'Indices' },
   'OANDA:UK100GBP': { contractSize: 1, basePrice: 7620, label: 'FTSE 100', category: 'Indices' },
@@ -90,7 +91,8 @@ const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; lab
   'OANDA:XAGUSD': { contractSize: 5000, basePrice: 22.8, label: 'Silver', category: 'Commodities' },
   'TVC:USOIL': { contractSize: 1000, basePrice: 78.4, label: 'Crude Oil (WTI)', category: 'Commodities' },
   'TVC:UKOIL': { contractSize: 1000, basePrice: 82.6, label: 'Brent Oil', category: 'Commodities' },
-  'NYMEX:NG1!': { contractSize: 10000, basePrice: 2.15, label: 'Natural Gas', category: 'Commodities' },
+  'NYMEX:NG1!': { contractSize: 10000, basePrice: 2.15, label: 'Natural Gas Futures', category: 'Commodities' },
+  'OANDA:XNGUSD': { contractSize: 10000, basePrice: 2.15, label: 'Natural Gas', category: 'Commodities' },
   'COMEX:HG1!': { contractSize: 25000, basePrice: 3.85, label: 'Copper', category: 'Commodities' },
   'TVC:PLATINUM': { contractSize: 50, basePrice: 920, label: 'Platinum', category: 'Commodities' },
   'TVC:PALLADIUM': { contractSize: 100, basePrice: 1010, label: 'Palladium', category: 'Commodities' },
@@ -451,20 +453,35 @@ export class Mt5Service {
   // ─── Get all open trades with live P&L ───
   async getTrades(userId: string) {
     // Update prices and check liquidation before returning
+    const snapshot = await this.getTradingSnapshot(userId);
+    return snapshot.trades;
+  }
+
+  async getTradingSnapshot(userId: string, requestedSymbols: string[] = []) {
     await this.updatePricesAndEquity(userId);
 
-    const trades = await this.prisma.openTrade.findMany({
-      where: { userId },
-      orderBy: { openTime: 'desc' },
-    });
+    const symbols = [...new Set(requestedSymbols)].filter((symbol) => INSTRUMENTS[symbol]);
+    const [account, trades, prices] = await Promise.all([
+      this.prisma.mT5Account.findUnique({ where: { userId } }),
+      this.prisma.openTrade.findMany({
+        where: { userId },
+        orderBy: { openTime: 'desc' },
+      }),
+      symbols.length > 0 ? this.getRealPrices(symbols) : Promise.resolve({}),
+    ]);
 
-    return trades.map((t) => ({
-      ...t,
-      volume: Number(t.volume),
-      openPrice: Number(t.openPrice),
-      currentPrice: Number(t.currentPrice),
-      profit: Number(t.profit),
-    }));
+    return {
+      account,
+      trades: trades.map((trade) => ({
+        ...trade,
+        volume: Number(trade.volume),
+        openPrice: Number(trade.openPrice),
+        currentPrice: Number(trade.currentPrice),
+        profit: Number(trade.profit),
+      })),
+      prices,
+      serverTime: Date.now(),
+    };
   }
 
   // ─── Price simulation + equity update + liquidation check ───
@@ -497,21 +514,26 @@ export class Mt5Service {
     let totalProfit = 0;
     let totalMargin = 0;
 
+    const pricedTrades: any[] = [];
+
     for (const trade of trades) {
       const instrument = INSTRUMENTS[trade.symbol];
       if (!instrument) continue;
 
+      const notional = Number(trade.volume) * instrument.contractSize * Number(trade.openPrice);
+      totalMargin += notional / LEVERAGE;
+
       // Only update P&L when a real-time price is available
       const newPrice = livePrices[trade.symbol];
       if (!newPrice) {
-        this.logger.warn(`No real-time price for ${trade.symbol}, skipping P&L update`);
+        this.logger.warn(`No real-time price for ${trade.symbol}, keeping the last valid P&L`);
+        totalProfit += Number(trade.profit);
+        pricedTrades.push(trade);
         continue;
       }
       const pnl = this.calculatePnL(trade.type, Number(trade.openPrice), newPrice, Number(trade.volume), instrument.contractSize);
       totalProfit += pnl;
-
-      const notional = Number(trade.volume) * instrument.contractSize * Number(trade.openPrice);
-      totalMargin += notional / LEVERAGE;
+      pricedTrades.push({ ...trade, currentPrice: newPrice, profit: pnl });
 
       // Update trade with new price and P&L
       await this.prisma.openTrade.update({
@@ -621,14 +643,10 @@ export class Mt5Service {
   }
 
   isPriceSimulated(symbol: string): boolean {
-    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
-    if (apiKey) return false;
     return this.priceFeed.isSimulated(symbol);
   }
 
   isAnyPriceSimulated(): boolean {
-    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
-    if (apiKey) return false;
     return this.priceFeed.isAnySimulated();
   }
 
@@ -637,8 +655,6 @@ export class Mt5Service {
   }
 
   getPriceSource(symbol: string): string {
-    const apiKey = this.configService.get<string>('TWELVE_DATA_API_KEY') || process.env.TWELVE_DATA_API_KEY;
-    if (apiKey) return 'twelve-data';
     return this.priceFeed.getPriceSource(symbol);
   }
 

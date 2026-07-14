@@ -25,7 +25,7 @@ export default function Navbar() {
         <TickerTape />
       </div>
       <div className="border-b border-navy-700/50 bg-navy-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gold to-gold-dark">
               <CandlestickChart className="h-5 w-5 text-navy-950" />
@@ -64,7 +64,7 @@ export default function Navbar() {
           </div>
 
           <button
-            className="text-white lg:hidden"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-white lg:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -74,13 +74,13 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="border-b border-navy-700/50 bg-navy-950 px-6 py-4 lg:hidden animate-fade-in">
+        <div className="max-h-[calc(100vh-7rem)] overflow-y-auto border-b border-navy-700/50 bg-navy-950 px-4 py-4 sm:px-6 lg:hidden animate-fade-in">
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-4 py-2.5 text-sm font-medium text-white/80 hover:bg-navy-800 hover:text-white"
+                className="flex min-h-11 items-center rounded-lg px-4 py-2.5 text-sm font-medium text-white/80 hover:bg-navy-800 hover:text-white"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}

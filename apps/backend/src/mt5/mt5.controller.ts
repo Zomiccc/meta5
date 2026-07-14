@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Sse, MessageEvent } from '@nestjs/common';
+import { Observable, from, of, timer } from 'rxjs';
+import { catchError, exhaustMap, map } from 'rxjs/operators';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Mt5Service } from './mt5.service';
@@ -32,6 +34,19 @@ export class Mt5Controller {
   @Get('trades')
   async getTrades(@CurrentUser() user: any) {
     return this.mt5Service.getTrades(user.userId);
+  }
+
+  @Sse('stream')
+  stream(@CurrentUser() user: any, @Query('symbols') symbols?: string): Observable<MessageEvent> {
+    const requestedSymbols = symbols ? symbols.split(',').map((symbol) => symbol.trim()).filter(Boolean) : [];
+    return timer(0, 1000).pipe(
+      exhaustMap(() =>
+        from(this.mt5Service.getTradingSnapshot(user.userId, requestedSymbols)).pipe(
+          map((data) => ({ data }) as MessageEvent),
+          catchError((error) => of({ data: { error: error.message || 'Unable to update trading data' } } as MessageEvent)),
+        ),
+      ),
+    );
   }
 
   @Post('trades/:id/close')
