@@ -19,20 +19,37 @@ import {
   ChevronDown,
   Settings,
   History,
+  TrendingUp,
+  Home,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/useAuth';
 import { Button } from './ui/Button';
 
-const clientLinks = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/trade', label: 'Trade', icon: CandlestickChart },
-  { href: '/dashboard/deposit', label: 'Deposit', icon: ArrowDownCircle },
-  { href: '/dashboard/withdraw', label: 'Withdraw', icon: ArrowUpCircle },
-  { href: '/dashboard/history', label: 'History', icon: History },
-  { href: '/dashboard/kyc', label: 'KYC', icon: FileText },
-  { href: '/dashboard/affiliate', label: 'Affiliate', icon: Link2 },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+const navGroups = [
+  {
+    title: 'Main',
+    links: [
+      { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+      { href: '/dashboard/trade', label: 'Trade', icon: CandlestickChart },
+      { href: '/dashboard/history', label: 'History', icon: History },
+    ],
+  },
+  {
+    title: 'Wallet',
+    links: [
+      { href: '/dashboard/deposit', label: 'Deposit', icon: ArrowDownCircle },
+      { href: '/dashboard/withdraw', label: 'Withdraw', icon: ArrowUpCircle },
+    ],
+  },
+  {
+    title: 'Account',
+    links: [
+      { href: '/dashboard/kyc', label: 'KYC Verification', icon: FileText },
+      { href: '/dashboard/affiliate', label: 'Affiliate', icon: Link2 },
+      { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ];
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -50,12 +67,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     router.push('/login');
   };
 
+  const balance = user?.mt5Account?.balance ? Number(user.mt5Account.balance) : 0;
+
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <aside
       className={`flex h-full flex-col border-r border-bn-border bg-bn-secondary ${
-        mobile ? 'w-[min(18rem,85vw)]' : 'hidden w-60 lg:flex'
+        mobile ? 'w-[min(18rem,85vw)]' : 'hidden w-64 lg:flex'
       }`}
     >
+      {/* Logo */}
       <Link href="/dashboard" className="flex h-16 items-center gap-2 px-6" onClick={() => mobile && setMobileOpen(false)}>
         <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-yellow text-bn-bg">
           <CandlestickChart className="h-5 w-5" />
@@ -65,30 +85,65 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </span>
       </Link>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {clientLinks.map((link) => {
-          const Icon = link.icon;
-          const active = pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => mobile && setMobileOpen(false)}
-              className={`flex items-center gap-3 rounded-bn px-3 py-2.5 text-sm font-medium transition ${
-                active ? 'bg-yellow/10 text-yellow' : 'text-bnText-secondary hover:bg-bn-hover hover:text-bnText-primary'
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {link.label}
-            </Link>
-          );
-        })}
+      {/* Balance widget */}
+      <div className="mx-3 mb-2 rounded-bn border border-bn-border bg-bn-card p-4">
+        <p className="text-xs text-bnText-muted">Estimated Balance</p>
+        <p className="mt-1 text-xl font-bold text-bnText-primary">
+          ${balance.toFixed(2)}
+        </p>
+        <div className="mt-3 flex gap-2">
+          <Link
+            href="/dashboard/deposit"
+            onClick={() => mobile && setMobileOpen(false)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-bn bg-yellow py-2 text-xs font-bold text-bn-bg transition hover:bg-yellow-hover"
+          >
+            <ArrowDownCircle className="h-3.5 w-3.5" /> Deposit
+          </Link>
+          <Link
+            href="/dashboard/withdraw"
+            onClick={() => mobile && setMobileOpen(false)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-bn border border-bn-border bg-bn-input py-2 text-xs font-bold text-bnText-primary transition hover:bg-bn-hover"
+          >
+            <ArrowUpCircle className="h-3.5 w-3.5" /> Withdraw
+          </Link>
+        </div>
+      </div>
+
+      {/* Nav groups */}
+      <nav className="flex-1 overflow-y-auto px-3 py-2">
+        {navGroups.map((group) => (
+          <div key={group.title} className="mb-4">
+            <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-wider text-bnText-muted">
+              {group.title}
+            </p>
+            <div className="space-y-0.5">
+              {group.links.map((link) => {
+                const Icon = link.icon;
+                const active = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => mobile && setMobileOpen(false)}
+                    className={`flex items-center gap-3 rounded-bn px-3 py-2.5 text-sm font-medium transition ${
+                      active ? 'bg-yellow/10 text-yellow' : 'text-bnText-secondary hover:bg-bn-hover hover:text-bnText-primary'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
+      {/* User footer */}
       <div className="border-t border-bn-border p-3">
-        <div className="mb-3 flex items-center gap-3 rounded-bn px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-bn-input text-bnText-secondary">
-            <User className="h-4 w-4" />
+        <div className="mb-2 flex items-center gap-3 rounded-bn px-3 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow/10 text-sm font-bold text-yellow">
+            {(user?.name || 'T')[0].toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-bnText-primary">{user?.name || 'Trader'}</p>
@@ -107,7 +162,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <Sidebar />
 
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-bn-border bg-bn-bg px-4 lg:px-8">
+        {/* Header */}
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-bn-border bg-bn-bg/95 px-4 backdrop-blur lg:px-8">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
@@ -116,12 +172,27 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="text-lg font-semibold capitalize text-bnText-primary">
-              {(pathname.split('/').pop() || 'Overview').replace(/-/g, ' ')}
-            </h1>
+            <div className="hidden items-center gap-2 sm:flex">
+              <Link href="/" className="flex items-center gap-1 text-xs text-bnText-muted transition hover:text-bnText-primary">
+                <Home className="h-3 w-3" /> Home
+              </Link>
+              <span className="text-bnText-muted">/</span>
+              <span className="text-xs font-medium capitalize text-bnText-primary">
+                {(pathname.split('/').pop() || 'Overview').replace(/-/g, ' ')}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Balance pill */}
+            <Link
+              href="/dashboard/deposit"
+              className="hidden items-center gap-2 rounded-bn border border-bn-border bg-bn-secondary px-3 py-2 transition hover:border-yellow/30 sm:flex"
+            >
+              <Wallet className="h-4 w-4 text-yellow" />
+              <span className="text-sm font-bold text-bnText-primary">${balance.toFixed(2)}</span>
+            </Link>
+
             <button className="relative flex h-10 w-10 items-center justify-center rounded-bn text-bnText-secondary transition hover:bg-bn-hover">
               <Bell className="h-5 w-5" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-bnRed" />
@@ -132,27 +203,31 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 onClick={() => setUserMenuOpen((s) => !s)}
                 className="flex items-center gap-2 rounded-bn px-2 py-1.5 text-bnText-primary transition hover:bg-bn-hover"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-bn-input text-bnText-secondary">
-                  <User className="h-4 w-4" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow/10 text-sm font-bold text-yellow">
+                  {(user?.name || 'T')[0].toUpperCase()}
                 </div>
-                <span className="hidden max-w-[120px] truncate text-sm font-medium sm:block">{user?.name || 'Trader'}</span>
+                <span className="hidden max-w-[100px] truncate text-sm font-medium md:block">{user?.name || 'Trader'}</span>
                 <ChevronDown className="h-4 w-4 text-bnText-muted" />
               </button>
 
               {userMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-0" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 top-full z-10 mt-2 w-48 rounded-bn border border-bn-border bg-bn-card shadow-bn-lg">
+                  <div className="absolute right-0 top-full z-10 mt-2 w-52 overflow-hidden rounded-bn border border-bn-border bg-bn-card shadow-bn-lg">
+                    <div className="border-b border-bn-border px-4 py-3">
+                      <p className="truncate text-sm font-medium text-bnText-primary">{user?.name || 'Trader'}</p>
+                      <p className="truncate text-xs text-bnText-muted">{user?.email || ''}</p>
+                    </div>
                     <Link
                       href="/dashboard/settings"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-bnText-secondary transition hover:bg-bn-hover hover:text-bnText-primary"
+                      className="flex items-center gap-2 px-4 py-3 text-sm text-bnText-secondary transition hover:bg-bn-hover hover:text-bnText-primary"
                     >
                       <Settings className="h-4 w-4" /> Settings
                     </Link>
                     <button
                       onClick={logout}
-                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-bnRed transition hover:bg-bnRed/10"
+                      className="flex w-full items-center gap-2 px-4 py-3 text-sm text-bnRed transition hover:bg-bnRed/10"
                     >
                       <LogOut className="h-4 w-4" /> Logout
                     </button>
@@ -163,6 +238,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
         </header>
 
+        {/* Mobile sidebar */}
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
@@ -178,14 +254,17 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
         )}
 
+        {/* Main content */}
         <main className="flex-1 overflow-x-hidden p-4 pb-24 lg:p-8 lg:pb-8">{children}</main>
 
-        <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-4 border-t border-bn-border bg-bn-secondary lg:hidden">
+        {/* Mobile bottom nav — Binance style with 5 items */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-bn-border bg-bn-secondary lg:hidden">
           {[
-            { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
-            { href: '/dashboard/trade', label: 'Trade', icon: CandlestickChart },
-            { href: '/dashboard/history', label: 'Assets', icon: Wallet },
-            { href: '/dashboard/settings', label: 'Profile', icon: User },
+            { href: '/dashboard', label: 'Home', icon: Home },
+            { href: '/dashboard/trade', label: 'Trade', icon: TrendingUp },
+            { href: '/dashboard/deposit', label: 'Deposit', icon: ArrowDownCircle },
+            { href: '/dashboard/withdraw', label: 'Withdraw', icon: ArrowUpCircle },
+            { href: '/dashboard/settings', label: 'Me', icon: User },
           ].map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
