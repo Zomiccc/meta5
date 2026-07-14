@@ -112,13 +112,13 @@ export default function LiveMarketStrip() {
   };
 
   return (
-    <div className="w-full overflow-x-auto border-y border-bn-border bg-bn-secondary/60 py-3 scrollbar-hide">
-      <div className="flex min-w-full items-stretch gap-2 px-4 sm:px-6 lg:px-8">
+    <div className="w-full overflow-x-auto border-y border-bn-border bg-bn-secondary/60 py-2 scrollbar-hide md:py-3">
+      <div className="flex min-w-full items-stretch gap-1.5 px-3 sm:px-6 lg:px-8 md:gap-2">
         {markets.map((m) => (
           <motion.div
             key={m.symbol}
             layout
-            className={`relative flex min-w-[10.5rem] flex-1 flex-col justify-between rounded-bn border border-bn-border bg-bn-card p-3 transition ${
+            className={`relative flex min-w-[8.5rem] flex-1 flex-col justify-between rounded-bn border border-bn-border bg-bn-card p-2 transition md:min-w-[10.5rem] md:p-3 ${
               m.flash === 'green' ? 'animate-flash-green' : m.flash === 'red' ? 'animate-flash-red' : ''
             }`}
           >
@@ -126,13 +126,13 @@ export default function LiveMarketStrip() {
               <span className="text-xs font-semibold text-bnText-primary">{m.label}</span>
               {m.change24h !== null ? <PriceChange value={m.change24h} /> : <span className="text-xs text-bnText-muted">—</span>}
             </div>
-            <div className="mt-1 text-lg font-bold tabular-nums text-bnText-primary">
+            <div className="mt-0.5 text-sm font-bold tabular-nums text-bnText-primary md:mt-1 md:text-lg">
               {m.price ? formatPrice(m.price, m.decimals) : '—'}
             </div>
-            <div className="mt-1 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-bnText-muted">{m.source}</span>
+            <div className="mt-1 flex items-center justify-between gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-bnText-muted md:text-[10px]">{m.source}</span>
               {m.price > 0 && m.history.length > 1 && (
-                <svg viewBox="0 0 100 100" className="h-8 w-20" preserveAspectRatio="none">
+                <svg viewBox="0 0 100 100" className="h-6 w-14 md:h-8 md:w-20" preserveAspectRatio="none">
                   <polyline
                     fill="none"
                     stroke={m.change24h === null ? '#848E9C' : m.change24h >= 0 ? '#0ECB81' : '#F6465D'}

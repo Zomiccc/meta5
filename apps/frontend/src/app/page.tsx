@@ -34,14 +34,14 @@ export default function Home() {
       <LiveMarketStrip />
 
       {/* Trust bar */}
-      <section className="border-y border-bn-border bg-bn-secondary py-8">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:px-6 lg:px-8 md:grid-cols-4">
+      <section className="border-y border-bn-border bg-bn-secondary py-4 md:py-6">
+        <div className="mx-auto flex max-w-7xl gap-4 overflow-x-auto px-4 scrollbar-hide sm:px-6 lg:px-8 md:grid md:grid-cols-4 md:gap-6">
           {trustStats.map((s) => (
-            <div key={s.label} className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10 text-yellow">{s.icon}</div>
+            <div key={s.label} className="flex min-w-[9.5rem] flex-shrink-0 items-center gap-2 md:min-w-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-yellow/10 text-yellow">{s.icon}</div>
               <div>
-                <p className="text-xl font-bold text-bnText-primary">{s.value}</p>
-                <p className="text-xs text-bnText-secondary">{s.label}</p>
+                <p className="text-base font-bold text-bnText-primary md:text-xl">{s.value}</p>
+                <p className="text-[10px] text-bnText-secondary md:text-xs">{s.label}</p>
               </div>
             </div>
           ))}
@@ -49,48 +49,43 @@ export default function Home() {
       </section>
 
       {/* Live markets */}
-      <section className="bg-bn-bg py-16 lg:py-20">
+      <section className="bg-bn-bg py-10 md:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+          <div className="mb-5 flex items-end justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-bn border border-yellow/20 bg-yellow/10 px-3 py-1">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-bnGreen" />
-                <span className="text-xs font-medium text-yellow">Real-time prices</span>
-              </div>
-              <h2 className="text-2xl font-bold text-bnText-primary md:text-3xl">Live Global Markets</h2>
-              <p className="mt-2 text-sm text-bnText-secondary">Forex, crypto, indices, commodities and stocks — updated in real time.</p>
+              <h2 className="text-lg font-bold text-bnText-primary md:text-2xl">Markets</h2>
+              <p className="mt-1 text-xs text-bnText-secondary md:text-sm">Real-time prices from global liquidity providers.</p>
             </div>
             <Link
               href="/markets"
-              className="flex items-center gap-2 rounded-bn border border-bn-border bg-bn-secondary px-4 py-2 text-sm font-medium text-bnText-primary transition hover:border-yellow hover:text-yellow"
+              className="flex items-center gap-1 rounded-bn border border-bn-border bg-bn-secondary px-3 py-1.5 text-xs font-medium text-bnText-primary transition hover:border-yellow hover:text-yellow"
             >
-              Explore all markets <ArrowRight className="h-4 w-4" />
+              More <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="rounded-bn border border-bn-border bg-bn-secondary p-3">
+          <div className="hidden rounded-bn border border-bn-border bg-bn-secondary p-3 md:block">
             <MarketOverview height={420} />
           </div>
         </div>
       </section>
 
       {/* Why choose */}
-      <section className="bg-bn-secondary py-16 lg:py-20">
+      <section className="bg-bn-secondary py-10 md:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold text-bnText-primary md:text-3xl">Why traders choose FXONS</h2>
-            <p className="mt-2 text-sm text-bnText-secondary">Everything you need for a professional trading experience</p>
+          <div className="mb-5 text-center md:mb-8">
+            <h2 className="text-lg font-bold text-bnText-primary md:text-2xl">Why traders choose FXONS</h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="group rounded-bn border border-bn-border bg-bn-card p-5 transition hover:border-bn-border-light hover:bg-bn-hover"
+                className="group min-w-[11rem] flex-shrink-0 rounded-bn border border-bn-border bg-bn-card p-4 transition hover:border-bn-border-light hover:bg-bn-hover md:min-w-0"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-bn bg-yellow/10 transition group-hover:bg-yellow/20">
+                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-bn bg-yellow/10 transition group-hover:bg-yellow/20">
                   {feature.icon}
                 </div>
-                <h3 className="mb-2 text-base font-semibold text-bnText-primary">{feature.title}</h3>
-                <p className="text-sm text-bnText-secondary">{feature.desc}</p>
+                <h3 className="mb-1 text-sm font-semibold text-bnText-primary md:text-base">{feature.title}</h3>
+                <p className="text-xs text-bnText-secondary md:text-sm">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -98,17 +93,17 @@ export default function Home() {
       </section>
 
       {/* Account types */}
-      <section className="bg-bn-bg py-16 lg:py-20">
+      <section className="bg-bn-bg py-10 md:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold text-bnText-primary md:text-3xl">Choose your account</h2>
-            <p className="mt-2 text-sm text-bnText-secondary">Flexible accounts for every type of trader</p>
+          <div className="mb-5 text-center md:mb-8">
+            <h2 className="text-lg font-bold text-bnText-primary md:text-2xl">Choose your account</h2>
+            <p className="mt-1 text-xs text-bnText-secondary md:text-sm">Flexible accounts for every type of trader</p>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-3">
             {accountTypes.map((acc) => (
               <div
                 key={acc.name}
-                className={`relative rounded-bn border bg-bn-card p-6 transition hover:-translate-y-0.5 ${
+                className={`relative min-w-[16rem] flex-shrink-0 rounded-bn border bg-bn-card p-5 transition hover:-translate-y-0.5 md:min-w-0 ${
                   acc.popular ? 'border-yellow shadow-[0_0_0_1px_rgba(240,185,11,0.2)]' : 'border-bn-border'
                 }`}
               >
@@ -117,9 +112,9 @@ export default function Home() {
                     MOST POPULAR
                   </span>
                 )}
-                <h3 className="text-lg font-bold text-bnText-primary">{acc.name}</h3>
-                <p className="mt-3 text-2xl font-bold text-yellow">{acc.spread}</p>
-                <ul className="mt-5 space-y-2.5 text-sm">
+                <h3 className="text-base font-bold text-bnText-primary md:text-lg">{acc.name}</h3>
+                <p className="mt-2 text-xl font-bold text-yellow">{acc.spread}</p>
+                <ul className="mt-4 space-y-2 text-sm">
                   <li className="flex items-center gap-2 text-bnText-secondary"><CheckCircle2 className="h-4 w-4 text-yellow" /> {acc.commission}</li>
                   <li className="flex items-center gap-2 text-bnText-secondary"><CheckCircle2 className="h-4 w-4 text-yellow" /> Min deposit {acc.min}</li>
                   <li className="flex items-center gap-2 text-bnText-secondary"><CheckCircle2 className="h-4 w-4 text-yellow" /> Leverage up to {acc.leverage}</li>
@@ -127,7 +122,7 @@ export default function Home() {
                 </ul>
                 <Link
                   href="/register"
-                  className={`mt-6 block w-full rounded-bn py-2.5 text-center text-sm font-semibold transition ${
+                  className={`mt-5 block w-full rounded-bn py-2 text-center text-sm font-semibold transition ${
                     acc.popular
                       ? 'bg-yellow text-black hover:bg-yellow-hover'
                       : 'border border-bn-border bg-bn-secondary text-bnText-primary hover:border-yellow hover:text-yellow'
@@ -142,44 +137,44 @@ export default function Home() {
       </section>
 
       {/* MT5 platform */}
-      <section className="bg-bn-secondary py-16 lg:py-20">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:px-8 lg:grid-cols-2">
+      <section className="bg-bn-secondary py-10 md:py-16">
+        <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8 lg:grid-cols-2 lg:gap-10">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-bn border border-yellow/20 bg-yellow/10 px-3 py-1 text-xs font-medium text-yellow">
               <BarChart3 className="h-3.5 w-3.5" /> Powered by MetaTrader 5
             </div>
-            <h2 className="text-2xl font-bold text-bnText-primary md:text-3xl">The world's most powerful trading platform</h2>
-            <p className="mt-4 text-sm leading-relaxed text-bnText-secondary">
+            <h2 className="text-lg font-bold text-bnText-primary md:text-2xl">MetaTrader 5 platform</h2>
+            <p className="mt-2 text-sm leading-relaxed text-bnText-secondary md:mt-4">
               Complete KYC and we instantly issue your MT5 login, password and server. Trade on desktop, web and mobile with advanced charting and one-click execution.
             </p>
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-4 space-y-2">
               {['Instant MT5 credentials after verification', 'Advanced charting & 80+ indicators', 'One-click trading & EAs supported', 'Desktop, Web & Mobile apps'].map((t) => (
                 <li key={t} className="flex items-center gap-3 text-sm text-bnText-secondary">
                   <CheckCircle2 className="h-5 w-5 text-yellow" /> {t}
                 </li>
               ))}
             </ul>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link href="/register" className="rounded-bn bg-yellow px-5 py-2.5 text-center text-sm font-semibold text-black transition hover:bg-yellow-hover">
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <Link href="/register" className="rounded-bn bg-yellow px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-yellow-hover">
                 Get MT5 Credentials
               </Link>
-              <Link href="/markets" className="rounded-bn border border-bn-border bg-bn-card px-5 py-2.5 text-center text-sm font-medium text-bnText-primary transition hover:border-yellow hover:text-yellow">
+              <Link href="/markets" className="rounded-bn border border-bn-border bg-bn-card px-4 py-2 text-center text-sm font-medium text-bnText-primary transition hover:border-yellow hover:text-yellow">
                 Try Live Charts
               </Link>
             </div>
           </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-5">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
               {[
                 { icon: <Zap className="h-5 w-5 text-yellow" />, t: '40ms', s: 'Avg execution' },
                 { icon: <Globe className="h-5 w-5 text-yellow" />, t: '1,000+', s: 'Instruments' },
                 { icon: <Shield className="h-5 w-5 text-yellow" />, t: '1:1000', s: 'Max leverage' },
                 { icon: <Headphones className="h-5 w-5 text-yellow" />, t: '24/7', s: 'Live support' },
               ].map((b) => (
-                <div key={b.s} className="rounded-bn bg-bn-secondary p-4">
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-bn bg-yellow/10">{b.icon}</div>
-                  <p className="text-xl font-bold text-bnText-primary">{b.t}</p>
-                  <p className="text-xs text-bnText-secondary">{b.s}</p>
+                <div key={b.s} className="rounded-bn bg-bn-secondary p-3 md:p-4">
+                  <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-bn bg-yellow/10">{b.icon}</div>
+                  <p className="text-lg font-bold text-bnText-primary md:text-xl">{b.t}</p>
+                  <p className="text-[10px] text-bnText-secondary md:text-xs">{b.s}</p>
                 </div>
               ))}
             </div>
@@ -188,29 +183,29 @@ export default function Home() {
       </section>
 
       {/* Steps */}
-      <section className="bg-bn-bg py-16 lg:py-20">
+      <section className="bg-bn-bg py-10 md:py-16">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-bnText-primary md:text-3xl">
-            Start trading in <span className="text-yellow">3 simple steps</span>
+          <h2 className="text-lg font-bold text-bnText-primary md:text-2xl">
+            Start in <span className="text-yellow">3 steps</span>
           </h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 flex gap-3 overflow-x-auto pb-2 text-left scrollbar-hide md:grid md:grid-cols-3">
             {[
               { step: '1', title: 'Register', desc: 'Open your account in under 2 minutes with basic details.' },
               { step: '2', title: 'Verify KYC', desc: 'AI-powered document verification in real time.' },
               { step: '3', title: 'Fund & Trade', desc: 'Deposit with crypto and receive your MT5 credentials instantly.' },
             ].map((item) => (
-              <div key={item.step} className="rounded-bn border border-bn-border bg-bn-card p-6">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-bn bg-yellow/10 text-xl font-bold text-yellow">
+              <div key={item.step} className="min-w-[13rem] flex-shrink-0 rounded-bn border border-bn-border bg-bn-card p-4 md:min-w-0 md:p-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10 text-base font-bold text-yellow md:mx-auto md:mb-4 md:h-12 md:w-12 md:text-xl">
                   {item.step}
                 </div>
-                <h3 className="mb-2 text-lg font-semibold text-bnText-primary">{item.title}</h3>
-                <p className="text-sm text-bnText-secondary">{item.desc}</p>
+                <h3 className="mb-1 text-base font-semibold text-bnText-primary md:mb-2 md:text-center md:text-lg">{item.title}</h3>
+                <p className="text-xs text-bnText-secondary md:text-center md:text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
           <Link
             href="/register"
-            className="mt-10 inline-flex items-center gap-2 rounded-bn bg-yellow px-6 py-3 text-sm font-semibold text-black transition hover:bg-yellow-hover"
+            className="mt-6 inline-flex items-center gap-2 rounded-bn bg-yellow px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-yellow-hover md:mt-8"
           >
             Get Started Now <ArrowRight className="h-4 w-4" />
           </Link>

@@ -47,6 +47,7 @@ const config: Config = {
         'flash-red': 'flashRed 0.6s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-right': 'slideRight 0.2s ease-out',
+        'slide-in-right': 'slideInRight 0.25s ease-out',
         fade: 'fadeIn 0.25s ease-out',
         ticker: 'ticker 30s linear infinite',
         shimmer: 'shimmer 1.5s infinite',
@@ -67,6 +68,10 @@ const config: Config = {
         slideRight: {
           '0%': { opacity: '0', transform: 'translateX(-12px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
         },
         fadeIn: {
           '0%': { opacity: '0' },
