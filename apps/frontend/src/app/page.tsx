@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
+import LiveMarketStrip from '../components/LiveMarketStrip';
 import MarketOverview from '../components/tradingview/MarketOverview';
 import { TrendingUp, Shield, Zap, Globe, ArrowRight, Award, Headphones, Wallet, BarChart3, Users, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
@@ -30,6 +31,7 @@ export default function Home() {
     <div className="min-h-screen bg-bn-bg">
       <Navbar />
       <Hero />
+      <LiveMarketStrip />
 
       {/* Trust bar */}
       <section className="border-y border-bn-border bg-bn-secondary py-8">

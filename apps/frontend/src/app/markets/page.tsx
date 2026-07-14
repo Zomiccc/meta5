@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import AdvancedChart from '../../components/tradingview/AdvancedChart';
 import MiniChart from '../../components/tradingview/MiniChart';
+import LiveMarketStrip from '../../components/LiveMarketStrip';
 import Link from 'next/link';
 
 const categories: Record<string, { label: string; symbol: string }[]> = {
@@ -105,6 +106,8 @@ export default function MarketsPage() {
           </p>
         </div>
       </section>
+
+      <LiveMarketStrip />
 
       <section className="py-10">
         <div className="mx-auto max-w-7xl px-6">
