@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
-import { ArrowDownCircle, Copy, Loader2, CheckCircle, Clock, RefreshCw, AlertCircle, Wifi, ExternalLink } from 'lucide-react';
+import { ArrowDownCircle, Copy, Loader2, CheckCircle, Clock, RefreshCw, AlertCircle, Wifi, ExternalLink, Zap, History } from 'lucide-react';
 
 function Countdown({ expiresAt }: { expiresAt: string | number | Date }) {
   const [remaining, setRemaining] = useState(() => new Date(expiresAt).getTime() - Date.now());
@@ -30,6 +30,31 @@ export default function DepositPage() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<{ status: string; message: string; txHash?: string } | null>(null);
+  const [deposits, setDeposits] = useState<any[]>([]);
+  const [testing, setTesting] = useState(false);
+
+  const fetchDeposits = useCallback(async () => {
+    try {
+      const res = await api.get('/deposits');
+      setDeposits(res.data);
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchDeposits(); }, [fetchDeposits]);
+
+  const testDeposit = async () => {
+    setTesting(true);
+    try {
+      await api.post('/deposits/test', { amount: 1000 });
+      await fetchDeposits();
+      setError('');
+      setPaymentStatus({ status: 'approved', message: 'Test deposit of $1,000 approved! Your balance has been updated.' });
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Test deposit failed');
+    } finally {
+      setTesting(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +150,18 @@ export default function DepositPage() {
                 )}
               </button>
             </form>
+
+            <div className="mt-4 border-t border-bn-border pt-4">
+              <button
+                onClick={testDeposit}
+                disabled={testing}
+                className="flex w-full items-center justify-center gap-2 rounded-bn border border-yellow/30 bg-yellow/10 px-4 py-2.5 text-sm font-bold text-yellow transition hover:bg-yellow/20 disabled:opacity-50"
+              >
+                <Zap className="h-4 w-4" />
+                {testing ? 'Processing...' : 'Test Deposit $1,000 (Instant)'}
+              </button>
+              <p className="mt-1.5 text-center text-xs text-bnText-muted">For testing only — instantly credits your account</p>
+            </div>
           </div>
         ) : (
           <div className="bn-card animate-slide-up space-y-6">
@@ -214,7 +251,7 @@ export default function DepositPage() {
                   ? 'border-bnGreen/20 bg-bnGreen/10 text-bnGreen'
                   : paymentStatus.status === 'error' || paymentStatus.status === 'expired'
                   ? 'border-bnRed/20 bg-bnRed/10 text-bnRed'
-                  : 'border-bnBlue/20 bg-bnBlue/10 text-bnBlue'
+                  : 'border-yellow/20 bg-yellow/10 text-yellow'
               }`}>
                 <div className="flex items-start gap-2">
                   {paymentStatus.status === 'approved' ? (
@@ -270,6 +307,33 @@ export default function DepositPage() {
           </div>
         )}
       </div>
+
+      {deposits.length > 0 && (
+        <div className="mx-auto mt-8 w-full max-w-lg">
+          <div className="mb-3 flex items-center gap-2">
+            <History className="h-4 w-4 text-bnText-muted" />
+            <h3 className="text-sm font-semibold text-bnText-primary">Deposit History</h3>
+          </div>
+          <div className="space-y-2">
+            {deposits.slice(0, 10).map((d) => (
+              <div key={d.id} className="flex items-center justify-between rounded-bn border border-bn-border bg-bn-card p-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-bnText-primary">${Number(d.amount).toFixed(2)}</span>
+                  <span className="text-xs text-bnText-muted">{new Date(d.createdAt).toLocaleDateString()}</span>
+                </div>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                  d.status === 'approved' ? 'bg-bnGreen/10 text-bnGreen' :
+                  d.status === 'pending' ? 'bg-yellow/10 text-yellow' :
+                  d.status === 'expired' ? 'bg-bnText-muted/10 text-bnText-muted' :
+                  'bg-bnRed/10 text-bnRed'
+                }`}>
+                  {d.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </DashboardShell>
   );
 }
