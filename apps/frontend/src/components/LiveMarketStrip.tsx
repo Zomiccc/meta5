@@ -2,26 +2,29 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '../lib/api';
 import { PriceChange } from './ui/PriceChange';
 
 interface MarketPair {
   symbol: string;
+  label: string;
   price: number;
-  change24h: number;
+  change24h: number | null;
   flash: 'green' | 'red' | null;
   history: number[];
   decimals: number;
+  source: string;
 }
 
-const INITIAL_PAIRS: { symbol: string; basePrice: number; change24h: number; decimals: number }[] = [
-  { symbol: 'BTC/USDT', basePrice: 67500.45, change24h: 1.24, decimals: 2 },
-  { symbol: 'ETH/USDT', basePrice: 3520.18, change24h: -0.86, decimals: 2 },
-  { symbol: 'EUR/USD', basePrice: 1.08564, change24h: 0.32, decimals: 5 },
-  { symbol: 'GBP/USD', basePrice: 1.27432, change24h: -0.14, decimals: 5 },
-  { symbol: 'XAU/USD', basePrice: 2385.6, change24h: 0.95, decimals: 2 },
-  { symbol: 'USOIL', basePrice: 82.45, change24h: -1.12, decimals: 2 },
-  { symbol: 'S&P 500', basePrice: 5432.15, change24h: 0.45, decimals: 2 },
-  { symbol: 'AAPL', basePrice: 223.45, change24h: 1.05, decimals: 2 },
+const MARKETS: { symbol: string; label: string; decimals: number }[] = [
+  { symbol: 'BITSTAMP:BTCUSD', label: 'BTC/USDT', decimals: 2 },
+  { symbol: 'BITSTAMP:ETHUSD', label: 'ETH/USDT', decimals: 2 },
+  { symbol: 'FX:EURUSD', label: 'EUR/USD', decimals: 5 },
+  { symbol: 'FX:GBPUSD', label: 'GBP/USD', decimals: 5 },
+  { symbol: 'OANDA:XAUUSD', label: 'XAU/USD', decimals: 2 },
+  { symbol: 'TVC:USOIL', label: 'USOIL', decimals: 2 },
+  { symbol: 'FOREXCOM:SPXUSD', label: 'S&P 500', decimals: 2 },
+  { symbol: 'NASDAQ:AAPL', label: 'AAPL', decimals: 2 },
 ];
 
 function formatPrice(price: number, decimals: number) {
@@ -33,28 +36,34 @@ function formatPrice(price: number, decimals: number) {
 
 export default function LiveMarketStrip() {
   const [markets, setMarkets] = useState<MarketPair[]>(
-    INITIAL_PAIRS.map((p) => ({
-      ...p,
-      price: p.basePrice,
+    MARKETS.map((m) => ({
+      ...m,
+      price: 0,
+      change24h: null,
       flash: null,
-      history: Array.from({ length: 20 }, () => p.basePrice),
+      history: [],
+      source: 'loading',
     }))
   );
   const flashTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const symbols = MARKETS.map((m) => m.symbol).join(',');
 
-  useEffect(() => {
-    const interval = setInterval(() => {
+  const fetchPrices = async () => {
+    try {
+      const res = await api.get(`/public/markets?symbols=${encodeURIComponent(symbols)}`);
+      const { prices, changes, sources } = res.data as {
+        prices: Record<string, number>;
+        changes: Record<string, number | null>;
+        sources: Record<string, string>;
+      };
+
       setMarkets((prev) =>
         prev.map((m) => {
-          const volatility = m.symbol.includes('BTC')
-            ? 0.0015
-            : m.symbol.includes('ETH')
-            ? 0.002
-            : 0.0008;
-          const delta = m.price * (Math.random() - 0.5) * volatility;
-          const newPrice = Math.max(m.price * 0.999, m.price + delta);
-          const newChange24h = m.change24h + (Math.random() - 0.5) * 0.03;
-          const flash = newPrice > m.price ? 'green' : newPrice < m.price ? 'red' : null;
+          const newPrice = prices[m.symbol];
+          if (!newPrice || isNaN(newPrice)) return m;
+
+          const prevPrice = m.price || newPrice;
+          const flash = newPrice > prevPrice ? 'green' : newPrice < prevPrice ? 'red' : null;
 
           if (flashTimers.current[m.symbol]) clearTimeout(flashTimers.current[m.symbol]);
           if (flash) {
@@ -65,20 +74,30 @@ export default function LiveMarketStrip() {
             }, 600);
           }
 
-          const newHistory = [...m.history.slice(1), newPrice];
-          return { ...m, price: newPrice, change24h: newChange24h, flash, history: newHistory };
+          const newHistory = [...m.history.slice(-19), newPrice];
+          return {
+            ...m,
+            price: newPrice,
+            change24h: changes[m.symbol] ?? m.change24h,
+            source: sources[m.symbol] || 'live',
+            flash,
+            history: newHistory,
+          };
         })
       );
-    }, 2000);
+    } catch (err) {
+      // keep last known prices on failure
+    }
+  };
 
+  useEffect(() => {
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 3000);
     return () => {
       clearInterval(interval);
       Object.values(flashTimers.current).forEach(clearTimeout);
     };
   }, []);
-
-  const maxChart = Math.max(...markets.map((m) => Math.max(...m.history)));
-  const minChart = Math.min(...markets.map((m) => Math.min(...m.history)));
 
   const sparkline = (history: number[]) => {
     const min = Math.min(...history);
@@ -104,20 +123,25 @@ export default function LiveMarketStrip() {
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-bnText-primary">{m.symbol}</span>
-              <PriceChange value={m.change24h} />
+              <span className="text-xs font-semibold text-bnText-primary">{m.label}</span>
+              {m.change24h !== null ? <PriceChange value={m.change24h} /> : <span className="text-xs text-bnText-muted">—</span>}
             </div>
             <div className="mt-1 text-lg font-bold tabular-nums text-bnText-primary">
-              {formatPrice(m.price, m.decimals)}
+              {m.price ? formatPrice(m.price, m.decimals) : '—'}
             </div>
-            <svg viewBox="0 0 100 100" className="mt-2 h-10 w-full" preserveAspectRatio="none">
-              <polyline
-                fill="none"
-                stroke={m.change24h >= 0 ? '#0ECB81' : '#F6465D'}
-                strokeWidth="2"
-                points={sparkline(m.history)}
-              />
-            </svg>
+            <div className="mt-1 flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-bnText-muted">{m.source}</span>
+              {m.price > 0 && m.history.length > 1 && (
+                <svg viewBox="0 0 100 100" className="h-8 w-20" preserveAspectRatio="none">
+                  <polyline
+                    fill="none"
+                    stroke={m.change24h === null ? '#848E9C' : m.change24h >= 0 ? '#0ECB81' : '#F6465D'}
+                    strokeWidth="2"
+                    points={sparkline(m.history)}
+                  />
+                </svg>
+              )}
+            </div>
           </motion.div>
         ))}
       </div>

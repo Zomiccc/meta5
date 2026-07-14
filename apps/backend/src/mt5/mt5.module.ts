@@ -4,11 +4,12 @@ import { Mt5BridgeService } from './mt5-bridge.service';
 import { OandaService } from './oanda.service';
 import { PriceFeedService } from './price-feed.service';
 import { Mt5Controller } from './mt5.controller';
+import { PublicController } from './public.controller';
 import { PrismaModule } from '../common/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [Mt5Controller],
+  controllers: [Mt5Controller, PublicController],
   providers: [Mt5Service, Mt5BridgeService, OandaService, PriceFeedService],
   exports: [Mt5Service, PriceFeedService],
 })
