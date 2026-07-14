@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
     return (
       <AdminShell>
         <div className="flex h-96 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+          <Loader2 className="h-8 w-8 animate-spin text-yellow" />
         </div>
       </AdminShell>
     );
@@ -43,19 +43,19 @@ export default function AdminDashboardPage() {
   return (
     <AdminShell>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-        <p className="text-white/50">Platform overview and statistics</p>
+        <h1 className="text-2xl font-bold text-bnText-primary">Admin Dashboard</h1>
+        <p className="text-bnText-secondary">Platform overview and statistics</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
-            <div key={idx} className="card animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                <Icon className="h-5 w-5 text-gold" />
+            <div key={idx} className="bn-card animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10">
+                <Icon className="h-5 w-5 text-yellow" />
               </div>
-              <p className="text-sm text-white/50">{card.label}</p>
-              <p className="mt-1 text-2xl font-bold text-white">{card.value}</p>
+              <p className="text-sm text-bnText-secondary">{card.label}</p>
+              <p className="mt-1 text-2xl font-bold text-bnText-primary">{card.value}</p>
             </div>
           );
         })}

@@ -15,10 +15,10 @@ export default function AdminAffiliatesPage() {
 
   return (
     <AdminShell>
-      <h1 className="mb-6 text-2xl font-bold text-white">Affiliates</h1>
-      <div className="overflow-x-auto rounded border border-navy-700 bg-navy-800">
+      <h1 className="mb-6 text-2xl font-bold text-bnText-primary">Affiliates</h1>
+      <div className="overflow-x-auto rounded border border-bn-border bg-bn-input">
         <table className="min-w-[560px] w-full text-left text-sm">
-          <thead className="border-b border-navy-600 text-white/60">
+          <thead className="border-b border-bn-border text-bnText-secondary">
             <tr>
               <th className="px-4 py-3">Referral Code</th>
               <th className="px-4 py-3">Total Referred</th>
@@ -27,13 +27,13 @@ export default function AdminAffiliatesPage() {
           </thead>
           <tbody>
             {affiliates.map((a) => (
-              <tr key={a.id} className="border-b border-navy-700">
-                <td className="px-4 py-3 text-gold">{a.referralCode}</td>
-                <td className="px-4 py-3 text-white">{a.totalReferred}</td>
-                <td className="px-4 py-3 text-white">${Number(a.totalCommission).toFixed(2)}</td>
+              <tr key={a.id} className="border-b border-bn-border">
+                <td className="px-4 py-3 text-yellow">{a.referralCode}</td>
+                <td className="px-4 py-3 text-bnText-primary">{a.totalReferred}</td>
+                <td className="px-4 py-3 text-bnText-primary">${Number(a.totalCommission).toFixed(2)}</td>
               </tr>
             ))}
-            {affiliates.length === 0 && <tr><td colSpan={3} className="px-4 py-4 text-white/50">No affiliates</td></tr>}
+            {affiliates.length === 0 && <tr><td colSpan={3} className="px-4 py-4 text-bnText-secondary">No affiliates</td></tr>}
           </tbody>
         </table>
       </div>

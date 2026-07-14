@@ -90,17 +90,17 @@ export default function MarketsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-navy-950">
+    <div className="min-h-screen bg-bn-bg">
       <Navbar />
 
-      <section className="border-b border-navy-800/60 bg-navy-900/30 py-12">
+      <section className="border-b border-bn-border bg-bn-secondary/30 py-12">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/5 px-3 py-1">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
-            <span className="text-xs font-medium text-gold-light">Real-time market data</span>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-yellow/20 bg-yellow/5 px-3 py-1">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-bnGreen" />
+            <span className="text-xs font-medium text-yellow">Real-time market data</span>
           </div>
-          <h1 className="text-3xl font-bold text-white md:text-4xl">Live Markets</h1>
-          <p className="mt-3 max-w-2xl text-white/50">
+          <h1 className="text-3xl font-bold text-bnText-primary md:text-4xl">Live Markets</h1>
+          <p className="mt-3 max-w-2xl text-bnText-secondary">
             Track real-time prices across forex, crypto, indices, commodities and global stocks. Open an account to trade any of these on MetaTrader 5.
           </p>
         </div>
@@ -114,8 +114,8 @@ export default function MarketsPage() {
               <button
                 key={cat}
                 onClick={() => onCategory(cat as keyof typeof categories)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                  category === cat ? 'bg-gold text-navy-950' : 'bg-navy-800/60 text-white/70 hover:bg-navy-700/60 hover:text-white'
+                className={`rounded-bn px-4 py-2 text-sm font-medium transition ${
+                  category === cat ? 'bg-yellow text-bn-bg' : 'bg-bn-input/60 text-bnText-secondary hover:bg-bn-border/60 hover:text-bnText-primary'
                 }`}
               >
                 {cat}
@@ -131,13 +131,13 @@ export default function MarketsPage() {
                   <button
                     key={item.symbol}
                     onClick={() => setActive(item)}
-                    className={`w-full rounded-xl border p-4 text-left transition ${
+                    className={`w-full rounded-bn border p-4 text-left transition ${
                       active.symbol === item.symbol
-                        ? 'border-gold/50 bg-gold/10'
-                        : 'border-navy-700/50 bg-navy-900/40 hover:border-navy-600'
+                        ? 'border-yellow bg-yellow/10'
+                        : 'border-bn-border bg-bn-card hover:border-bn-border'
                     }`}
                   >
-                    <p className="font-semibold text-white">{item.label}</p>
+                    <p className="font-semibold text-bnText-primary">{item.label}</p>
                     <div className="mt-2">
                       <MiniChart symbol={item.symbol} height={80} />
                     </div>
@@ -149,8 +149,8 @@ export default function MarketsPage() {
             {/* Main chart */}
             <div className="lg:col-span-3">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">{active.label}</h2>
-                <Link href="/register" className="btn-gold text-sm">Trade {active.label}</Link>
+                <h2 className="text-xl font-bold text-bnText-primary">{active.label}</h2>
+                <Link href="/register" className="bn-btn-primary text-sm">Trade {active.label}</Link>
               </div>
               <AdvancedChart symbol={active.symbol} height={560} />
             </div>

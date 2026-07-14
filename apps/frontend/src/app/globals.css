@@ -3,21 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --navy-950: #050d1a;
-  --navy-900: #0a1628;
-  --navy-800: #0f1e32;
-  --navy-700: #162a44;
-  --navy-600: #1e3a5f;
-  --gold: #f0a500;
-  --gold-dark: #d18b00;
-  --gold-light: #ffc333;
+  --bn-bg: #0B0E11;
+  --bn-secondary: #1E2026;
+  --bn-card: #252930;
+  --bn-input: #2B3139;
+  --bn-border: #2B3139;
+  --bn-border-light: #363C45;
+  --bn-yellow: #F0B90B;
+  --bn-yellow-hover: #F8D33A;
+  --bn-green: #0ECB81;
+  --bn-red: #F6465D;
+  --bn-text-primary: #EAECEF;
+  --bn-text-secondary: #848E9C;
+  --bn-text-muted: #5E6673;
 }
 
 html,
 body {
-  color: #ffffff;
-  background: #0a1628;
-  font-family: 'Inter', sans-serif;
+  color: var(--bn-text-primary);
+  background: var(--bn-bg);
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,45 +40,57 @@ button {
   cursor: pointer;
 }
 
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f1e32;
+  background: #1E2026;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e3a5f;
+  background: #363C45;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a4a6f;
+  background: #474D57;
 }
 
 @layer components {
-  .card {
-    @apply rounded-2xl border border-navy-700/60 bg-navy-800/70 p-4 shadow-premium backdrop-blur-xl transition-all sm:p-6;
+  .bn-card {
+    @apply rounded-bn border border-bn-border bg-bn-card p-4 shadow-bn;
   }
-  .card-premium {
-    @apply relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-navy-800/80 to-navy-900/60 p-5 shadow-premium backdrop-blur-xl transition-all duration-300 hover:border-gold/20 hover:shadow-glow sm:p-6;
+  .bn-input {
+    @apply min-h-[44px] w-full rounded-bn border border-bn-border bg-bn-input px-3 py-2 text-sm text-bnText-primary placeholder-bnText-muted outline-none transition-all focus:border-yellow focus:ring-1 focus:ring-yellow/30;
   }
-  .btn-gold {
-    @apply rounded-xl bg-gold-gradient px-5 py-3 font-semibold text-navy-950 shadow-gold transition-all duration-200 hover:shadow-gold-lg hover:brightness-105 active:scale-[0.98] sm:px-6;
+  .bn-select {
+    @apply bn-input appearance-none;
   }
-  .btn-outline {
-    @apply rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:border-gold/50 hover:bg-gold/5 hover:text-gold active:scale-[0.98] sm:px-6;
+  .bn-btn-primary {
+    @apply rounded-bn bg-yellow px-4 py-2.5 text-sm font-semibold text-black transition-all hover:bg-yellow-hover active:scale-[0.98] disabled:opacity-60 disabled:hover:bg-yellow;
   }
-  .input-field {
-    @apply min-h-[46px] w-full rounded-xl border border-white/10 bg-navy-900/60 px-4 py-2.5 text-[16px] text-white placeholder-white/30 outline-none transition-all focus:border-gold/60 focus:bg-navy-900/80 focus:ring-2 focus:ring-gold/20;
+  .bn-btn-secondary {
+    @apply rounded-bn border border-bn-border-light bg-bn-secondary px-4 py-2.5 text-sm font-medium text-bnText-primary transition-all hover:border-yellow hover:text-yellow active:scale-[0.98];
   }
-  .status-badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  .bn-btn-ghost {
+    @apply rounded-bn px-3 py-2 text-sm font-medium text-bnText-secondary transition-all hover:bg-bn-hover hover:text-bnText-primary;
   }
-  .glass {
-    @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl;
+  .bn-text-positive {
+    @apply text-bnGreen;
   }
-  .gradient-text {
-    @apply bg-gradient-to-r from-gold-light via-gold to-gold-dark bg-clip-text text-transparent;
+  .bn-text-negative {
+    @apply text-bnRed;
+  }
+  .bn-bg-positive {
+    @apply bg-bnGreen/10;
+  }
+  .bn-bg-negative {
+    @apply bg-bnRed/10;
   }
 }
 

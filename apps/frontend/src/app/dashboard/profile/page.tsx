@@ -36,7 +36,7 @@ export default function ProfilePage() {
     return (
       <DashboardShell>
         <div className="flex h-96 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+          <Loader2 className="h-8 w-8 animate-spin text-yellow" />
         </div>
       </DashboardShell>
     );
@@ -45,15 +45,15 @@ export default function ProfilePage() {
   return (
     <DashboardShell>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Profile Settings</h1>
-        <p className="text-white/50">Manage your account information</p>
+        <h1 className="text-2xl font-bold text-bnText-primary">Profile Settings</h1>
+        <p className="text-bnText-secondary">Manage your account information</p>
       </div>
 
-      <div className="max-w-lg card animate-slide-up">
+      <div className="max-w-lg bn-card animate-slide-up">
         {message && (
           <div
-            className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
-              success ? 'border-green-500/20 bg-green-500/10 text-green-300' : 'border-red-500/20 bg-red-500/10 text-red-300'
+            className={`mb-4 flex items-center gap-2 rounded-bn border px-4 py-3 text-sm ${
+              success ? 'border-bnGreen/20 bg-bnGreen/10 text-bnGreen' : 'border-bnRed/20 bg-bnRed/10 text-bnRed'
             }`}
           >
             {success && <CheckCircle className="h-4 w-4" />}
@@ -62,20 +62,20 @@ export default function ProfilePage() {
         )}
         <form onSubmit={submit} className="space-y-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">Full Name</label>
+            <label className="mb-1.5 block text-sm font-medium text-bnText-secondary">Full Name</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-field pl-10" />
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bnText-muted" />
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bn-input pl-10" />
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">Phone</label>
+            <label className="mb-1.5 block text-sm font-medium text-bnText-secondary">Phone</label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input-field pl-10" placeholder="Optional" />
+              <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bnText-muted" />
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bn-input pl-10" placeholder="Optional" />
             </div>
           </div>
-          <button className="btn-gold w-full">Save Changes</button>
+          <button className="bn-btn-primary w-full">Save Changes</button>
         </form>
       </div>
     </DashboardShell>

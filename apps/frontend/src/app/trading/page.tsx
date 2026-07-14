@@ -28,14 +28,14 @@ const accounts = [
 
 export default function TradingPage() {
   return (
-    <div className="min-h-screen bg-navy-900">
+    <div className="min-h-screen bg-bn-secondary">
       <Navbar />
-      <section className="bg-navy-800 py-20">
+      <section className="bg-bn-input py-20">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h1 className="text-4xl font-bold text-white md:text-5xl">
-            Trading <span className="text-gold">Accounts</span>
+          <h1 className="text-4xl font-bold text-bnText-primary md:text-5xl">
+            Trading <span className="text-yellow">Accounts</span>
           </h1>
-          <p className="mt-6 text-lg text-white/70">
+          <p className="mt-6 text-lg text-bnText-secondary">
             Choose an account that matches your trading style. All accounts include MT5, instant crypto deposits, and 24/7 multilingual support.
           </p>
         </div>
@@ -47,22 +47,22 @@ export default function TradingPage() {
             {accounts.map((account, idx) => (
               <div
                 key={idx}
-                className="rounded border border-navy-700 bg-navy-800 p-8 transition hover:border-gold"
+                className="rounded border border-bn-border bg-bn-input p-8 transition hover:border-yellow"
               >
-                <h3 className="text-2xl font-bold text-white">{account.name}</h3>
-                <div className="mt-4 space-y-2 text-sm text-white/70">
-                  <p>Spread: <span className="text-white">{account.spread}</span></p>
-                  <p>Min Deposit: <span className="text-white">{account.minDeposit}</span></p>
-                  <p>Leverage: <span className="text-white">{account.leverage}</span></p>
+                <h3 className="text-2xl font-bold text-bnText-primary">{account.name}</h3>
+                <div className="mt-4 space-y-2 text-sm text-bnText-secondary">
+                  <p>Spread: <span className="text-bnText-primary">{account.spread}</span></p>
+                  <p>Min Deposit: <span className="text-bnText-primary">{account.minDeposit}</span></p>
+                  <p>Leverage: <span className="text-bnText-primary">{account.leverage}</span></p>
                 </div>
                 <ul className="mt-6 space-y-2">
                   {account.features.map((feature, fidx) => (
-                    <li key={fidx} className="flex items-center gap-2 text-sm text-white/80">
-                      <Check className="h-4 w-4 text-gold" /> {feature}
+                    <li key={fidx} className="flex items-center gap-2 text-sm text-bnText-secondary">
+                      <Check className="h-4 w-4 text-yellow" /> {feature}
                     </li>
                   ))}
                 </ul>
-                <button className="mt-8 w-full rounded bg-gold py-2 font-bold text-navy-900 transition hover:bg-gold-dark">
+                <button className="mt-8 w-full rounded bg-yellow py-2 font-bold text-bn-bg transition hover:bg-yellow-dark">
                   Open Account
                 </button>
               </div>

@@ -34,17 +34,17 @@ export default function WithdrawPage() {
   return (
     <DashboardShell>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Withdraw Funds</h1>
-        <p className="text-white/50">Withdraw USDT to your personal TRC20 wallet</p>
+        <h1 className="text-2xl font-bold text-bnText-primary">Withdraw Funds</h1>
+        <p className="text-bnText-secondary">Withdraw USDT to your personal TRC20 wallet</p>
       </div>
 
-      <div className="mx-auto w-full max-w-lg card animate-slide-up">
+      <div className="mx-auto w-full max-w-lg bn-card animate-slide-up">
         {message && (
           <div
-            className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
+            className={`mb-4 flex items-center gap-2 rounded-bn border px-4 py-3 text-sm ${
               success
-                ? 'border-green-500/20 bg-green-500/10 text-green-300'
-                : 'border-red-500/20 bg-red-500/10 text-red-300'
+                ? 'border-bnGreen/20 bg-bnGreen/10 text-bnGreen'
+                : 'border-bnRed/20 bg-bnRed/10 text-bnRed'
             }`}
           >
             {success ? <CheckCircle className="h-4 w-4" /> : null}
@@ -53,20 +53,20 @@ export default function WithdrawPage() {
         )}
         <form onSubmit={submit} className="space-y-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">Amount (USD)</label>
-            <input type="number" min="10" required placeholder="100" value={amount} onChange={(e) => setAmount(e.target.value)} className="input-field" />
-            <p className="mt-1 text-xs text-white/40">Minimum withdrawal: $10</p>
+            <label className="mb-1.5 block text-sm font-medium text-bnText-secondary">Amount (USD)</label>
+            <input type="number" min="10" required placeholder="100" value={amount} onChange={(e) => setAmount(e.target.value)} className="bn-input" />
+            <p className="mt-1 text-xs text-bnText-muted">Minimum withdrawal: $10</p>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">Your USDT Wallet Address (TRC20)</label>
-            <input required placeholder="Enter your USDT TRC20 wallet address (starts with T)" value={walletAddress} onChange={(e) => setWalletAddress(e.target.value)} className="input-field" />
-            <p className="mt-1 text-xs text-white/40">Funds are sent to this address on the Tron (TRC20) network only. Double-check it — transfers are irreversible.</p>
+            <label className="mb-1.5 block text-sm font-medium text-bnText-secondary">Your USDT Wallet Address (TRC20)</label>
+            <input required placeholder="Enter your USDT TRC20 wallet address (starts with T)" value={walletAddress} onChange={(e) => setWalletAddress(e.target.value)} className="bn-input" />
+            <p className="mt-1 text-xs text-bnText-muted">Funds are sent to this address on the Tron (TRC20) network only. Double-check it — transfers are irreversible.</p>
           </div>
-          <div className="rounded-lg border border-gold/20 bg-gold/5 p-4">
-            <p className="font-medium text-white">USDT</p>
-            <p className="text-xs text-white/50">Tron Network (TRC20) — the only supported withdrawal method</p>
+          <div className="rounded-bn border border-yellow/20 bg-yellow/5 p-4">
+            <p className="font-medium text-bnText-primary">USDT</p>
+            <p className="text-xs text-bnText-secondary">Tron Network (TRC20) — the only supported withdrawal method</p>
           </div>
-          <button type="submit" disabled={loading} className="btn-gold w-full">
+          <button type="submit" disabled={loading} className="bn-btn-primary w-full">
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" /> Submitting...

@@ -3,14 +3,14 @@ import Footer from '../../components/Footer';
 
 export default function PromotionsPage() {
   return (
-    <div className="min-h-screen bg-navy-900">
+    <div className="min-h-screen bg-bn-secondary">
       <Navbar />
-      <section className="bg-navy-800 py-20">
+      <section className="bg-bn-input py-20">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h1 className="text-4xl font-bold text-white md:text-5xl">
-            Promotions & <span className="text-gold">Bonuses</span>
+          <h1 className="text-4xl font-bold text-bnText-primary md:text-5xl">
+            Promotions & <span className="text-yellow">Bonuses</span>
           </h1>
-          <p className="mt-6 text-lg text-white/70">
+          <p className="mt-6 text-lg text-bnText-secondary">
             Boost your trading with our exclusive offers for traders worldwide.
           </p>
         </div>
@@ -25,9 +25,9 @@ export default function PromotionsPage() {
               { title: 'Loyalty Cashback', desc: 'Trade more and earn monthly cashback rebates.' },
               { title: 'Free VPS', desc: 'Free VPS for traders with balance over $2,000.' },
             ].map((promo, idx) => (
-              <div key={idx} className="rounded border border-navy-700 bg-navy-800 p-8">
-                <h3 className="mb-2 text-xl font-bold text-gold">{promo.title}</h3>
-                <p className="text-white/70">{promo.desc}</p>
+              <div key={idx} className="rounded border border-bn-border bg-bn-input p-8">
+                <h3 className="mb-2 text-xl font-bold text-yellow">{promo.title}</h3>
+                <p className="text-bnText-secondary">{promo.desc}</p>
               </div>
             ))}
           </div>

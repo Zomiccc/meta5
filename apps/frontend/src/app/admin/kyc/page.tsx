@@ -64,9 +64,9 @@ export default function AdminKycPage() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    approved: 'bg-green-500/10 text-green-400 border-green-500/20',
-    rejected: 'bg-red-500/10 text-red-400 border-red-500/20',
+    pending: 'bg-yellow/10 text-yellow border-yellow/20',
+    approved: 'bg-bnGreen/10 text-bnGreen border-bnGreen/20',
+    rejected: 'bg-bnRed/10 text-bnRed border-bnRed/20',
   };
 
   const getImageUrl = (url?: string) => {
@@ -79,14 +79,14 @@ export default function AdminKycPage() {
   return (
     <AdminShell>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-white">KYC Management</h1>
+        <h1 className="text-2xl font-bold text-bnText-primary">KYC Management</h1>
         <div className="flex flex-wrap items-center gap-2">
           {['all', 'pending', 'approved', 'rejected'].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition ${
-                filter === s ? 'bg-gold text-navy-900' : 'bg-navy-800 text-white/60 hover:bg-navy-700'
+              className={`rounded-bn px-3 py-1.5 text-sm font-medium capitalize transition ${
+                filter === s ? 'bg-yellow text-bn-bg' : 'bg-bn-input text-bnText-secondary hover:bg-bn-border'
               }`}
             >
               {s}
@@ -95,7 +95,7 @@ export default function AdminKycPage() {
           <button
             onClick={deleteAll}
             disabled={deletingAll}
-            className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+            className="flex items-center gap-1 rounded-bn bg-red-600 px-3 py-1.5 text-sm font-medium text-bnText-primary transition hover:bg-red-700 disabled:opacity-50"
           >
             {deletingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
             Delete all
@@ -105,23 +105,23 @@ export default function AdminKycPage() {
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-gold" />
+          <Loader2 className="h-6 w-6 animate-spin text-yellow" />
         </div>
       ) : (
         <div className="space-y-4">
           {kycs.map((kyc) => (
-            <div key={kyc.id} className="rounded border border-navy-700 bg-navy-800 p-4 sm:p-6">
+            <div key={kyc.id} className="rounded border border-bn-border bg-bn-input p-4 sm:p-6">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-3">
                   <div>
-                    <p className="font-semibold text-white">{kyc.user.name}</p>
-                    <p className="text-sm text-white/60">{kyc.user.email}</p>
+                    <p className="font-semibold text-bnText-primary">{kyc.user.name}</p>
+                    <p className="text-sm text-bnText-secondary">{kyc.user.email}</p>
                   </div>
                   <span className={`rounded-full border px-2.5 py-0.5 text-xs font-bold capitalize ${statusColors[kyc.status]}`}>
                     {kyc.status}
                   </span>
                   {kyc.adminOverride && (
-                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-400 border border-blue-500/20">
+                    <span className="rounded-full bg-bnBlue/10 px-2 py-0.5 text-xs text-blue-400 border border-bnBlue/20">
                       Admin reviewed
                     </span>
                   )}
@@ -129,10 +129,10 @@ export default function AdminKycPage() {
                 <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                   {kyc.status === 'pending' && (
                     <>
-                      <button onClick={() => approve(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-green-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-700 sm:flex-none">
+                      <button onClick={() => approve(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-green-600 px-4 py-2 text-sm font-bold text-bnText-primary transition hover:bg-green-700 sm:flex-none">
                         <Check className="h-3 w-3" /> Approve
                       </button>
-                      <button onClick={() => reject(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700 sm:flex-none">
+                      <button onClick={() => reject(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-red-600 px-4 py-2 text-sm font-bold text-bnText-primary transition hover:bg-red-700 sm:flex-none">
                         <X className="h-3 w-3" /> Reject
                       </button>
                     </>
@@ -141,7 +141,7 @@ export default function AdminKycPage() {
                     <button
                       onClick={() => reset(kyc.id)}
                       disabled={resettingId === kyc.id}
-                      className="flex min-h-11 w-full items-center justify-center gap-1 rounded bg-navy-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-600 disabled:opacity-50 sm:w-auto"
+                      className="flex min-h-11 w-full items-center justify-center gap-1 rounded bg-bn-border px-4 py-2 text-sm font-bold text-bnText-primary transition hover:bg-bn-border disabled:opacity-50 sm:w-auto"
                     >
                       {resettingId === kyc.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
                       Reset KYC
@@ -151,38 +151,38 @@ export default function AdminKycPage() {
               </div>
 
               {kyc.rejectionReason && (
-                <div className="mb-3 rounded bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                <div className="mb-3 rounded bg-bnRed/10 px-3 py-2 text-sm text-bnRed">
                   <span className="font-semibold">Rejection reason:</span> {kyc.rejectionReason}
                 </div>
               )}
 
               {kyc.aiResponse && (
-                <div className={`mb-4 rounded-lg border p-4 ${kyc.aiResponse.approved ? 'border-green-500/20 bg-green-500/10' : 'border-red-500/20 bg-red-500/10'}`}>
+                <div className={`mb-4 rounded-bn border p-4 ${kyc.aiResponse.approved ? 'border-bnGreen/20 bg-bnGreen/10' : 'border-bnRed/20 bg-bnRed/10'}`}>
                   <div className="mb-3 flex items-center justify-between">
-                    <p className="flex items-center gap-2 text-sm font-bold text-white">
+                    <p className="flex items-center gap-2 text-sm font-bold text-bnText-primary">
                       {kyc.aiResponse.approved ? (
-                        <><Check className="h-4 w-4 text-green-400" /> AI recommends APPROVE</>
+                        <><Check className="h-4 w-4 text-bnGreen" /> AI recommends APPROVE</>
                       ) : (
-                        <><X className="h-4 w-4 text-red-400" /> AI recommends REJECT</>
+                        <><X className="h-4 w-4 text-bnRed" /> AI recommends REJECT</>
                       )}
                     </p>
-                    <span className={`rounded px-2 py-0.5 text-xs font-bold ${kyc.aiResponse.confidence >= 0.8 ? 'bg-green-500/20 text-green-400' : kyc.aiResponse.confidence >= 0.5 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                    <span className={`rounded px-2 py-0.5 text-xs font-bold ${kyc.aiResponse.confidence >= 0.8 ? 'bg-bnGreen/20 text-bnGreen' : kyc.aiResponse.confidence >= 0.5 ? 'bg-yellow-500/20 text-yellow' : 'bg-bnRed/20 text-bnRed'}`}>
                       Confidence {(kyc.aiResponse.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
                   <div className="grid gap-2 text-xs sm:grid-cols-2">
-                    <div className="flex items-center gap-2 text-white/80">
-                      {kyc.aiResponse.faceMatch ? <Check className="h-3 w-3 text-green-400" /> : <X className="h-3 w-3 text-red-400" />}
+                    <div className="flex items-center gap-2 text-bnText-secondary">
+                      {kyc.aiResponse.faceMatch ? <Check className="h-3 w-3 text-bnGreen" /> : <X className="h-3 w-3 text-bnRed" />}
                       Face match: {kyc.aiResponse.faceMatch ? 'Yes' : 'No'}
                     </div>
                     {kyc.aiResponse.name && (
-                      <div className="text-white/80"><span className="font-semibold">Name:</span> {kyc.aiResponse.name}</div>
+                      <div className="text-bnText-secondary"><span className="font-semibold">Name:</span> {kyc.aiResponse.name}</div>
                     )}
                     {kyc.aiResponse.idNumber && (
-                      <div className="text-white/80"><span className="font-semibold">ID Number:</span> {kyc.aiResponse.idNumber}</div>
+                      <div className="text-bnText-secondary"><span className="font-semibold">ID Number:</span> {kyc.aiResponse.idNumber}</div>
                     )}
                     {kyc.aiResponse.expiryDate && (
-                      <div className="text-white/80"><span className="font-semibold">Expiry:</span> {kyc.aiResponse.expiryDate}</div>
+                      <div className="text-bnText-secondary"><span className="font-semibold">Expiry:</span> {kyc.aiResponse.expiryDate}</div>
                     )}
                   </div>
                 </div>
@@ -196,8 +196,8 @@ export default function AdminKycPage() {
                 ].map(({ key, label }) => {
                   const imgUrl = getImageUrl(kyc[key]);
                   return (
-                    <div key={key} className="rounded-lg border border-navy-700 bg-navy-900 p-2">
-                      <p className="mb-2 text-xs font-medium text-white/70">{label}</p>
+                    <div key={key} className="rounded-bn border border-bn-border bg-bn-secondary p-2">
+                      <p className="mb-2 text-xs font-medium text-bnText-secondary">{label}</p>
                       {imgUrl ? (
                         <a href={imgUrl} target="_blank" rel="noreferrer" className="group block">
                           <img
@@ -206,12 +206,12 @@ export default function AdminKycPage() {
                             className="h-32 w-full rounded-md object-cover transition group-hover:opacity-80"
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                           />
-                          <span className="mt-1 flex items-center gap-1 text-xs text-gold">
+                          <span className="mt-1 flex items-center gap-1 text-xs text-yellow">
                             <Eye className="h-3 w-3" /> View full image
                           </span>
                         </a>
                       ) : (
-                        <p className="text-xs text-white/40">Not uploaded</p>
+                        <p className="text-xs text-bnText-muted">Not uploaded</p>
                       )}
                     </div>
                   );
@@ -219,8 +219,8 @@ export default function AdminKycPage() {
               </div>
 
               {kyc.aiResponse?.flags?.length > 0 && (
-                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-3">
-                  <p className="mb-1 flex items-center gap-1 text-xs font-bold text-yellow-400">
+                <div className="rounded-bn border border-yellow/20 bg-yellow/10 p-3">
+                  <p className="mb-1 flex items-center gap-1 text-xs font-bold text-yellow">
                     <AlertTriangle className="h-3 w-3" /> AI Review Flags
                   </p>
                   <ul className="list-inside list-disc text-xs text-yellow-300/90">
@@ -232,7 +232,7 @@ export default function AdminKycPage() {
               )}
             </div>
           ))}
-          {kycs.length === 0 && <p className="text-white/50">No KYC records found.</p>}
+          {kycs.length === 0 && <p className="text-bnText-secondary">No KYC records found.</p>}
         </div>
       )}
     </AdminShell>

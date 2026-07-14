@@ -10,16 +10,16 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-navy-700/50 bg-navy-950 py-12 text-white/60">
-      <div className="mx-auto max-w-7xl px-6">
+    <footer className="border-t border-bn-border bg-bn-secondary py-12 text-bnText-secondary">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold/10">
-                <TrendingUp className="h-5 w-5 text-gold" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-yellow text-bn-bg">
+                <TrendingUp className="h-5 w-5" />
               </div>
-              <span className="text-lg font-bold tracking-tight text-white">
-                FX<span className="text-gold">ONS</span>
+              <span className="text-lg font-bold tracking-tight text-bnText-primary">
+                FX<span className="text-yellow">ONS</span>
               </span>
             </div>
             <p className="mt-4 text-sm leading-relaxed">
@@ -27,11 +27,11 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="mb-4 font-semibold text-white">Quick Links</h4>
+            <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-bnText-primary">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               {footerLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="transition hover:text-gold">
+                  <Link href={link.href} className="transition hover:text-yellow">
                     {link.label}
                   </Link>
                 </li>
@@ -39,17 +39,20 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 font-semibold text-white">Follow Us</h4>
+            <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-bnText-primary">Follow Us</h4>
             <div className="flex gap-3">
               {[Facebook, Twitter, Instagram, Linkedin, Youtube].map((Icon, idx) => (
-                <div key={idx} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-navy-700 transition hover:border-gold/30 hover:text-gold">
+                <div
+                  key={idx}
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-bn border border-bn-border text-bnText-secondary transition hover:border-yellow hover:text-yellow"
+                >
                   <Icon className="h-4 w-4" />
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div className="mt-10 border-t border-navy-700/50 pt-6 text-center text-xs text-white/40">
+        <div className="mt-10 border-t border-bn-border pt-6 text-center text-xs text-bnText-muted">
           © {new Date().getFullYear()} FXONS. All rights reserved. Risk warning: CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. Ensure you understand the risks involved.
         </div>
       </div>

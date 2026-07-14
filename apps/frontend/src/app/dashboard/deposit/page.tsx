@@ -13,13 +13,13 @@ function Countdown({ expiresAt }: { expiresAt: string | number | Date }) {
     return () => clearInterval(id);
   }, [expiresAt]);
 
-  if (remaining <= 0) return <span className="font-mono font-bold text-red-400">Expired</span>;
+  if (remaining <= 0) return <span className="font-mono font-bold text-bnRed">Expired</span>;
   const totalSec = Math.floor(remaining / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
   const pad = (n: number) => n.toString().padStart(2, '0');
-  return <span className="font-mono font-bold text-gold">{pad(h)}:{pad(m)}:{pad(s)}</span>;
+  return <span className="font-mono font-bold text-yellow">{pad(h)}:{pad(m)}:{pad(s)}</span>;
 }
 
 export default function DepositPage() {
@@ -85,16 +85,16 @@ export default function DepositPage() {
   return (
     <DashboardShell>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Deposit Funds</h1>
-        <p className="text-white/50">Fund your account with USDT (TRC20) — credited automatically</p>
+        <h1 className="text-2xl font-bold text-bnText-primary">Deposit Funds</h1>
+        <p className="text-bnText-secondary">Fund your account with USDT (TRC20) — credited automatically</p>
       </div>
 
       <div className="mx-auto w-full max-w-lg">
         {!result ? (
-          <div className="card animate-slide-up">
+          <div className="bn-card animate-slide-up">
             <form onSubmit={submit} className="space-y-5">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-white/70">Amount (USD)</label>
+                <label className="mb-1.5 block text-sm font-medium text-bnText-secondary">Amount (USD)</label>
                 <input
                   type="number"
                   min="10"
@@ -102,20 +102,20 @@ export default function DepositPage() {
                   placeholder="100"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="input-field"
+                  className="bn-input"
                 />
-                <p className="mt-1 text-xs text-white/40">Minimum deposit: $10</p>
+                <p className="mt-1 text-xs text-bnText-muted">Minimum deposit: $10</p>
               </div>
-              <div className="rounded-lg border border-gold/20 bg-gold/5 p-4">
-                <p className="font-medium text-white">USDT</p>
-                <p className="text-xs text-white/50">Tron Network (TRC20) — the only supported deposit method</p>
+              <div className="rounded-bn border border-yellow/20 bg-yellow/5 p-4">
+                <p className="font-medium text-bnText-primary">USDT</p>
+                <p className="text-xs text-bnText-secondary">Tron Network (TRC20) — the only supported deposit method</p>
               </div>
               {error && (
-                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="rounded-bn border border-bnRed/20 bg-bnRed/10 px-4 py-3 text-sm text-bnRed">
                   {error}
                 </div>
               )}
-              <button type="submit" disabled={loading} className="btn-gold w-full">
+              <button type="submit" disabled={loading} className="bn-btn-primary w-full">
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" /> Generating...
@@ -127,29 +127,29 @@ export default function DepositPage() {
             </form>
           </div>
         ) : (
-          <div className="card animate-slide-up space-y-6">
+          <div className="bn-card animate-slide-up space-y-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                <ArrowDownCircle className="h-5 w-5 text-gold" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10">
+                <ArrowDownCircle className="h-5 w-5 text-yellow" />
               </div>
               <div>
-                <h3 className="font-semibold text-white">Deposit Created</h3>
-                <p className="text-xs text-white/50">Send the exact amount below to the address</p>
+                <h3 className="font-semibold text-bnText-primary">Deposit Created</h3>
+                <p className="text-xs text-bnText-secondary">Send the exact amount below to the address</p>
               </div>
             </div>
 
-            <div className="rounded-lg border border-gold/20 bg-gold/5 p-4">
+            <div className="rounded-bn border border-yellow/20 bg-yellow/5 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-white/50">Payment ID</span>
-                <span className="font-mono text-sm font-medium text-gold">{result.paymentId}</span>
+                <span className="text-xs text-bnText-secondary">Payment ID</span>
+                <span className="font-mono text-sm font-medium text-yellow">{result.paymentId}</span>
               </div>
               <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-white/50">Network</span>
-                <span className="text-sm font-medium text-white">{result.network}</span>
+                <span className="text-xs text-bnText-secondary">Network</span>
+                <span className="text-sm font-medium text-bnText-primary">{result.network}</span>
               </div>
               {result.expiresAt && result.deposit.status === 'pending' && (
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-white/50">Expires in</span>
+                  <span className="text-xs text-bnText-secondary">Expires in</span>
                   <Countdown expiresAt={result.expiresAt} />
                 </div>
               )}
@@ -157,7 +157,7 @@ export default function DepositPage() {
 
             {/* QR code */}
             <div className="flex justify-center">
-              <div className="w-fit max-w-full rounded-xl bg-white p-3">
+              <div className="w-fit max-w-full rounded-bn bg-white p-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`}
@@ -169,38 +169,38 @@ export default function DepositPage() {
             </div>
 
             <div>
-              <p className="mb-2 text-sm text-white/50">Send USDT (TRC20) to this address:</p>
-              <div className="flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-900/50 p-3">
-                <p className="min-w-0 flex-1 break-all font-mono text-sm text-gold">{result.address}</p>
-                <button onClick={copyAddress} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-white/60 hover:bg-navy-700 hover:text-white" aria-label="Copy deposit address">
-                  {copied ? <CheckCircle className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+              <p className="mb-2 text-sm text-bnText-secondary">Send USDT (TRC20) to this address:</p>
+              <div className="flex items-center gap-2 rounded-bn border border-bn-border bg-bn-card p-3">
+                <p className="min-w-0 flex-1 break-all font-mono text-sm text-yellow">{result.address}</p>
+                <button onClick={copyAddress} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-bn text-bnText-secondary hover:bg-bn-border hover:text-bnText-primary" aria-label="Copy deposit address">
+                  {copied ? <CheckCircle className="h-4 w-4 text-bnGreen" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg bg-navy-900/50 p-4">
-                <p className="text-xs text-white/50">Exact Amount to Send</p>
-                <p className="mt-1 text-xl font-bold text-white">{uniqueAmount.toFixed(2)} USDT</p>
-                <p className="mt-0.5 text-xs text-gold/60">Unique amount identifies your deposit</p>
+              <div className="rounded-bn bg-bn-card p-4">
+                <p className="text-xs text-bnText-secondary">Exact Amount to Send</p>
+                <p className="mt-1 text-xl font-bold text-bnText-primary">{uniqueAmount.toFixed(2)} USDT</p>
+                <p className="mt-0.5 text-xs text-yellow/60">Unique amount identifies your deposit</p>
               </div>
-              <div className="rounded-lg bg-navy-900/50 p-4">
-                <p className="text-xs text-white/50">Status</p>
+              <div className="rounded-bn bg-bn-card p-4">
+                <p className="text-xs text-bnText-secondary">Status</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   {result.deposit.status === 'approved' ? (
                     <>
-                      <CheckCircle className="h-4 w-4 text-green-400" />
-                      <span className="font-medium text-green-400">Confirmed</span>
+                      <CheckCircle className="h-4 w-4 text-bnGreen" />
+                      <span className="font-medium text-bnGreen">Confirmed</span>
                     </>
                   ) : result.deposit.status === 'expired' ? (
                     <>
-                      <AlertCircle className="h-4 w-4 text-red-400" />
-                      <span className="font-medium text-red-400">Expired</span>
+                      <AlertCircle className="h-4 w-4 text-bnRed" />
+                      <span className="font-medium text-bnRed">Expired</span>
                     </>
                   ) : (
                     <>
-                      <Clock className="h-4 w-4 text-yellow-400" />
-                      <span className="font-medium capitalize text-yellow-400">{result.deposit.status}</span>
+                      <Clock className="h-4 w-4 text-yellow" />
+                      <span className="font-medium capitalize text-yellow">{result.deposit.status}</span>
                     </>
                   )}
                 </div>
@@ -209,12 +209,12 @@ export default function DepositPage() {
 
             {/* Payment verification status */}
             {paymentStatus && (
-              <div className={`rounded-lg border p-4 text-sm ${
+              <div className={`rounded-bn border p-4 text-sm ${
                 paymentStatus.status === 'approved'
-                  ? 'border-green-500/20 bg-green-500/10 text-green-300'
+                  ? 'border-bnGreen/20 bg-bnGreen/10 text-bnGreen'
                   : paymentStatus.status === 'error' || paymentStatus.status === 'expired'
-                  ? 'border-red-500/20 bg-red-500/10 text-red-300'
-                  : 'border-blue-500/20 bg-blue-500/10 text-blue-300'
+                  ? 'border-bnRed/20 bg-bnRed/10 text-bnRed'
+                  : 'border-bnBlue/20 bg-bnBlue/10 text-bnBlue'
               }`}>
                 <div className="flex items-start gap-2">
                   {paymentStatus.status === 'approved' ? (
@@ -241,7 +241,7 @@ export default function DepositPage() {
               </div>
             )}
 
-            <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-3 text-xs text-yellow-300/80">
+            <div className="rounded-bn border border-yellow/20 bg-yellow-500/5 p-3 text-xs text-yellow-300/80">
               <p className="mb-1"><strong>Important:</strong> Send exactly <span className="font-mono font-bold">{uniqueAmount.toFixed(2)} USDT</span> over the <strong>TRC20</strong> network.</p>
               <p>The unique amount identifies your deposit. Your balance is credited automatically once the transaction confirms. This request expires after 24 hours.</p>
             </div>
@@ -251,19 +251,19 @@ export default function DepositPage() {
                 <button
                   onClick={checkPayment}
                   disabled={checking}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-navy-600 bg-navy-800 py-3 text-sm font-bold text-white transition hover:bg-navy-700 disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-bn border border-bn-border bg-bn-input py-3 text-sm font-bold text-bnText-primary transition hover:bg-bn-border disabled:opacity-50"
                 >
                   {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   {checking ? 'Checking...' : 'Check Payment Status'}
                 </button>
               )}
-              <button onClick={() => { setResult(null); setPaymentStatus(null); }} className="btn-outline flex-1">
+              <button onClick={() => { setResult(null); setPaymentStatus(null); }} className="bn-btn-secondary flex-1">
                 {result.deposit.status === 'pending' ? 'Cancel' : 'New Deposit'}
               </button>
             </div>
 
             {result.deposit.status === 'pending' && (
-              <p className="text-center text-xs text-white/30">
+              <p className="text-center text-xs text-bnText-muted">
                 Auto-checking for your payment every 30 seconds
               </p>
             )}

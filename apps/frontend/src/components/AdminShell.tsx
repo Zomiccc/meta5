@@ -40,14 +40,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   };
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
-    <aside className={`flex-col border-r border-navy-700/50 bg-navy-900/50 backdrop-blur-sm ${mobile ? 'flex h-full w-[min(18rem,85vw)]' : 'hidden w-64 md:flex'}`}> 
+    <aside className={`flex-col border-r border-bn-border bg-bn-card backdrop-blur-sm ${mobile ? 'flex h-full w-[min(18rem,85vw)]' : 'hidden w-64 md:flex'}`}> 
       <Link href="/admin" className="flex items-center gap-2 px-6 py-5" onClick={() => mobile && setMobileOpen(false)}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold/10">
-          <Shield className="h-5 w-5 text-gold" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-yellow/10">
+          <Shield className="h-5 w-5 text-yellow" />
         </div>
         <div>
-          <span className="text-lg font-bold tracking-tight text-white">FX<span className="text-gold">ONS</span></span>
-          <p className="text-[10px] uppercase tracking-wider text-white/40">Admin Panel</p>
+          <span className="text-lg font-bold tracking-tight text-bnText-primary">FX<span className="text-yellow">ONS</span></span>
+          <p className="text-[10px] uppercase tracking-wider text-bnText-muted">Admin Panel</p>
         </div>
       </Link>
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -59,10 +59,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               key={link.href}
               href={link.href}
               onClick={() => mobile && setMobileOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 rounded-bn px-3 py-2.5 text-sm font-medium transition-all ${
                 active
-                  ? 'bg-gold/10 text-gold'
-                  : 'text-white/60 hover:bg-navy-800/50 hover:text-white'
+                  ? 'bg-yellow/10 text-yellow'
+                  : 'text-bnText-secondary hover:bg-bn-input hover:text-bnText-primary'
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -71,10 +71,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           );
         })}
       </nav>
-      <div className="border-t border-navy-700/50 p-3">
+      <div className="border-t border-bn-border p-3">
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400/80 transition hover:bg-red-500/10 hover:text-red-400"
+          className="flex w-full items-center gap-3 rounded-bn px-3 py-2.5 text-sm font-medium text-bnRed/80 transition hover:bg-bnRed/10 hover:text-bnRed"
         >
           <LogOut className="h-4 w-4" /> Logout
         </button>
@@ -83,21 +83,21 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-navy-950">
+    <div className="flex min-h-screen overflow-x-hidden bg-bn-bg">
       <Sidebar />
 
       {/* Mobile header */}
-      <div className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between border-b border-navy-700/50 bg-navy-900/90 px-4 py-3 backdrop-blur-md md:hidden">
+      <div className="fixed left-0 right-0 top-0 z-40 flex items-center justify-between border-b border-bn-border bg-bn-secondary/90 px-4 py-3 backdrop-blur-md md:hidden">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gold/10">
-            <Shield className="h-4 w-4 text-gold" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-yellow/10">
+            <Shield className="h-4 w-4 text-yellow" />
           </div>
           <div>
-            <span className="text-base font-bold text-white">FX<span className="text-gold">ONS</span></span>
-            <p className="text-[9px] uppercase tracking-wider text-white/40">Admin</p>
+            <span className="text-base font-bold text-bnText-primary">FX<span className="text-yellow">ONS</span></span>
+            <p className="text-[9px] uppercase tracking-wider text-bnText-muted">Admin</p>
           </div>
         </Link>
-        <button onClick={() => setMobileOpen(true)} className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-white" aria-label="Open admin navigation">
+        <button onClick={() => setMobileOpen(true)} className="flex min-h-11 min-w-11 items-center justify-center rounded-bn text-bnText-primary" aria-label="Open admin navigation">
           <Menu className="h-6 w-6" />
         </button>
       </div>
@@ -111,7 +111,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="absolute right-3 top-3 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-navy-800 text-white"
+            className="absolute right-3 top-3 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-bn-input text-bnText-primary"
           >
             <X className="h-5 w-5" />
           </button>

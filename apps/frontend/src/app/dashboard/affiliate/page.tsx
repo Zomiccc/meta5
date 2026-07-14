@@ -27,7 +27,7 @@ export default function AffiliatePage() {
     return (
       <DashboardShell>
         <div className="flex h-96 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+          <Loader2 className="h-8 w-8 animate-spin text-yellow" />
         </div>
       </DashboardShell>
     );
@@ -36,59 +36,59 @@ export default function AffiliatePage() {
   return (
     <DashboardShell>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Affiliate Program</h1>
-        <p className="text-white/50">Earn commissions by referring traders</p>
+        <h1 className="text-2xl font-bold text-bnText-primary">Affiliate Program</h1>
+        <p className="text-bnText-secondary">Earn commissions by referring traders</p>
       </div>
 
       <div className="max-w-3xl">
         {affiliate ? (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/10 to-transparent p-6">
-              <p className="text-sm font-medium text-gold-light">Lifetime commission</p>
-              <p className="mt-1 text-4xl font-extrabold text-white">3%</p>
-              <p className="mt-2 text-sm text-white/60">
-                Earn <span className="font-semibold text-white">3% of every deposit</span> your referrals make — automatically credited to your commission balance, for life.
+            <div className="rounded-bn border border-yellow/30 bg-gradient-to-br from-yellow/10 to-transparent p-6">
+              <p className="text-sm font-medium text-yellow">Lifetime commission</p>
+              <p className="mt-1 text-4xl font-extrabold text-bnText-primary">3%</p>
+              <p className="mt-2 text-sm text-bnText-secondary">
+                Earn <span className="font-semibold text-bnText-primary">3% of every deposit</span> your referrals make — automatically credited to your commission balance, for life.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="card animate-slide-up">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                  <Users className="h-5 w-5 text-gold" />
+              <div className="bn-card animate-slide-up">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10">
+                  <Users className="h-5 w-5 text-yellow" />
                 </div>
-                <p className="text-sm text-white/50">Total Referred</p>
-                <p className="mt-1 text-3xl font-bold text-white">{affiliate.totalReferred}</p>
+                <p className="text-sm text-bnText-secondary">Total Referred</p>
+                <p className="mt-1 text-3xl font-bold text-bnText-primary">{affiliate.totalReferred}</p>
               </div>
-              <div className="card animate-slide-up" style={{ animationDelay: '50ms' }}>
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                  <DollarSign className="h-5 w-5 text-gold" />
+              <div className="bn-card animate-slide-up" style={{ animationDelay: '50ms' }}>
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10">
+                  <DollarSign className="h-5 w-5 text-yellow" />
                 </div>
-                <p className="text-sm text-white/50">Total Commission</p>
-                <p className="mt-1 text-3xl font-bold text-white">${Number(affiliate.totalCommission || 0).toFixed(2)}</p>
+                <p className="text-sm text-bnText-secondary">Total Commission</p>
+                <p className="mt-1 text-3xl font-bold text-bnText-primary">${Number(affiliate.totalCommission || 0).toFixed(2)}</p>
               </div>
             </div>
 
-            <div className="card animate-slide-up">
+            <div className="bn-card animate-slide-up">
               <div className="mb-3 flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-gold" />
-                <p className="text-sm font-medium text-white/70">Your referral link</p>
+                <Link2 className="h-4 w-4 text-yellow" />
+                <p className="text-sm font-medium text-bnText-secondary">Your referral link</p>
               </div>
-              <div className="flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-900/50 p-3">
-                <p className="flex-1 truncate text-sm text-gold">{referralLink}</p>
-                <button onClick={copyLink} className="rounded-lg p-2 text-white/60 hover:bg-navy-700 hover:text-white">
-                  {copied ? <CheckCircle className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+              <div className="flex items-center gap-2 rounded-bn border border-bn-border bg-bn-card p-3">
+                <p className="flex-1 truncate text-sm text-yellow">{referralLink}</p>
+                <button onClick={copyLink} className="rounded-bn p-2 text-bnText-secondary hover:bg-bn-border hover:text-bnText-primary">
+                  {copied ? <CheckCircle className="h-4 w-4 text-bnGreen" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="mt-3 text-xs text-white/40">Share this link with friends. You earn commission on their trading activity.</p>
+              <p className="mt-3 text-xs text-bnText-muted">Share this link with friends. You earn commission on their trading activity.</p>
             </div>
           </div>
         ) : (
-          <div className="card animate-slide-up text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-800">
-              <Link2 className="h-8 w-8 text-white/30" />
+          <div className="bn-card animate-slide-up text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-bn bg-bn-input">
+              <Link2 className="h-8 w-8 text-bnText-muted" />
             </div>
-            <h3 className="text-lg font-semibold text-white">Affiliate Not Available</h3>
-            <p className="mt-2 text-sm text-white/50">Affiliate data not found. Please contact support.</p>
+            <h3 className="text-lg font-semibold text-bnText-primary">Affiliate Not Available</h3>
+            <p className="mt-2 text-sm text-bnText-secondary">Affiliate data not found. Please contact support.</p>
           </div>
         )}
       </div>

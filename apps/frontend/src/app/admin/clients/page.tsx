@@ -37,10 +37,10 @@ export default function AdminClientsPage() {
 
   return (
     <AdminShell>
-      <h1 className="mb-6 text-2xl font-bold text-white">Clients</h1>
-      <div className="overflow-x-auto rounded border border-navy-700 bg-navy-800">
+      <h1 className="mb-6 text-2xl font-bold text-bnText-primary">Clients</h1>
+      <div className="overflow-x-auto rounded border border-bn-border bg-bn-input">
         <table className="min-w-[1050px] w-full text-left text-sm">
-          <thead className="border-b border-navy-600 text-white/60">
+          <thead className="border-b border-bn-border text-bnText-secondary">
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
@@ -53,30 +53,30 @@ export default function AdminClientsPage() {
           </thead>
           <tbody>
             {clients.map((client) => (
-              <tr key={client.id} className="border-b border-navy-700">
-                <td className="px-4 py-3 text-white">{client.name}</td>
-                <td className="px-4 py-3 text-white">
-                  <button onClick={() => copyValue(`${client.id}:email`, client.email)} className="flex items-center gap-2 whitespace-nowrap hover:text-gold" title="Copy email">
+              <tr key={client.id} className="border-b border-bn-border">
+                <td className="px-4 py-3 text-bnText-primary">{client.name}</td>
+                <td className="px-4 py-3 text-bnText-primary">
+                  <button onClick={() => copyValue(`${client.id}:email`, client.email)} className="flex items-center gap-2 whitespace-nowrap hover:text-yellow" title="Copy email">
                     {client.email}
-                    {copied === `${client.id}:email` ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/40" />}
+                    {copied === `${client.id}:email` ? <Check className="h-3.5 w-3.5 text-bnGreen" /> : <Copy className="h-3.5 w-3.5 text-bnText-muted" />}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-white">
+                <td className="px-4 py-3 text-bnText-primary">
                   {client.phone ? (
-                    <button onClick={() => copyValue(`${client.id}:phone`, client.phone)} className="flex items-center gap-2 whitespace-nowrap hover:text-gold" title="Copy phone number">
+                    <button onClick={() => copyValue(`${client.id}:phone`, client.phone)} className="flex items-center gap-2 whitespace-nowrap hover:text-yellow" title="Copy phone number">
                       {client.phone}
-                      {copied === `${client.id}:phone` ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/40" />}
+                      {copied === `${client.id}:phone` ? <Check className="h-3.5 w-3.5 text-bnGreen" /> : <Copy className="h-3.5 w-3.5 text-bnText-muted" />}
                     </button>
-                  ) : <span className="text-white/30">—</span>}
+                  ) : <span className="text-bnText-muted">—</span>}
                 </td>
-                <td className="px-4 py-3 capitalize text-white">{client.status}</td>
-                <td className="px-4 py-3 capitalize text-white">{client.kyc?.status || 'Not submitted'}</td>
-                <td className="px-4 py-3 text-white">${client.mt5Account ? Number(client.mt5Account.balance).toFixed(2) : '0.00'}</td>
+                <td className="px-4 py-3 capitalize text-bnText-primary">{client.status}</td>
+                <td className="px-4 py-3 capitalize text-bnText-primary">{client.kyc?.status || 'Not submitted'}</td>
+                <td className="px-4 py-3 text-bnText-primary">${client.mt5Account ? Number(client.mt5Account.balance).toFixed(2) : '0.00'}</td>
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => deleteClient(client.id)}
                     disabled={deletingId === client.id}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                    className="inline-flex min-h-10 items-center gap-1.5 rounded-bn bg-bnRed/10 px-3 py-2 text-xs font-bold text-bnRed transition hover:bg-bnRed/20 disabled:opacity-50"
                   >
                     {deletingId === client.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                     Delete
@@ -85,7 +85,7 @@ export default function AdminClientsPage() {
               </tr>
             ))}
             {clients.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-4 text-white/50">No clients found</td></tr>
+              <tr><td colSpan={7} className="px-4 py-4 text-bnText-secondary">No clients found</td></tr>
             )}
           </tbody>
         </table>

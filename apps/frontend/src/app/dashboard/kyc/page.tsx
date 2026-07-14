@@ -77,41 +77,41 @@ export default function KycPage() {
   const isPending = kyc?.status === 'pending';
 
   const FileUpload = ({ file, setFile, label, description, icon: Icon, previewUrl }: any) => (
-    <div className="rounded-xl border border-navy-700/50 bg-navy-900/40 p-4 sm:p-5">
+    <div className="rounded-bn border border-bn-border bg-bn-card p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10">
-          <Icon className="h-5 w-5 text-gold" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10">
+          <Icon className="h-5 w-5 text-yellow" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">{label}</p>
-          <p className="text-xs text-white/40">{description}</p>
+          <p className="text-sm font-semibold text-bnText-primary">{label}</p>
+          <p className="text-xs text-bnText-muted">{description}</p>
         </div>
       </div>
       {file ? (
-        <div className="relative overflow-hidden rounded-lg border border-green-500/30 bg-navy-950">
+        <div className="relative overflow-hidden rounded-bn border border-green-500/30 bg-bn-bg">
           {previewUrl && (
             <img src={previewUrl} alt={label} className="h-40 w-full object-contain" />
           )}
-          <div className="flex items-center justify-between border-t border-navy-800 bg-navy-900/80 px-4 py-3">
+          <div className="flex items-center justify-between border-t border-bn-border bg-bn-card px-4 py-3">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-400" />
-              <span className="truncate text-sm text-white/80">{file.name}</span>
+              <CheckCircle className="h-4 w-4 text-bnGreen" />
+              <span className="truncate text-sm text-bnText-secondary">{file.name}</span>
             </div>
             <button
               type="button"
               onClick={() => setFile(null)}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/40 transition hover:bg-red-500/10 hover:text-red-400"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded text-bnText-muted transition hover:bg-bnRed/10 hover:text-bnRed"
             >
               <XCircle className="h-4 w-4" />
             </button>
           </div>
         </div>
       ) : (
-        <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-navy-600 bg-navy-900/30 p-6 transition hover:border-gold hover:bg-navy-800/30 sm:p-8">
-          <Icon className="h-10 w-10 text-white/20" />
+        <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-bn border-2 border-dashed border-bn-border bg-bn-secondary/30 p-6 transition hover:border-yellow hover:bg-bn-input/30 sm:p-8">
+          <Icon className="h-10 w-10 text-bnText-primary/20" />
           <div className="text-center">
-            <span className="block text-sm font-medium text-white/70">Click or drag & drop</span>
-            <span className="mt-1 block text-xs text-white/40">JPG, PNG or WEBP up to 10MB</span>
+            <span className="block text-sm font-medium text-bnText-secondary">Click or drag & drop</span>
+            <span className="mt-1 block text-xs text-bnText-muted">JPG, PNG or WEBP up to 10MB</span>
           </div>
           <input
             type="file"
@@ -132,44 +132,44 @@ export default function KycPage() {
   return (
     <DashboardShell>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">KYC Verification</h1>
-        <p className="text-white/50">AI-powered identity verification in 3 simple steps</p>
+        <h1 className="text-2xl font-bold text-bnText-primary">KYC Verification</h1>
+        <p className="text-bnText-secondary">AI-powered identity verification in 3 simple steps</p>
       </div>
 
       <div className="mx-auto max-w-2xl">
         {kyc && (isApproved || isPending || isRejected) && (
           <div
-            className={`mb-6 flex flex-col items-start gap-3 rounded-xl border p-4 sm:flex-row sm:items-center animate-slide-up ${
+            className={`mb-6 flex flex-col items-start gap-3 rounded-bn border p-4 sm:flex-row sm:items-center animate-slide-up ${
               isApproved
-                ? 'border-green-500/20 bg-green-500/10'
+                ? 'border-bnGreen/20 bg-bnGreen/10'
                 : isRejected
-                ? 'border-red-500/20 bg-red-500/10'
-                : 'border-yellow-500/20 bg-yellow-500/10'
+                ? 'border-bnRed/20 bg-bnRed/10'
+                : 'border-yellow/20 bg-yellow/10'
             }`}
           >
             {isApproved ? (
-              <ShieldCheck className="h-6 w-6 text-green-400" />
+              <ShieldCheck className="h-6 w-6 text-bnGreen" />
             ) : isRejected ? (
-              <AlertCircle className="h-6 w-6 text-red-400" />
+              <AlertCircle className="h-6 w-6 text-bnRed" />
             ) : (
-              <Loader2 className="h-6 w-6 animate-spin text-yellow-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-yellow" />
             )}
             <div>
-              <p className={`font-medium ${isApproved ? 'text-green-300' : isRejected ? 'text-red-300' : 'text-yellow-300'}`}>
+              <p className={`font-medium ${isApproved ? 'text-bnGreen' : isRejected ? 'text-bnRed' : 'text-yellow-300'}`}>
                 {isApproved ? 'Verified' : isRejected ? 'Verification Rejected' : 'Verification in Progress'}
               </p>
               {isPending && (
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-bnText-secondary">
                   KYC submitted. Will be approved in 1-2 business days.
                 </p>
               )}
               {isRejected && kyc.rejectionReason && (
-                <div className="mt-2 rounded bg-red-500/10 px-3 py-2 text-xs text-red-300/90">
+                <div className="mt-2 rounded bg-bnRed/10 px-3 py-2 text-xs text-bnRed/90">
                   <p className="font-semibold mb-1">Rejection reason:</p>
                   <p>{kyc.rejectionReason}</p>
                 </div>
               )}
-              {isApproved && <p className="text-xs text-green-300/80">Your identity has been verified. MT5 account is ready.</p>}
+              {isApproved && <p className="text-xs text-bnGreen/80">Your identity has been verified. MT5 account is ready.</p>}
             </div>
             {(isPending || isRejected) && (
               <button
@@ -187,7 +187,7 @@ export default function KycPage() {
                     setError(err.response?.data?.message || 'Failed to reset KYC');
                   }
                 }}
-                className="min-h-11 w-full rounded-lg border border-navy-600 bg-navy-900/50 px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-navy-800 hover:text-white sm:ml-auto sm:w-auto"
+                className="min-h-11 w-full rounded-bn border border-bn-border bg-bn-card px-3 py-2 text-xs font-medium text-bnText-secondary transition hover:bg-bn-input hover:text-bnText-primary sm:ml-auto sm:w-auto"
               >
                 Reset
               </button>
@@ -196,12 +196,12 @@ export default function KycPage() {
         )}
 
         {isApproved ? (
-          <div className="card animate-slide-up text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-500/10">
-              <ShieldCheck className="h-8 w-8 text-green-400" />
+          <div className="bn-card animate-slide-up text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-bn bg-bnGreen/10">
+              <ShieldCheck className="h-8 w-8 text-bnGreen" />
             </div>
-            <h3 className="text-lg font-semibold text-white">KYC Complete</h3>
-            <p className="mt-2 text-sm text-white/50">Your account is fully verified. You can now deposit and trade.</p>
+            <h3 className="text-lg font-semibold text-bnText-primary">KYC Complete</h3>
+            <p className="mt-2 text-sm text-bnText-secondary">Your account is fully verified. You can now deposit and trade.</p>
           </div>
         ) : (
           <>
@@ -214,37 +214,37 @@ export default function KycPage() {
                   <div key={s.num} className="flex flex-1 items-center">
                     <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all sm:h-10 sm:w-10 sm:rounded-xl ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-bn transition-all sm:h-10 sm:w-10 sm:rounded-bn ${
                           isDone
-                            ? 'bg-green-500/10 text-green-400'
+                            ? 'bg-bnGreen/10 text-bnGreen'
                             : isCurrent
-                            ? 'bg-gold/10 text-gold animate-pulse-gold'
-                            : 'bg-navy-800 text-white/30'
+                            ? 'bg-yellow/10 text-yellow animate-pulse'
+                            : 'bg-bn-input text-bnText-muted'
                         }`}
                       >
                         {isDone ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" /> : <Icon className="h-4 w-4 sm:h-5 sm:w-5" />}
                       </div>
-                      <span className={`text-[10px] sm:text-xs ${isCurrent || isDone ? 'text-white' : 'text-white/30'}`}>{s.label}</span>
+                      <span className={`text-[10px] sm:text-xs ${isCurrent || isDone ? 'text-bnText-primary' : 'text-bnText-muted'}`}>{s.label}</span>
                     </div>
                     {idx < steps.length - 1 && (
-                      <div className={`mx-1 h-0.5 flex-1 sm:mx-2 ${isDone ? 'bg-green-500/30' : 'bg-navy-700'}`} />
+                      <div className={`mx-1 h-0.5 flex-1 sm:mx-2 ${isDone ? 'bg-bnGreen/30' : 'bg-bn-border'}`} />
                     )}
                   </div>
                 );
               })}
             </div>
 
-            <div className="mb-5 grid gap-3 rounded-xl border border-navy-700/50 bg-navy-900/40 p-4 text-xs text-white/50 sm:grid-cols-3">
+            <div className="mb-5 grid gap-3 rounded-bn border border-bn-border bg-bn-card p-4 text-xs text-bnText-secondary sm:grid-cols-3">
               <div className="flex items-start gap-2">
-                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-yellow" />
                 <span>Document must be valid and not expired</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-yellow" />
                 <span>All corners visible, glare-free, high resolution</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gold" />
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-yellow" />
                 <span>Selfie clearly shows your face with good lighting</span>
               </div>
             </div>
@@ -255,7 +255,7 @@ export default function KycPage() {
                   file={cnicFront}
                   setFile={setCnicFront}
                   label="CNIC Front"
-                  description="Front side of national ID card"
+                  description="Front side of national ID bn-card"
                   icon={CreditCard}
                   previewUrl={frontPreview}
                 />
@@ -263,7 +263,7 @@ export default function KycPage() {
                   file={cnicBack}
                   setFile={setCnicBack}
                   label="CNIC Back"
-                  description="Back side of national ID card"
+                  description="Back side of national ID bn-card"
                   icon={FileText}
                   previewUrl={backPreview}
                 />
@@ -278,7 +278,7 @@ export default function KycPage() {
               </div>
 
               {error && (
-                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="rounded-bn border border-bnRed/20 bg-bnRed/10 px-4 py-3 text-sm text-bnRed">
                   {error}
                 </div>
               )}
@@ -286,7 +286,7 @@ export default function KycPage() {
               <button
                 type="submit"
                 disabled={loading || !cnicFront || !cnicBack || !selfie}
-                className="btn-gold min-h-12 w-full"
+                className="bn-btn-primary min-h-12 w-full"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -299,7 +299,7 @@ export default function KycPage() {
                 )}
               </button>
 
-              <div className="flex items-start gap-2 rounded-lg bg-navy-900/50 p-3 text-xs text-white/40">
+              <div className="flex items-start gap-2 rounded-bn bg-bn-card p-3 text-xs text-bnText-muted">
                 <Upload className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
                 <p>Your documents are encrypted and reviewed by our compliance team. Gemini AI checks document authenticity and matches your selfie to the ID photo before final approval.</p>
               </div>

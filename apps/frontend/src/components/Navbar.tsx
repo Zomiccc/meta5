@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Menu, X, CandlestickChart } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import TickerTape from './tradingview/TickerTape';
 
 const navLinks = [
@@ -20,78 +20,98 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full">
-      <div className="border-b border-navy-800/60 bg-navy-950">
+    <header className="sticky top-0 z-50 w-full border-b border-bn-border bg-bn-bg">
+      <div className="border-b border-bn-border bg-bn-secondary">
         <TickerTape />
       </div>
-      <div className="border-b border-navy-700/50 bg-navy-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-gold to-gold-dark">
-              <CandlestickChart className="h-5 w-5 text-navy-950" />
-            </div>
-            <div className="leading-none">
-              <span className="text-xl font-extrabold tracking-tight text-white">
-                FX<span className="text-gold">ONS</span>
-              </span>
-            </div>
-          </Link>
-
-          <nav className="hidden items-center gap-1 lg:flex">
-            {navLinks.map((link) => {
-              const active = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
-                    active ? 'bg-navy-700/50 text-gold' : 'text-white/70 hover:bg-navy-800/50 hover:text-white'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="hidden items-center gap-3 lg:flex">
-            <Link href="/login" className="btn-outline text-sm">
-              Log In
-            </Link>
-            <Link href="/register" className="btn-gold text-sm">
-              Open Account
-            </Link>
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-bn bg-yellow text-bn-bg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" />
+              <path d="M7 16l4-7 4 7" />
+              <path d="M15 9l4 7" />
+            </svg>
           </div>
+          <span className="text-xl font-bold tracking-tight text-bnText-primary">
+            FX<span className="text-yellow">ONS</span>
+          </span>
+        </Link>
 
-          <button
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-white lg:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+        <nav className="hidden items-center gap-1 lg:flex">
+          {navLinks.map((link) => {
+            const active = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`rounded-bn px-3 py-2 text-sm font-medium transition ${
+                  active
+                    ? 'bg-bn-hover text-bnText-primary'
+                    : 'text-bnText-secondary hover:bg-bn-hover hover:text-bnText-primary'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="hidden items-center gap-3 lg:flex">
+          <Link
+            href="/login"
+            className="rounded-bn border border-bn-border bg-transparent px-4 py-2 text-sm font-medium text-bnText-primary transition hover:border-yellow hover:text-yellow"
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+            Log In
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-bn bg-yellow px-4 py-2 text-sm font-semibold text-black transition hover:bg-yellow-hover"
+          >
+            Register
+          </Link>
         </div>
+
+        <button
+          className="flex h-10 w-10 items-center justify-center rounded-bn text-bnText-primary lg:hidden"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </div>
 
       {mobileOpen && (
-        <div className="max-h-[calc(100vh-7rem)] overflow-y-auto border-b border-navy-700/50 bg-navy-950 px-4 py-4 sm:px-6 lg:hidden animate-fade-in">
+        <div className="border-t border-bn-border bg-bn-secondary px-4 py-4 lg:hidden">
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex min-h-11 items-center rounded-lg px-4 py-2.5 text-sm font-medium text-white/80 hover:bg-navy-800 hover:text-white"
                 onClick={() => setMobileOpen(false)}
+                className={`rounded-bn px-4 py-3 text-sm font-medium transition ${
+                  pathname === link.href
+                    ? 'bg-bn-hover text-bnText-primary'
+                    : 'text-bnText-secondary hover:bg-bn-hover hover:text-bnText-primary'
+                }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 flex gap-2">
-              <Link href="/login" className="btn-outline flex-1 text-center text-sm" onClick={() => setMobileOpen(false)}>
+            <div className="mt-3 flex gap-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="flex-1 rounded-bn border border-bn-border py-2.5 text-center text-sm font-medium text-bnText-primary transition hover:border-yellow hover:text-yellow"
+              >
                 Log In
               </Link>
-              <Link href="/register" className="btn-gold flex-1 text-center text-sm" onClick={() => setMobileOpen(false)}>
-                Open Account
+              <Link
+                href="/register"
+                onClick={() => setMobileOpen(false)}
+                className="flex-1 rounded-bn bg-yellow py-2.5 text-center text-sm font-semibold text-black transition hover:bg-yellow-hover"
+              >
+                Register
               </Link>
             </div>
           </nav>

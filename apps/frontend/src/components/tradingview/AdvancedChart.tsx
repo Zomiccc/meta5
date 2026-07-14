@@ -44,7 +44,7 @@ function AdvancedChart({
 
   return (
     <div
-      className="tradingview-widget-container overflow-hidden rounded-2xl border border-navy-700/50"
+      className="tradingview-widget-container overflow-hidden rounded-bn border border-bn-border"
       ref={container}
       style={{ height, width: '100%' }}
     >
