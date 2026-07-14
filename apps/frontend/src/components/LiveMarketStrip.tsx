@@ -13,7 +13,6 @@ interface MarketPair {
   flash: 'green' | 'red' | null;
   history: number[];
   decimals: number;
-  source: string;
 }
 
 const MARKETS: { symbol: string; label: string; decimals: number }[] = [
@@ -42,7 +41,6 @@ export default function LiveMarketStrip() {
       change24h: null,
       flash: null,
       history: [],
-      source: 'loading',
     }))
   );
   const flashTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -51,10 +49,9 @@ export default function LiveMarketStrip() {
   const fetchPrices = async () => {
     try {
       const res = await api.get(`/public/markets?symbols=${encodeURIComponent(symbols)}`);
-      const { prices, changes, sources } = res.data as {
+      const { prices, changes } = res.data as {
         prices: Record<string, number>;
         changes: Record<string, number | null>;
-        sources: Record<string, string>;
       };
 
       setMarkets((prev) =>
@@ -79,7 +76,6 @@ export default function LiveMarketStrip() {
             ...m,
             price: newPrice,
             change24h: changes[m.symbol] ?? m.change24h,
-            source: sources[m.symbol] || 'live',
             flash,
             history: newHistory,
           };
@@ -129,8 +125,7 @@ export default function LiveMarketStrip() {
             <div className="mt-0.5 text-sm font-bold tabular-nums text-bnText-primary md:mt-1 md:text-lg">
               {m.price ? formatPrice(m.price, m.decimals) : '—'}
             </div>
-            <div className="mt-1 flex items-center justify-between gap-1">
-              <span className="text-[9px] uppercase tracking-wider text-bnText-muted md:text-[10px]">{m.source}</span>
+            <div className="mt-1 flex items-end justify-end">
               {m.price > 0 && m.history.length > 1 && (
                 <svg viewBox="0 0 100 100" className="h-6 w-14 md:h-8 md:w-20" preserveAspectRatio="none">
                   <polyline

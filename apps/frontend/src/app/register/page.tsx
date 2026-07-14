@@ -97,6 +97,11 @@ export default function RegisterPage() {
       setErrMsg('You must agree to the terms and conditions');
       return;
     }
+    const cleanPhone = form.phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length < 6) {
+      setErrMsg('Please enter a valid phone number');
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
@@ -105,7 +110,7 @@ export default function RegisterPage() {
         password: form.password,
         country: selectedCountry.name,
         countryCode: selectedCountry.dial,
-        phone: `${selectedCountry.dial} ${form.phoneNumber.trim()}`,
+        phone: `${selectedCountry.dial}${form.phoneNumber.replace(/\D/g, '')}`,
         referralCode: form.referralCode,
       };
       const res = await api.post('/auth/register', payload);

@@ -55,7 +55,6 @@ export default function TradePage() {
   const [submitting, setSubmitting] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
-  const [priceSource, setPriceSource] = useState<string>('');
   const [streamConnected, setStreamConnected] = useState(false);
 
   const hasMt5 = !!user?.mt5Account;
@@ -90,14 +89,7 @@ export default function TradePage() {
       .catch(() => undefined);
   }, []);
 
-  // Fetch price source when active symbol changes
-  useEffect(() => {
-    api.get(`/mt5/price-source?symbol=${encodeURIComponent(active.symbol)}`)
-      .then((res) => setPriceSource(res.data?.source || ''))
-      .catch(() => setPriceSource(''));
-  }, [active.symbol]);
-
-  // Poll live prices for all instruments every 5 seconds
+  // Poll live prices for all instruments every 3 seconds via REST (faster than SSE alone)
   useEffect(() => {
     if (loading || instruments.length === 0) return;
 
@@ -236,10 +228,10 @@ export default function TradePage() {
 
   return (
     <DashboardShell>
-      <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-center">
+      <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-bnText-primary">Trade</h1>
-          <p className="text-bnText-secondary">Live charts and order execution on your MT5 account</p>
+          <h1 className="text-xl font-bold text-bnText-primary md:text-2xl">Trade</h1>
+          <p className="text-sm text-bnText-secondary">Live charts and order execution</p>
         </div>
         {hasMt5 && (
           <button
@@ -261,27 +253,27 @@ export default function TradePage() {
 
       {/* Account stats bar */}
       {hasMt5 && (
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+        <div className="mb-4 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
+          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
             <div className="flex items-center gap-1.5 text-xs text-bnText-secondary"><Wallet className="h-3 w-3" /> Balance</div>
-            <div className="mt-1 text-lg font-bold text-bnText-primary">${balance.toFixed(2)}</div>
+            <div className="mt-1 text-base font-bold text-bnText-primary sm:text-lg">${balance.toFixed(2)}</div>
           </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
             <div className="text-xs text-bnText-secondary">Equity</div>
-            <div className={`mt-1 text-lg font-bold ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'}`}>${equity.toFixed(2)}</div>
+            <div className={`mt-1 text-base font-bold ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'} sm:text-lg`}>${equity.toFixed(2)}</div>
           </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
             <div className="text-xs text-bnText-secondary">Used Margin</div>
-            <div className="mt-1 text-lg font-bold text-bnText-primary">${margin.toFixed(2)}</div>
+            <div className="mt-1 text-base font-bold text-bnText-primary sm:text-lg">${margin.toFixed(2)}</div>
           </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
             <div className="text-xs text-bnText-secondary">Free Margin</div>
-            <div className={`mt-1 text-lg font-bold ${freeMargin > 0 ? 'text-bnText-primary' : 'text-bnRed'}`}>${freeMargin.toFixed(2)}</div>
+            <div className={`mt-1 text-base font-bold ${freeMargin > 0 ? 'text-bnText-primary' : 'text-bnRed'} sm:text-lg`}>${freeMargin.toFixed(2)}</div>
           </div>
         </div>
       )}
 
-      <div className="grid min-w-0 gap-6 lg:grid-cols-4">
+      <div className="grid min-w-0 gap-3 lg:gap-4 lg:grid-cols-4">
         {/* Watchlist */}
         <div className="flex min-w-0 flex-col rounded-bn border border-bn-border bg-bn-card p-3 lg:col-span-1">
           <div className="mb-3 flex items-center justify-between">
@@ -358,14 +350,10 @@ export default function TradePage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {priceSource && (
-                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
-                  priceSource === 'simulated' ? 'bg-bnRed/20 text-bnRed' : 'bg-bnGreen/20 text-bnGreen'
-                }`}>
-                  {priceSource}
-                </span>
-              )}
-              <span className="text-xs text-bnText-muted">Live · same feed as watchlist</span>
+              <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
+                <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
+                {streamConnected ? 'LIVE' : 'CONNECTING'}
+              </span>
             </div>
           </div>
           <div className="h-[360px] w-full flex-1 sm:h-[460px]">
@@ -449,15 +437,15 @@ export default function TradePage() {
 
       {/* Open positions */}
       {hasMt5 && (
-        <div className="mt-8 bn-card">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-bnText-primary">Open Positions</h3>
+        <div className="mt-4 bn-card">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-bnText-primary md:text-lg">Open Positions</h3>
             {trades.length > 0 && (
-              <span className="text-sm text-bnText-muted">{trades.length} active</span>
+              <span className="text-xs text-bnText-muted md:text-sm">{trades.length} active</span>
             )}
           </div>
           {trades.length === 0 ? (
-            <p className="py-6 text-center text-bnText-muted">No open positions. Place an order to start trading.</p>
+            <p className="py-6 text-center text-sm text-bnText-muted">No open positions. Place an order to start trading.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-[760px] w-full text-left text-sm">
@@ -473,28 +461,31 @@ export default function TradePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {trades.map((t) => (
-                    <tr key={t.id} className="border-b border-bn-border">
-                      <td className="py-2.5 font-medium text-bnText-primary">{t.symbol}</td>
-                      <td className={`py-2.5 font-bold ${t.type === 'BUY' ? 'text-bnGreen' : 'text-bnRed'}`}>{t.type}</td>
-                      <td className="py-2.5 text-bnText-secondary">{t.volume.toFixed(2)}</td>
-                      <td className="py-2.5 font-mono text-bnText-secondary">{t.openPrice}</td>
-                      <td className="py-2.5 font-mono text-bnText-secondary">{t.currentPrice}</td>
-                      <td className={`py-2.5 font-bold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>
-                        ${t.profit.toFixed(2)}
-                      </td>
-                      <td className="py-2.5 text-right">
-                        <button
-                          onClick={() => closeTrade(t.id)}
-                          disabled={closingId === t.id}
-                          className="inline-flex items-center gap-1 rounded-md bg-bnRed/10 px-3 py-1.5 text-xs font-bold text-bnRed transition hover:bg-bnRed/20 disabled:opacity-50"
-                        >
-                          {closingId === t.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                          Close
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {trades.map((t) => {
+                    const liveP = livePrices[t.symbol] ?? t.currentPrice;
+                    return (
+                      <tr key={t.id} className="border-b border-bn-border">
+                        <td className="py-2.5 font-medium text-bnText-primary">{t.symbol}</td>
+                        <td className={`py-2.5 font-bold ${t.type === 'BUY' ? 'text-bnGreen' : 'text-bnRed'}`}>{t.type}</td>
+                        <td className="py-2.5 text-bnText-secondary">{t.volume.toFixed(2)}</td>
+                        <td className="py-2.5 font-mono text-bnText-secondary">{t.openPrice}</td>
+                        <td className="py-2.5 font-mono text-bnText-primary">{liveP.toFixed(t.openPrice > 1000 ? 2 : t.openPrice > 10 ? 4 : 5)}</td>
+                        <td className={`py-2.5 font-bold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>
+                          ${t.profit.toFixed(2)}
+                        </td>
+                        <td className="py-2.5 text-right">
+                          <button
+                            onClick={() => closeTrade(t.id)}
+                            disabled={closingId === t.id}
+                            className="inline-flex items-center gap-1 rounded-md bg-bnRed/10 px-3 py-1.5 text-xs font-bold text-bnRed transition hover:bg-bnRed/20 disabled:opacity-50"
+                          >
+                            {closingId === t.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+                            Close
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
