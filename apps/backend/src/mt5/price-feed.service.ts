@@ -131,143 +131,13 @@ const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:GRTUSDT': 'the-graph',
 };
 
-// Map internal FX symbols to Yahoo Finance format (primary real-time FX source)
-const YAHOO_FOREX_SYMBOL_MAP: Record<string, string> = {
-  'FX:EURUSD': 'EURUSD=X',
-  'FX:GBPUSD': 'GBPUSD=X',
-  'FX:USDJPY': 'USDJPY=X',
-  'FX:AUDUSD': 'AUDUSD=X',
-  'FX:USDCAD': 'USDCAD=X',
-  'FX:USDCHF': 'USDCHF=X',
-  'FX:NZDUSD': 'NZDUSD=X',
-  'FX:EURGBP': 'EURGBP=X',
-  'FX:EURJPY': 'EURJPY=X',
-  'FX:GBPJPY': 'GBPJPY=X',
-  'FX:AUDJPY': 'AUDJPY=X',
-  'FX:CHFJPY': 'CHFJPY=X',
-  'FX:EURCHF': 'EURCHF=X',
-  'FX:EURAUD': 'EURAUD=X',
-  'FX:EURCAD': 'EURCAD=X',
-  'FX:GBPAUD': 'GBPAUD=X',
-  'FX:GBPCAD': 'GBPCAD=X',
-  'FX:GBPCHF': 'GBPCHF=X',
-  'FX:AUDCAD': 'AUDCAD=X',
-  'FX:AUDNZD': 'AUDNZD=X',
-  'FX:AUDCHF': 'AUDCHF=X',
-  'FX:CADJPY': 'CADJPY=X',
-  'FX:NZDJPY': 'NZDJPY=X',
-  'FX:CADCHF': 'CADCHF=X',
-  'FX:NZDCAD': 'NZDCAD=X',
-  'FX:EURNZD': 'EURNZD=X',
-  'FX:USDMXN': 'USDMXN=X',
-  'FX:USDZAR': 'USDZAR=X',
-  'FX:USDSGD': 'USDSGD=X',
-  'FX:USDTRY': 'USDTRY=X',
-};
-
-// Map internal symbols to Yahoo Finance format (fallback for stocks)
-const YAHOO_SYMBOL_MAP: Record<string, string> = {
-  'NASDAQ:AAPL': 'AAPL',
-  'NASDAQ:TSLA': 'TSLA',
-  'NASDAQ:NVDA': 'NVDA',
-  'NASDAQ:AMZN': 'AMZN',
-  'NASDAQ:MSFT': 'MSFT',
-  'NASDAQ:META': 'META',
-  'NASDAQ:GOOGL': 'GOOGL',
-  'NASDAQ:NFLX': 'NFLX',
-  'NASDAQ:AMD': 'AMD',
-  'NASDAQ:INTC': 'INTC',
-  'NASDAQ:ADBE': 'ADBE',
-  'NASDAQ:PYPL': 'PYPL',
-  'NASDAQ:PLTR': 'PLTR',
-  'NYSE:BABA': 'BABA',
-  'NYSE:DIS': 'DIS',
-  'NYSE:KO': 'KO',
-  'NYSE:JPM': 'JPM',
-  'NYSE:V': 'V',
-};
-
-// Map internal symbols to Twelve Data format
+// Map internal crypto symbols to Twelve Data format
 const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
-  'FX:EURUSD': 'EUR/USD',
-  'FX:GBPUSD': 'GBP/USD',
-  'FX:USDJPY': 'USD/JPY',
-  'FX:AUDUSD': 'AUD/USD',
-  'FX:USDCAD': 'USD/CAD',
-  'FX:USDCHF': 'USD/CHF',
-  'FX:NZDUSD': 'NZD/USD',
-  'FX:EURGBP': 'EUR/GBP',
-  'FX:EURJPY': 'EUR/JPY',
-  'FX:GBPJPY': 'GBP/JPY',
-  'FX:AUDJPY': 'AUD/JPY',
-  'FX:CHFJPY': 'CHF/JPY',
-  'FX:EURCHF': 'EUR/CHF',
-  'FX:EURAUD': 'EUR/AUD',
-  'FX:EURCAD': 'EUR/CAD',
-  'FX:GBPAUD': 'GBP/AUD',
-  'FX:GBPCAD': 'GBP/CAD',
-  'FX:GBPCHF': 'GBP/CHF',
-  'FX:AUDCAD': 'AUD/CAD',
-  'FX:AUDNZD': 'AUD/NZD',
-  'FX:AUDCHF': 'AUD/CHF',
-  'FX:CADJPY': 'CAD/JPY',
-  'FX:NZDJPY': 'NZD/JPY',
-  'FX:CADCHF': 'CAD/CHF',
-  'FX:NZDCAD': 'NZD/CAD',
-  'FX:EURNZD': 'EUR/NZD',
-  'FX:USDMXN': 'USD/MXN',
-  'FX:USDZAR': 'USD/ZAR',
-  'FX:USDSGD': 'USD/SGD',
-  'FX:USDTRY': 'USD/TRY',
   'BITSTAMP:BTCUSD': 'BTC/USD',
   'BITSTAMP:ETHUSD': 'ETH/USD',
   'BINANCE:BNBUSDT': 'BNB/USD',
   'BINANCE:XRPUSDT': 'XRP/USD',
   'BINANCE:SOLUSDT': 'SOL/USD',
-  'OANDA:XAUUSD': 'XAU/USD',
-  'OANDA:XAGUSD': 'XAG/USD',
-  'TVC:USOIL': 'WTI',
-  'TVC:UKOIL': 'BRENT',
-  'NYMEX:NG1!': 'NG',
-  'OANDA:XNGUSD': 'XNG/USD',
-  'COMEX:HG1!': 'HG',
-  'TVC:PLATINUM': 'PLN',
-  'TVC:PALLADIUM': 'PA',
-  'CBOT:ZC1!': 'ZC',
-  'CBOT:ZW1!': 'ZW',
-  'ICEUS:KC1!': 'KC',
-  'ICEUS:SB1!': 'SB',
-  'FOREXCOM:SPXUSD': 'SPX',
-  'FOREXCOM:NSXUSD': 'NDX',
-  'NASDAQ:IXIC': 'IXIC',
-  'FOREXCOM:DJI': 'DJI',
-  'INDEX:DEU40': 'DAX',
-  'OANDA:UK100GBP': 'FTSE',
-  'INDEX:NKY': 'N225',
-  'OANDA:FR40EUR': 'CAC',
-  'OANDA:AU200AUD': 'ASX',
-  'OANDA:HK33HKD': 'HSI',
-  'OANDA:EU50EUR': 'SX5E',
-  'OANDA:US2000USD': 'RUT',
-  'TVC:VIX': 'VIX',
-  'NASDAQ:AAPL': 'AAPL',
-  'NASDAQ:TSLA': 'TSLA',
-  'NASDAQ:NVDA': 'NVDA',
-  'NASDAQ:AMZN': 'AMZN',
-  'NASDAQ:MSFT': 'MSFT',
-  'NASDAQ:META': 'META',
-  'NASDAQ:GOOGL': 'GOOGL',
-  'NASDAQ:NFLX': 'NFLX',
-  'NASDAQ:AMD': 'AMD',
-  'NASDAQ:INTC': 'INTC',
-  'NASDAQ:ADBE': 'ADBE',
-  'NASDAQ:PYPL': 'PYPL',
-  'NASDAQ:PLTR': 'PLTR',
-  'NYSE:BABA': 'BABA',
-  'NYSE:DIS': 'DIS',
-  'NYSE:KO': 'KO',
-  'NYSE:JPM': 'JPM',
-  'NYSE:V': 'V',
 };
 
 interface PriceCacheEntry {
@@ -279,7 +149,6 @@ interface PriceCacheEntry {
 export class PriceFeedService {
   private readonly logger = new Logger(PriceFeedService.name);
   private readonly twelveDataApiKey?: string;
-  private readonly currencyApiKey?: string;
   private readonly priceProxyUrl?: string;
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
@@ -292,28 +161,23 @@ export class PriceFeedService {
   // Cache OHLC history for a few minutes to avoid hitting CoinGecko rate limits
   private readonly historyCache = new Map<string, { data: { time: number; open: number; high: number; low: number; close: number }[]; timestamp: number }>();
   private static readonly HISTORY_CACHE_TTL_MS = 5 * 60 * 1000;
-  // Cache Coinbase USD exchange rates for a few seconds to avoid repeated calls for every FX pair
-  private coinbaseFxRates: { rates: Record<string, number>; timestamp: number } | null = null;
-  private static readonly COINBASE_FX_CACHE_TTL_MS = 3000;
   // Keep the last known real price so we can return it when live APIs fail instead of going blank
   private readonly lastKnownPrice = new Map<string, { price: number; timestamp: number }>();
   private static readonly LAST_KNOWN_TTL_MS = 30 * 60 * 1000;
 
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
-    this.currencyApiKey = (this.configService.get<string>('CURRENCY_API_KEY') || '').trim() || undefined;
     this.priceProxyUrl = (this.configService.get<string>('PRICE_PROXY_URL') || '').trim() || undefined;
     this.simulatePrices = this.configService.get<string>('SIMULATE_PRICES') === 'true';
     this.simulateOnFailure = this.configService.get<string>('SIMULATE_ON_FAILURE') === 'true';
 
     if (this.twelveDataApiKey) this.logger.log('Twelve Data API configured');
-    if (this.currencyApiKey) this.logger.log('CurrencyAPI configured');
     if (this.simulatePrices) this.logger.warn('SIMULATE_PRICES=true — prices are simulated.');
     if (this.simulateOnFailure) this.logger.warn('SIMULATE_ON_FAILURE=true — prices will be simulated when real APIs fail.');
   }
 
   isConfigured(): boolean {
-    return !!this.twelveDataApiKey || !!this.currencyApiKey || this.simulatePrices;
+    return !!this.twelveDataApiKey || this.simulatePrices;
   }
 
   private isBinanceSymbol(symbol: string): boolean {
@@ -330,14 +194,6 @@ export class PriceFeedService {
 
   private isCoinGeckoSymbol(symbol: string): boolean {
     return !!COINGECKO_SYMBOL_MAP[symbol];
-  }
-
-  private isYahooSymbol(symbol: string): boolean {
-    return !!YAHOO_SYMBOL_MAP[symbol];
-  }
-
-  private isYahooForexSymbol(symbol: string): boolean {
-    return !!YAHOO_FOREX_SYMBOL_MAP[symbol];
   }
 
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
@@ -359,34 +215,6 @@ export class PriceFeedService {
       if (price !== null) source = 'binance';
     }
 
-    // Dedicated FX branch — multiple real-time sources in priority order
-    if (price === null && symbol.startsWith('FX:')) {
-      if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
-        price = await this.fetchTwelveDataPrice(symbol);
-        if (price !== null) source = 'twelvedata';
-      }
-      if (price === null) {
-        price = await this.fetchCoinbaseFxRate(symbol);
-        if (price !== null) source = 'coinbase-fx';
-      }
-      if (price === null) {
-        price = await this.fetchYahooPrice(symbol);
-        if (price !== null) source = 'yahoo';
-      }
-      if (price === null) {
-        price = await this.fetchOpenExchangeRatePrice(symbol);
-        if (price !== null) source = 'openexchange';
-      }
-      if (price === null && this.currencyApiKey) {
-        price = await this.fetchCurrencyApiPrice(symbol);
-        if (price !== null) source = 'currencyapi';
-      }
-      if (price === null) {
-        price = await this.fetchExchangeRateApiPrice(symbol);
-        if (price !== null) source = 'exchangerate-api';
-      }
-    }
-
     if (price === null && this.isCoinbaseSymbol(symbol)) {
       price = await this.fetchCoinbasePrice(symbol);
       if (price !== null) source = 'coinbase';
@@ -402,12 +230,7 @@ export class PriceFeedService {
       if (price !== null) source = 'coingecko';
     }
 
-    if (price === null && this.isYahooSymbol(symbol)) {
-      price = await this.fetchYahooPrice(symbol);
-      if (price !== null) source = 'yahoo';
-    }
-
-    // Twelve Data fallback for any mapped symbol (commodities, indices, stocks)
+    // Twelve Data fallback for any mapped symbol
     if (price === null && this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
       price = await this.fetchTwelveDataPrice(symbol);
       if (price !== null) source = 'twelvedata';
@@ -444,20 +267,19 @@ export class PriceFeedService {
   }
 
   private getBasePrice(symbol: string): number {
-    // Fallback base prices so simulated mode has something to drift from
+    // Fallback base prices for crypto symbols so simulated mode has something to drift from
     const defaults: Record<string, number> = {
-      'FX:EURUSD': 1.0856, 'FX:GBPUSD': 1.2740, 'FX:USDJPY': 148.25, 'FX:AUDUSD': 0.6580,
-      'FX:USDCAD': 1.3640, 'FX:USDCHF': 0.8840, 'FX:NZDUSD': 0.6120, 'FX:EURGBP': 0.8510,
-      'FX:EURJPY': 160.85, 'FX:GBPJPY': 188.95, 'FX:AUDJPY': 97.55, 'FX:CHFJPY': 167.55,
-      'FX:EURCHF': 0.9590, 'FX:EURAUD': 1.6500, 'FX:EURCAD': 1.4800, 'FX:GBPAUD': 1.9390,
-      'FX:GBPCAD': 1.7380, 'FX:GBPCHF': 1.1260, 'FX:AUDCAD': 0.8970, 'FX:AUDNZD': 1.0750,
-      'FX:AUDCHF': 0.5810, 'FX:CADJPY': 108.75, 'FX:NZDJPY': 90.75, 'FX:CADCHF': 0.6480,
-      'FX:NZDCAD': 0.8340, 'FX:EURNZD': 1.7740, 'FX:USDMXN': 17.85, 'FX:USDZAR': 18.25,
-      'FX:USDSGD': 1.3450, 'FX:USDTRY': 32.85,
-      'OANDA:XAUUSD': 2325.50, 'OANDA:XAGUSD': 27.85, 'TVC:USOIL': 78.50, 'TVC:UKOIL': 82.50,
-      'FOREXCOM:SPXUSD': 5280.00, 'FOREXCOM:NSXUSD': 18600.00, 'FOREXCOM:DJI': 39200.00,
-      'INDEX:DEU40': 18200.00, 'OANDA:UK100GBP': 8200.00, 'INDEX:NKY': 39800.00,
-      'NASDAQ:AAPL': 185.00, 'NASDAQ:TSLA': 245.00, 'NASDAQ:NVDA': 890.00,
+      'BITSTAMP:BTCUSD': 43210, 'BITSTAMP:ETHUSD': 2280,
+      'BINANCE:SOLUSDT': 102.5, 'BINANCE:XRPUSDT': 0.62, 'BINANCE:BNBUSDT': 312,
+      'BINANCE:DOGEUSDT': 0.088, 'BINANCE:ADAUSDT': 0.52, 'BINANCE:AVAXUSDT': 36.5,
+      'BINANCE:DOTUSDT': 7.4, 'BINANCE:MATICUSDT': 0.82, 'BINANCE:LINKUSDT': 15.2,
+      'BINANCE:LTCUSDT': 72.5, 'BINANCE:TRXUSDT': 0.108, 'BINANCE:BCHUSDT': 245,
+      'BINANCE:ATOMUSDT': 9.8, 'BINANCE:UNIUSDT': 6.4, 'BINANCE:XLMUSDT': 0.115,
+      'BINANCE:ETCUSDT': 26.3, 'BINANCE:FILUSDT': 5.6, 'BINANCE:APTUSDT': 8.9,
+      'BINANCE:ARBUSDT': 1.15, 'BINANCE:OPUSDT': 2.35, 'BINANCE:NEARUSDT': 3.1,
+      'BINANCE:INJUSDT': 34.5, 'BINANCE:SUIUSDT': 1.45, 'BINANCE:AAVEUSDT': 92,
+      'BINANCE:MKRUSDT': 1550, 'BINANCE:SANDUSDT': 0.48, 'BINANCE:AXSUSDT': 7.2,
+      'BINANCE:GRTUSDT': 0.18,
     };
     return defaults[symbol] || 100;
   }
@@ -476,27 +298,7 @@ export class PriceFeedService {
     const sin = Math.sin((t + seed) * 0.5);
     const cos = Math.cos((t + seed) * 0.7);
     const noise = (sin + cos) * 0.0005;
-    return Number((basePrice * (1 + noise)).toFixed(symbol.startsWith('FX:') ? 5 : 2));
-  }
-
-  private async fetchCurrencyApiPrice(symbol: string): Promise<number | null> {
-    const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
-    if (!tdSymbol) return null;
-    // CurrencyAPI free endpoint supports base/quote pairs (e.g. EURUSD)
-    const pair = tdSymbol.replace('/', '');
-    try {
-      const url = `https://api.currencyapi.com/v3/latest?apikey=${this.currencyApiKey}&base_currency=${pair.slice(0, 3)}&currencies=${pair.slice(3)}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-      if (!res.ok) return null;
-      const data = await res.json() as any;
-      const rate = data?.data?.[pair.slice(3)]?.value;
-      const price = Number(rate);
-      if (isNaN(price) || price <= 0) return null;
-      return price;
-    } catch (err: any) {
-      this.logger.debug(`CurrencyAPI fetch failed for ${symbol}: ${err.message}`);
-      return null;
-    }
+    return Number((basePrice * (1 + noise)).toFixed(2));
   }
 
   async getPrices(symbols: string[], basePrices: Record<string, number> = {}): Promise<Record<string, number>> {
@@ -560,10 +362,6 @@ export class PriceFeedService {
 
     let data: { time: number; open: number; high: number; low: number; close: number }[] | null = null;
 
-    if (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol)) {
-      data = await this.fetchYahooHistory(symbol);
-    }
-
     if (!data && this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
       data = await this.fetchTwelveDataHistory(symbol, days);
     }
@@ -602,44 +400,6 @@ export class PriceFeedService {
     }
   }
 
-  private async fetchYahooHistory(symbol: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
-    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol] || YAHOO_FOREX_SYMBOL_MAP[symbol];
-    if (!yahooSymbol) return null;
-    try {
-      const isForex = !!YAHOO_FOREX_SYMBOL_MAP[symbol];
-      const interval = isForex ? '1h' : '15m';
-      const range = '5d';
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=${interval}&range=${range}`;
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!res.ok) return null;
-      const data = await res.json() as any;
-      const result = data?.chart?.result?.[0];
-      if (!result) return null;
-      const timestamps: number[] = result.timestamp || [];
-      const quote = result.indicators?.quote?.[0] || {};
-      const opens: number[] = quote.open || [];
-      const highs: number[] = quote.high || [];
-      const lows: number[] = quote.low || [];
-      const closes: number[] = quote.close || [];
-      if (timestamps.length === 0) return null;
-      return timestamps.map((t, i) => ({
-        time: t,
-        open: Number(opens[i]),
-        high: Number(highs[i]),
-        low: Number(lows[i]),
-        close: Number(closes[i]),
-      })).filter((c) => c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
-    } catch (err: any) {
-      this.logger.debug(`Yahoo history fetch failed for ${symbol}: ${err.message}`);
-      return null;
-    }
-  }
-
   private async fetchTwelveDataHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
     const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
     if (!tdSymbol || !this.twelveDataApiKey) return null;
@@ -671,60 +431,28 @@ export class PriceFeedService {
     if (this.simulatedSymbols.has(symbol)) return 'simulated';
     if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
     if (this.isBinanceSymbol(symbol)) return 'binance';
-    if (symbol.startsWith('FX:')) {
-      if (this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) return 'twelvedata';
-      return 'openexchange';
-    }
     if (this.isCoinbaseSymbol(symbol)) return 'coinbase';
     if (this.isCryptoCompareSymbol(symbol)) return 'cryptocompare';
     if (this.isCoinGeckoSymbol(symbol)) return 'coingecko';
-    if (this.isYahooSymbol(symbol) || this.isYahooForexSymbol(symbol)) return 'yahoo';
     return 'simulated';
   }
 
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
-    if (symbol.startsWith('FX:')) return false; // FX has dedicated real provider chain
     if (
       this.isBinanceSymbol(symbol) ||
       this.isCoinbaseSymbol(symbol) ||
       this.isCryptoCompareSymbol(symbol) ||
       this.isCoinGeckoSymbol(symbol) ||
-      (!!this.twelveDataApiKey && !!TWELVE_DATA_SYMBOL_MAP[symbol]) ||
-      this.isYahooSymbol(symbol) ||
-      this.isYahooForexSymbol(symbol)
+      (!!this.twelveDataApiKey && !!TWELVE_DATA_SYMBOL_MAP[symbol])
     ) {
-      return false; // real provider available
+      return false;
     }
     return this.simulatePrices;
   }
 
   isAnySimulated(): boolean {
     return this.simulatedSymbols.size > 0 || this.simulatePrices;
-  }
-
-  private async fetchOpenExchangeRatePrice(symbol: string): Promise<number | null> {
-    // Parse FX:EURUSD => base=EUR, quote=USD
-    const match = symbol.match(/^FX:([A-Z]{3})([A-Z]{3})$/);
-    if (!match) return null;
-    const [, base, quote] = match;
-
-    try {
-      const url = 'https://open.er-api.com/v6/latest/USD';
-      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      if (!res.ok) return null;
-      const data = await res.json() as any;
-      const rates: Record<string, number> = data?.rates || {};
-      if (!rates[base] || !rates[quote] || rates[base] <= 0 || rates[quote] <= 0) return null;
-      // Rates are USD-based (how much of each currency 1 USD buys).
-      // price = quote/base = (USD value of 1 base unit) expressed in quote currency.
-      const price = Number((rates[quote] / rates[base]).toFixed(5));
-      if (isNaN(price) || price <= 0) return null;
-      return price;
-    } catch (err: any) {
-      this.logger.debug(`Open Exchange Rate fetch failed for ${symbol}: ${err.message}`);
-      return null;
-    }
   }
 
   private async fetchBinancePrice(symbol: string): Promise<number | null> {
@@ -763,55 +491,6 @@ export class PriceFeedService {
     }
   }
 
-  private async fetchCoinbaseFxRate(symbol: string): Promise<number | null> {
-    const match = symbol.match(/^FX:([A-Z]{3})([A-Z]{3})$/);
-    if (!match) return null;
-    const [, base, quote] = match;
-
-    try {
-      if (
-        !this.coinbaseFxRates ||
-        Date.now() - this.coinbaseFxRates.timestamp > PriceFeedService.COINBASE_FX_CACHE_TTL_MS
-      ) {
-        const url = 'https://api.coinbase.com/v2/exchange-rates?currency=USD';
-        const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-        if (!res.ok) return null;
-        const data = await res.json() as any;
-        const rates: Record<string, number> = data?.data?.rates || {};
-        this.coinbaseFxRates = { rates, timestamp: Date.now() };
-      }
-      const rates = this.coinbaseFxRates.rates;
-      if (!rates[base] || !rates[quote] || rates[base] <= 0 || rates[quote] <= 0) return null;
-      const price = Number((rates[quote] / rates[base]).toFixed(5));
-      if (isNaN(price) || price <= 0) return null;
-      return price;
-    } catch (err: any) {
-      this.logger.debug(`Coinbase FX rate fetch failed for ${symbol}: ${err.message}`);
-      return null;
-    }
-  }
-
-  private async fetchExchangeRateApiPrice(symbol: string): Promise<number | null> {
-    const match = symbol.match(/^FX:([A-Z]{3})([A-Z]{3})$/);
-    if (!match) return null;
-    const [, base, quote] = match;
-
-    try {
-      const url = 'https://api.exchangerate-api.com/v4/latest/USD';
-      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-      if (!res.ok) return null;
-      const data = await res.json() as any;
-      const rates: Record<string, number> = data?.rates || {};
-      if (!rates[base] || !rates[quote] || rates[base] <= 0 || rates[quote] <= 0) return null;
-      const price = Number((rates[quote] / rates[base]).toFixed(5));
-      if (isNaN(price) || price <= 0) return null;
-      return price;
-    } catch (err: any) {
-      this.logger.debug(`ExchangeRate API fetch failed for ${symbol}: ${err.message}`);
-      return null;
-    }
-  }
-
   private async fetchCryptoComparePrice(symbol: string): Promise<number | null> {
     const fsym = CRYPTOCOMPARE_SYMBOL_MAP[symbol];
     if (!fsym) return null;
@@ -844,41 +523,6 @@ export class PriceFeedService {
       return price;
     } catch (err: any) {
       this.logger.debug(`CoinGecko price fetch failed for ${symbol}: ${err.message}`);
-      return null;
-    }
-  }
-
-  private async fetchYahooPrice(symbol: string): Promise<number | null> {
-    const yahooSymbol = YAHOO_SYMBOL_MAP[symbol] || YAHOO_FOREX_SYMBOL_MAP[symbol];
-    if (!yahooSymbol) return null;
-
-    try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=5d`;
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!res.ok) return null;
-      const data = await res.json() as any;
-      const result = data?.chart?.result?.[0];
-      if (!result) return null;
-      const meta = result.meta || {};
-      const price = Number(meta.regularMarketPrice);
-      if (!isNaN(price) && price > 0) return price;
-      const previousClose = Number(meta.previousClose || meta.chartPreviousClose);
-      if (!isNaN(previousClose) && previousClose > 0) return previousClose;
-      // Fallback to last close in candle data
-      const close = result?.indicators?.quote?.[0]?.close;
-      if (Array.isArray(close) && close.length) {
-        for (let i = close.length - 1; i >= 0; i--) {
-          if (typeof close[i] === 'number' && close[i] > 0) return close[i];
-        }
-      }
-      return null;
-    } catch (err: any) {
-      this.logger.debug(`Yahoo price fetch failed for ${symbol}: ${err.message}`);
       return null;
     }
   }

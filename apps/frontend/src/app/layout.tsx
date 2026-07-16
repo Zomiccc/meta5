@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'FXONS | Trade Forex, Crypto, Stocks & Indices',
-  description: 'FXONS — trade forex, crypto, stocks, commodities and indices with Binance-grade execution, instant crypto deposits and MT5 integration.',
+  title: 'FXONS | Crypto Trading Platform',
+  description: 'FXONS — trade 30+ cryptocurrencies on MetaTrader 5 with Binance-grade execution, instant crypto deposits and high leverage.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

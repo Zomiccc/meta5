@@ -19,7 +19,7 @@ const FALLBACK_MARKETS: MarketPrice[] = [
   { symbol: 'BINANCE:BNBUSDT', label: 'BNB', price: 0, change: 0, decimals: 2 },
   { symbol: 'BINANCE:SOLUSDT', label: 'SOL', price: 0, change: 0, decimals: 2 },
   { symbol: 'BINANCE:XRPUSDT', label: 'XRP', price: 0, change: 0, decimals: 4 },
-  { symbol: 'FX:EURUSD', label: 'EUR', price: 0, change: 0, decimals: 5 },
+  { symbol: 'BINANCE:DOGEUSDT', label: 'DOGE', price: 0, change: 0, decimals: 4 },
 ];
 
 export default function Hero() {
@@ -37,7 +37,7 @@ export default function Hero() {
             { symbol: 'BINANCE:BNBUSDT', label: 'BNB', price: p['BINANCE:BNBUSDT'] ?? 0, change: 0, decimals: 2 },
             { symbol: 'BINANCE:SOLUSDT', label: 'SOL', price: p['BINANCE:SOLUSDT'] ?? 0, change: 0, decimals: 2 },
             { symbol: 'BINANCE:XRPUSDT', label: 'XRP', price: p['BINANCE:XRPUSDT'] ?? 0, change: 0, decimals: 4 },
-            { symbol: 'FX:EURUSD', label: 'EUR', price: p['FX:EURUSD'] ?? 0, change: 0, decimals: 5 },
+            { symbol: 'BINANCE:DOGEUSDT', label: 'DOGE', price: p['BINANCE:DOGEUSDT'] ?? 0, change: 0, decimals: 4 },
           ]);
         }
       } catch {}
@@ -56,10 +56,10 @@ export default function Hero() {
           {/* Left: Headline + CTA */}
           <div className="animate-slide-up">
             <h1 className="text-3xl font-bold leading-tight text-bnText-primary sm:text-4xl md:text-5xl lg:text-6xl">
-              The Trading Platform for the World
+              The Crypto Trading Platform
             </h1>
             <p className="mt-4 text-sm text-bnText-secondary sm:text-base md:mt-6 md:text-lg">
-              Trade Forex, Crypto, Stocks, Indices & Metals on MetaTrader 5. Ultra-low spreads, lightning execution, and instant crypto deposits.
+              Trade 30+ cryptocurrencies on MetaTrader 5. Ultra-low spreads, lightning execution, and instant crypto deposits.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-8">
               <Link

@@ -6,40 +6,8 @@ import { OandaService } from './oanda.service';
 import { PriceFeedService } from './price-feed.service';
 
 // Instrument metadata: contract size and base price for simulation
+// Crypto-only instruments
 const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; label: string; category: string }> = {
-  // ─── Forex (contract size 100,000) ───
-  'FX:EURUSD': { contractSize: 100000, basePrice: 1.0856, label: 'EUR/USD', category: 'Forex' },
-  'FX:GBPUSD': { contractSize: 100000, basePrice: 1.2734, label: 'GBP/USD', category: 'Forex' },
-  'FX:USDJPY': { contractSize: 100000, basePrice: 148.32, label: 'USD/JPY', category: 'Forex' },
-  'FX:AUDUSD': { contractSize: 100000, basePrice: 0.6580, label: 'AUD/USD', category: 'Forex' },
-  'FX:USDCAD': { contractSize: 100000, basePrice: 1.3620, label: 'USD/CAD', category: 'Forex' },
-  'FX:USDCHF': { contractSize: 100000, basePrice: 0.8810, label: 'USD/CHF', category: 'Forex' },
-  'FX:NZDUSD': { contractSize: 100000, basePrice: 0.6120, label: 'NZD/USD', category: 'Forex' },
-  'FX:EURGBP': { contractSize: 100000, basePrice: 0.8530, label: 'EUR/GBP', category: 'Forex' },
-  'FX:EURJPY': { contractSize: 100000, basePrice: 161.10, label: 'EUR/JPY', category: 'Forex' },
-  'FX:GBPJPY': { contractSize: 100000, basePrice: 188.90, label: 'GBP/JPY', category: 'Forex' },
-  'FX:AUDJPY': { contractSize: 100000, basePrice: 97.60, label: 'AUD/JPY', category: 'Forex' },
-  'FX:CHFJPY': { contractSize: 100000, basePrice: 168.40, label: 'CHF/JPY', category: 'Forex' },
-  'FX:EURCHF': { contractSize: 100000, basePrice: 0.9560, label: 'EUR/CHF', category: 'Forex' },
-  'FX:EURAUD': { contractSize: 100000, basePrice: 1.6500, label: 'EUR/AUD', category: 'Forex' },
-  'FX:EURCAD': { contractSize: 100000, basePrice: 1.4790, label: 'EUR/CAD', category: 'Forex' },
-  'FX:GBPAUD': { contractSize: 100000, basePrice: 1.9350, label: 'GBP/AUD', category: 'Forex' },
-  'FX:GBPCAD': { contractSize: 100000, basePrice: 1.7350, label: 'GBP/CAD', category: 'Forex' },
-  'FX:GBPCHF': { contractSize: 100000, basePrice: 1.1220, label: 'GBP/CHF', category: 'Forex' },
-  'FX:AUDCAD': { contractSize: 100000, basePrice: 0.8960, label: 'AUD/CAD', category: 'Forex' },
-  'FX:AUDNZD': { contractSize: 100000, basePrice: 1.0750, label: 'AUD/NZD', category: 'Forex' },
-  'FX:AUDCHF': { contractSize: 100000, basePrice: 0.5800, label: 'AUD/CHF', category: 'Forex' },
-  'FX:CADJPY': { contractSize: 100000, basePrice: 108.90, label: 'CAD/JPY', category: 'Forex' },
-  'FX:NZDJPY': { contractSize: 100000, basePrice: 90.80, label: 'NZD/JPY', category: 'Forex' },
-  'FX:CADCHF': { contractSize: 100000, basePrice: 0.6470, label: 'CAD/CHF', category: 'Forex' },
-  'FX:NZDCAD': { contractSize: 100000, basePrice: 0.8340, label: 'NZD/CAD', category: 'Forex' },
-  'FX:EURNZD': { contractSize: 100000, basePrice: 1.7740, label: 'EUR/NZD', category: 'Forex' },
-  'FX:USDMXN': { contractSize: 100000, basePrice: 17.10, label: 'USD/MXN', category: 'Forex' },
-  'FX:USDZAR': { contractSize: 100000, basePrice: 18.70, label: 'USD/ZAR', category: 'Forex' },
-  'FX:USDSGD': { contractSize: 100000, basePrice: 1.3450, label: 'USD/SGD', category: 'Forex' },
-  'FX:USDTRY': { contractSize: 100000, basePrice: 30.10, label: 'USD/TRY', category: 'Forex' },
-
-  // ─── Crypto (contract size 1) ───
   'BITSTAMP:BTCUSD': { contractSize: 1, basePrice: 43210, label: 'BTC/USD', category: 'Crypto' },
   'BITSTAMP:ETHUSD': { contractSize: 1, basePrice: 2280, label: 'ETH/USD', category: 'Crypto' },
   'BINANCE:SOLUSDT': { contractSize: 1, basePrice: 102.5, label: 'SOL/USDT', category: 'Crypto' },
@@ -70,56 +38,6 @@ const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; lab
   'BINANCE:SANDUSDT': { contractSize: 1, basePrice: 0.48, label: 'SAND/USDT', category: 'Crypto' },
   'BINANCE:AXSUSDT': { contractSize: 1, basePrice: 7.2, label: 'AXS/USDT', category: 'Crypto' },
   'BINANCE:GRTUSDT': { contractSize: 1, basePrice: 0.18, label: 'GRT/USDT', category: 'Crypto' },
-
-  // ─── Indices (contract size 1) ───
-  'FOREXCOM:SPXUSD': { contractSize: 1, basePrice: 5123, label: 'S&P 500', category: 'Indices' },
-  'FOREXCOM:NSXUSD': { contractSize: 1, basePrice: 17950, label: 'Nasdaq 100', category: 'Indices' },
-  'NASDAQ:IXIC': { contractSize: 1, basePrice: 16000, label: 'NASDAQ Composite', category: 'Indices' },
-  'FOREXCOM:DJI': { contractSize: 1, basePrice: 38650, label: 'Dow 30', category: 'Indices' },
-  'INDEX:DEU40': { contractSize: 1, basePrice: 16900, label: 'DAX 40', category: 'Indices' },
-  'OANDA:UK100GBP': { contractSize: 1, basePrice: 7620, label: 'FTSE 100', category: 'Indices' },
-  'INDEX:NKY': { contractSize: 1, basePrice: 36200, label: 'Nikkei 225', category: 'Indices' },
-  'OANDA:FR40EUR': { contractSize: 1, basePrice: 7560, label: 'CAC 40', category: 'Indices' },
-  'OANDA:AU200AUD': { contractSize: 1, basePrice: 7480, label: 'ASX 200', category: 'Indices' },
-  'OANDA:HK33HKD': { contractSize: 1, basePrice: 16300, label: 'Hang Seng', category: 'Indices' },
-  'OANDA:EU50EUR': { contractSize: 1, basePrice: 4620, label: 'Euro Stoxx 50', category: 'Indices' },
-  'OANDA:US2000USD': { contractSize: 1, basePrice: 2010, label: 'Russell 2000', category: 'Indices' },
-  'TVC:VIX': { contractSize: 1, basePrice: 13.5, label: 'Volatility (VIX)', category: 'Indices' },
-
-  // ─── Commodities & Metals ───
-  'OANDA:XAUUSD': { contractSize: 100, basePrice: 2034.5, label: 'Gold', category: 'Commodities' },
-  'OANDA:XAGUSD': { contractSize: 5000, basePrice: 22.8, label: 'Silver', category: 'Commodities' },
-  'TVC:USOIL': { contractSize: 1000, basePrice: 78.4, label: 'Crude Oil (WTI)', category: 'Commodities' },
-  'TVC:UKOIL': { contractSize: 1000, basePrice: 82.6, label: 'Brent Oil', category: 'Commodities' },
-  'NYMEX:NG1!': { contractSize: 10000, basePrice: 2.15, label: 'Natural Gas Futures', category: 'Commodities' },
-  'OANDA:XNGUSD': { contractSize: 10000, basePrice: 2.15, label: 'Natural Gas', category: 'Commodities' },
-  'COMEX:HG1!': { contractSize: 25000, basePrice: 3.85, label: 'Copper', category: 'Commodities' },
-  'TVC:PLATINUM': { contractSize: 50, basePrice: 920, label: 'Platinum', category: 'Commodities' },
-  'TVC:PALLADIUM': { contractSize: 100, basePrice: 1010, label: 'Palladium', category: 'Commodities' },
-  'CBOT:ZC1!': { contractSize: 50, basePrice: 445, label: 'Corn', category: 'Commodities' },
-  'CBOT:ZW1!': { contractSize: 50, basePrice: 605, label: 'Wheat', category: 'Commodities' },
-  'ICEUS:KC1!': { contractSize: 375, basePrice: 188, label: 'Coffee', category: 'Commodities' },
-  'ICEUS:SB1!': { contractSize: 1120, basePrice: 21.5, label: 'Sugar', category: 'Commodities' },
-
-  // ─── Stocks (contract size 1) ───
-  'NASDAQ:AAPL': { contractSize: 1, basePrice: 195, label: 'Apple', category: 'Stocks' },
-  'NASDAQ:TSLA': { contractSize: 1, basePrice: 210, label: 'Tesla', category: 'Stocks' },
-  'NASDAQ:NVDA': { contractSize: 1, basePrice: 720, label: 'Nvidia', category: 'Stocks' },
-  'NASDAQ:AMZN': { contractSize: 1, basePrice: 178, label: 'Amazon', category: 'Stocks' },
-  'NASDAQ:MSFT': { contractSize: 1, basePrice: 415, label: 'Microsoft', category: 'Stocks' },
-  'NASDAQ:META': { contractSize: 1, basePrice: 480, label: 'Meta', category: 'Stocks' },
-  'NASDAQ:GOOGL': { contractSize: 1, basePrice: 152, label: 'Alphabet', category: 'Stocks' },
-  'NASDAQ:NFLX': { contractSize: 1, basePrice: 560, label: 'Netflix', category: 'Stocks' },
-  'NASDAQ:AMD': { contractSize: 1, basePrice: 175, label: 'AMD', category: 'Stocks' },
-  'NASDAQ:INTC': { contractSize: 1, basePrice: 43, label: 'Intel', category: 'Stocks' },
-  'NASDAQ:ADBE': { contractSize: 1, basePrice: 590, label: 'Adobe', category: 'Stocks' },
-  'NASDAQ:PYPL': { contractSize: 1, basePrice: 62, label: 'PayPal', category: 'Stocks' },
-  'NASDAQ:PLTR': { contractSize: 1, basePrice: 24, label: 'Palantir', category: 'Stocks' },
-  'NYSE:BABA': { contractSize: 1, basePrice: 78, label: 'Alibaba', category: 'Stocks' },
-  'NYSE:DIS': { contractSize: 1, basePrice: 112, label: 'Disney', category: 'Stocks' },
-  'NYSE:KO': { contractSize: 1, basePrice: 60, label: 'Coca-Cola', category: 'Stocks' },
-  'NYSE:JPM': { contractSize: 1, basePrice: 185, label: 'JPMorgan', category: 'Stocks' },
-  'NYSE:V': { contractSize: 1, basePrice: 275, label: 'Visa', category: 'Stocks' },
 };
 
 const LEVERAGE = 1000;
@@ -707,7 +625,7 @@ export class Mt5Service {
   }
 
   // Map our internal symbol format to MT5 symbol format
-  // e.g., "FX:EURUSD" -> "EURUSD", "OANDA:XAUUSD" -> "XAUUSD"
+  // e.g., "BITSTAMP:BTCUSD" -> "BTCUSD", "BINANCE:SOLUSDT" -> "SOLUSDT"
   private mapSymbolForMt5(symbol: string): string {
     const parts = symbol.split(':');
     return parts.length > 1 ? parts[1] : symbol;
@@ -813,14 +731,8 @@ export class Mt5Service {
   // Map internal symbol to OANDA format
   private mapSymbolToOanda(symbol: string): string {
     const map: Record<string, string> = {
-      'FX:EURUSD': 'EUR_USD',
-      'FX:GBPUSD': 'GBP_USD',
-      'FX:USDJPY': 'USD_JPY',
-      'OANDA:XAUUSD': 'XAU_USD',
       'BITSTAMP:BTCUSD': 'BTC_USD',
       'BITSTAMP:ETHUSD': 'ETH_USD',
-      'TVC:USOIL': 'WTI_USD',
-      'FOREXCOM:SPXUSD': 'SPX500_USD',
     };
     return map[symbol] || symbol.replace(':', '_');
   }

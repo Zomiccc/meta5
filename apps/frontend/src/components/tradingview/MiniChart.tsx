@@ -7,7 +7,7 @@ interface MiniChartProps {
   height?: number;
 }
 
-function MiniChart({ symbol = 'FX:EURUSD', height = 220 }: MiniChartProps) {
+function MiniChart({ symbol = 'BINANCE:BTCUSDT', height = 220 }: MiniChartProps) {
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

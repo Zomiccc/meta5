@@ -16,8 +16,8 @@ interface Instrument {
   category: string;
 }
 
-const DEFAULT_INSTRUMENT: Instrument = { label: 'EUR/USD', symbol: 'FX:EURUSD', price: 1.0856, contractSize: 100000, category: 'Forex' };
-const CATEGORY_ORDER = ['All', 'Forex', 'Crypto', 'Stocks', 'Commodities', 'Indices'];
+const DEFAULT_INSTRUMENT: Instrument = { label: 'BTC/USD', symbol: 'BITSTAMP:BTCUSD', price: 43210, contractSize: 1, category: 'Crypto' };
+const CATEGORY_ORDER = ['All', 'Crypto'];
 
 const LEVERAGE = 1000;
 

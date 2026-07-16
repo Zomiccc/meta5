@@ -20,15 +20,11 @@ interface LiveChartProps {
 
 const EXCHANGE_TO_TRADINGVIEW: Record<string, string> = {
   BINANCE: 'BINANCE',
-  FX: 'FX',
-  NASDAQ: 'NASDAQ',
-  NYSE: 'NYSE',
-  COMMODITY: 'COMEX',
-  INDEX: 'CAPITALCOM',
+  BITSTAMP: 'BITSTAMP',
 };
 
 function toTradingViewSymbol(symbol: string): string {
-  // Already in TradingView format like BINANCE:BTCUSDT, FX:EURUSD
+  // Already in TradingView format like BINANCE:BTCUSDT, BITSTAMP:BTCUSD
   if (symbol.includes(':')) return symbol;
   return symbol;
 }

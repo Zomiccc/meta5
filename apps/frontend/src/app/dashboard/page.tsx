@@ -288,7 +288,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-bold text-bnText-primary">Start Trading</p>
-              <p className="text-xs text-bnText-secondary">Access 1,000+ instruments on MetaTrader 5</p>
+              <p className="text-xs text-bnText-secondary">Access 30+ crypto pairs on MetaTrader 5</p>
             </div>
           </div>
           <ChevronRight className="h-5 w-5 text-bnText-muted" />

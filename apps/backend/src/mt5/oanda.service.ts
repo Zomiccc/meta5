@@ -44,14 +44,8 @@ export interface OandaPosition {
 
 // Map our internal symbols to OANDA instrument format
 const SYMBOL_MAP: Record<string, string> = {
-  'FX:EURUSD': 'EUR_USD',
-  'FX:GBPUSD': 'GBP_USD',
-  'FX:USDJPY': 'USD_JPY',
-  'OANDA:XAUUSD': 'XAU_USD',
   'BITSTAMP:BTCUSD': 'BTC_USD',
   'BITSTAMP:ETHUSD': 'ETH_USD',
-  'TVC:USOIL': 'WTI_USD',
-  'FOREXCOM:SPXUSD': 'SPX500_USD',
 };
 
 /**

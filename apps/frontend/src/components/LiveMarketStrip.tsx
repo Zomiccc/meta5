@@ -18,12 +18,12 @@ interface MarketPair {
 const MARKETS: { symbol: string; label: string; decimals: number }[] = [
   { symbol: 'BITSTAMP:BTCUSD', label: 'BTC/USDT', decimals: 2 },
   { symbol: 'BITSTAMP:ETHUSD', label: 'ETH/USDT', decimals: 2 },
-  { symbol: 'FX:EURUSD', label: 'EUR/USD', decimals: 5 },
-  { symbol: 'FX:GBPUSD', label: 'GBP/USD', decimals: 5 },
-  { symbol: 'OANDA:XAUUSD', label: 'XAU/USD', decimals: 2 },
-  { symbol: 'TVC:USOIL', label: 'USOIL', decimals: 2 },
-  { symbol: 'FOREXCOM:SPXUSD', label: 'S&P 500', decimals: 2 },
-  { symbol: 'NASDAQ:AAPL', label: 'AAPL', decimals: 2 },
+  { symbol: 'BINANCE:SOLUSDT', label: 'SOL/USDT', decimals: 2 },
+  { symbol: 'BINANCE:BNBUSDT', label: 'BNB/USDT', decimals: 2 },
+  { symbol: 'BINANCE:XRPUSDT', label: 'XRP/USDT', decimals: 4 },
+  { symbol: 'BINANCE:DOGEUSDT', label: 'DOGE/USDT', decimals: 4 },
+  { symbol: 'BINANCE:ADAUSDT', label: 'ADA/USDT', decimals: 4 },
+  { symbol: 'BINANCE:AVAXUSDT', label: 'AVAX/USDT', decimals: 2 },
 ];
 
 function formatPrice(price: number, decimals: number) {
