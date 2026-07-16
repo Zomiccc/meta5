@@ -6,8 +6,20 @@ import { OandaService } from './oanda.service';
 import { PriceFeedService } from './price-feed.service';
 
 // Instrument metadata: contract size and base price for simulation
-// Crypto-only instruments
 const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; label: string; category: string }> = {
+  // ─── Forex (contract size 100,000) ───
+  'FX:EURUSD': { contractSize: 100000, basePrice: 1.0856, label: 'EUR/USD', category: 'Forex' },
+  'FX:GBPUSD': { contractSize: 100000, basePrice: 1.2734, label: 'GBP/USD', category: 'Forex' },
+  'FX:USDJPY': { contractSize: 100000, basePrice: 148.32, label: 'USD/JPY', category: 'Forex' },
+  'FX:AUDUSD': { contractSize: 100000, basePrice: 0.6580, label: 'AUD/USD', category: 'Forex' },
+  'FX:USDCAD': { contractSize: 100000, basePrice: 1.3620, label: 'USD/CAD', category: 'Forex' },
+  'FX:USDCHF': { contractSize: 100000, basePrice: 0.8810, label: 'USD/CHF', category: 'Forex' },
+  'FX:NZDUSD': { contractSize: 100000, basePrice: 0.6120, label: 'NZD/USD', category: 'Forex' },
+  'FX:EURGBP': { contractSize: 100000, basePrice: 0.8530, label: 'EUR/GBP', category: 'Forex' },
+  'FX:EURJPY': { contractSize: 100000, basePrice: 161.10, label: 'EUR/JPY', category: 'Forex' },
+  'FX:GBPJPY': { contractSize: 100000, basePrice: 188.90, label: 'GBP/JPY', category: 'Forex' },
+
+  // ─── Crypto (contract size 1) ───
   'BITSTAMP:BTCUSD': { contractSize: 1, basePrice: 43210, label: 'BTC/USD', category: 'Crypto' },
   'BITSTAMP:ETHUSD': { contractSize: 1, basePrice: 2280, label: 'ETH/USD', category: 'Crypto' },
   'BINANCE:SOLUSDT': { contractSize: 1, basePrice: 102.5, label: 'SOL/USDT', category: 'Crypto' },
@@ -38,6 +50,28 @@ const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; lab
   'BINANCE:SANDUSDT': { contractSize: 1, basePrice: 0.48, label: 'SAND/USDT', category: 'Crypto' },
   'BINANCE:AXSUSDT': { contractSize: 1, basePrice: 7.2, label: 'AXS/USDT', category: 'Crypto' },
   'BINANCE:GRTUSDT': { contractSize: 1, basePrice: 0.18, label: 'GRT/USDT', category: 'Crypto' },
+
+  // ─── Commodities & Metals ───
+  'OANDA:XAUUSD': { contractSize: 100, basePrice: 2034.5, label: 'Gold', category: 'Commodities' },
+  'OANDA:XAGUSD': { contractSize: 5000, basePrice: 22.8, label: 'Silver', category: 'Commodities' },
+  'TVC:USOIL': { contractSize: 1000, basePrice: 78.4, label: 'Crude Oil (WTI)', category: 'Commodities' },
+  'TVC:UKOIL': { contractSize: 1000, basePrice: 82.6, label: 'Brent Oil', category: 'Commodities' },
+
+  // ─── Stocks (contract size 1) ───
+  'NASDAQ:AAPL': { contractSize: 1, basePrice: 195, label: 'Apple', category: 'Stocks' },
+  'NASDAQ:TSLA': { contractSize: 1, basePrice: 210, label: 'Tesla', category: 'Stocks' },
+  'NASDAQ:NVDA': { contractSize: 1, basePrice: 720, label: 'Nvidia', category: 'Stocks' },
+  'NASDAQ:AMZN': { contractSize: 1, basePrice: 178, label: 'Amazon', category: 'Stocks' },
+  'NASDAQ:MSFT': { contractSize: 1, basePrice: 415, label: 'Microsoft', category: 'Stocks' },
+  'NASDAQ:META': { contractSize: 1, basePrice: 480, label: 'Meta', category: 'Stocks' },
+  'NASDAQ:GOOGL': { contractSize: 1, basePrice: 152, label: 'Alphabet', category: 'Stocks' },
+
+  // ─── Indices (contract size 1) ───
+  'FOREXCOM:SPXUSD': { contractSize: 1, basePrice: 5123, label: 'S&P 500', category: 'Indices' },
+  'FOREXCOM:NSXUSD': { contractSize: 1, basePrice: 17950, label: 'Nasdaq 100', category: 'Indices' },
+  'FOREXCOM:DJI': { contractSize: 1, basePrice: 38650, label: 'Dow 30', category: 'Indices' },
+  'INDEX:DEU40': { contractSize: 1, basePrice: 16900, label: 'DAX 40', category: 'Indices' },
+  'OANDA:UK100GBP': { contractSize: 1, basePrice: 7620, label: 'FTSE 100', category: 'Indices' },
 };
 
 const LEVERAGE = 1000;
@@ -625,7 +659,7 @@ export class Mt5Service {
   }
 
   // Map our internal symbol format to MT5 symbol format
-  // e.g., "BITSTAMP:BTCUSD" -> "BTCUSD", "BINANCE:SOLUSDT" -> "SOLUSDT"
+  // e.g., "FX:EURUSD" -> "EURUSD", "OANDA:XAUUSD" -> "XAUUSD", "BITSTAMP:BTCUSD" -> "BTCUSD"
   private mapSymbolForMt5(symbol: string): string {
     const parts = symbol.split(':');
     return parts.length > 1 ? parts[1] : symbol;
@@ -731,8 +765,14 @@ export class Mt5Service {
   // Map internal symbol to OANDA format
   private mapSymbolToOanda(symbol: string): string {
     const map: Record<string, string> = {
+      'FX:EURUSD': 'EUR_USD',
+      'FX:GBPUSD': 'GBP_USD',
+      'FX:USDJPY': 'USD_JPY',
+      'OANDA:XAUUSD': 'XAU_USD',
       'BITSTAMP:BTCUSD': 'BTC_USD',
       'BITSTAMP:ETHUSD': 'ETH_USD',
+      'TVC:USOIL': 'WTI_USD',
+      'FOREXCOM:SPXUSD': 'SPX500_USD',
     };
     return map[symbol] || symbol.replace(':', '_');
   }

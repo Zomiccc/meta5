@@ -131,13 +131,44 @@ const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:GRTUSDT': 'the-graph',
 };
 
-// Map internal crypto symbols to Twelve Data format
+// Map internal symbols to Twelve Data format (primary source for all instrument types)
 const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
+  // Forex
+  'FX:EURUSD': 'EUR/USD',
+  'FX:GBPUSD': 'GBP/USD',
+  'FX:USDJPY': 'USD/JPY',
+  'FX:AUDUSD': 'AUD/USD',
+  'FX:USDCAD': 'USD/CAD',
+  'FX:USDCHF': 'USD/CHF',
+  'FX:NZDUSD': 'NZD/USD',
+  'FX:EURGBP': 'EUR/GBP',
+  'FX:EURJPY': 'EUR/JPY',
+  'FX:GBPJPY': 'GBP/JPY',
+  // Crypto
   'BITSTAMP:BTCUSD': 'BTC/USD',
   'BITSTAMP:ETHUSD': 'ETH/USD',
   'BINANCE:BNBUSDT': 'BNB/USD',
   'BINANCE:XRPUSDT': 'XRP/USD',
   'BINANCE:SOLUSDT': 'SOL/USD',
+  // Commodities
+  'OANDA:XAUUSD': 'XAU/USD',
+  'OANDA:XAGUSD': 'XAG/USD',
+  'TVC:USOIL': 'USOIL',
+  'TVC:UKOIL': 'UKOIL',
+  // Stocks
+  'NASDAQ:AAPL': 'AAPL',
+  'NASDAQ:TSLA': 'TSLA',
+  'NASDAQ:NVDA': 'NVDA',
+  'NASDAQ:AMZN': 'AMZN',
+  'NASDAQ:MSFT': 'MSFT',
+  'NASDAQ:META': 'META',
+  'NASDAQ:GOOGL': 'GOOGL',
+  // Indices
+  'FOREXCOM:SPXUSD': 'SPX',
+  'FOREXCOM:NSXUSD': 'NDX',
+  'FOREXCOM:DJI': 'DJI',
+  'INDEX:DEU40': 'DAX',
+  'OANDA:UK100GBP': 'FTSE',
 };
 
 interface PriceCacheEntry {
@@ -267,8 +298,13 @@ export class PriceFeedService {
   }
 
   private getBasePrice(symbol: string): number {
-    // Fallback base prices for crypto symbols so simulated mode has something to drift from
+    // Fallback base prices so simulated mode has something to drift from
     const defaults: Record<string, number> = {
+      // Forex
+      'FX:EURUSD': 1.0856, 'FX:GBPUSD': 1.2734, 'FX:USDJPY': 148.32, 'FX:AUDUSD': 0.6580,
+      'FX:USDCAD': 1.3620, 'FX:USDCHF': 0.8810, 'FX:NZDUSD': 0.6120, 'FX:EURGBP': 0.8530,
+      'FX:EURJPY': 161.10, 'FX:GBPJPY': 188.90,
+      // Crypto
       'BITSTAMP:BTCUSD': 43210, 'BITSTAMP:ETHUSD': 2280,
       'BINANCE:SOLUSDT': 102.5, 'BINANCE:XRPUSDT': 0.62, 'BINANCE:BNBUSDT': 312,
       'BINANCE:DOGEUSDT': 0.088, 'BINANCE:ADAUSDT': 0.52, 'BINANCE:AVAXUSDT': 36.5,
@@ -280,6 +316,14 @@ export class PriceFeedService {
       'BINANCE:INJUSDT': 34.5, 'BINANCE:SUIUSDT': 1.45, 'BINANCE:AAVEUSDT': 92,
       'BINANCE:MKRUSDT': 1550, 'BINANCE:SANDUSDT': 0.48, 'BINANCE:AXSUSDT': 7.2,
       'BINANCE:GRTUSDT': 0.18,
+      // Commodities
+      'OANDA:XAUUSD': 2034.5, 'OANDA:XAGUSD': 22.8, 'TVC:USOIL': 78.4, 'TVC:UKOIL': 82.6,
+      // Stocks
+      'NASDAQ:AAPL': 195, 'NASDAQ:TSLA': 210, 'NASDAQ:NVDA': 720,
+      'NASDAQ:AMZN': 178, 'NASDAQ:MSFT': 415, 'NASDAQ:META': 480, 'NASDAQ:GOOGL': 152,
+      // Indices
+      'FOREXCOM:SPXUSD': 5123, 'FOREXCOM:NSXUSD': 17950, 'FOREXCOM:DJI': 38650,
+      'INDEX:DEU40': 16900, 'OANDA:UK100GBP': 7620,
     };
     return defaults[symbol] || 100;
   }
@@ -298,7 +342,7 @@ export class PriceFeedService {
     const sin = Math.sin((t + seed) * 0.5);
     const cos = Math.cos((t + seed) * 0.7);
     const noise = (sin + cos) * 0.0005;
-    return Number((basePrice * (1 + noise)).toFixed(2));
+    return Number((basePrice * (1 + noise)).toFixed(symbol.startsWith('FX:') ? 5 : 2));
   }
 
   async getPrices(symbols: string[], basePrices: Record<string, number> = {}): Promise<Record<string, number>> {
@@ -440,11 +484,11 @@ export class PriceFeedService {
   isSimulated(symbol: string): boolean {
     if (this.simulatedSymbols.has(symbol)) return true;
     if (
+      (this.twelveDataApiKey && !!TWELVE_DATA_SYMBOL_MAP[symbol]) ||
       this.isBinanceSymbol(symbol) ||
       this.isCoinbaseSymbol(symbol) ||
       this.isCryptoCompareSymbol(symbol) ||
-      this.isCoinGeckoSymbol(symbol) ||
-      (!!this.twelveDataApiKey && !!TWELVE_DATA_SYMBOL_MAP[symbol])
+      this.isCoinGeckoSymbol(symbol)
     ) {
       return false;
     }

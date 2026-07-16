@@ -10,7 +10,7 @@ interface AdvancedChartProps {
 }
 
 function AdvancedChart({
-  symbol = 'BINANCE:BTCUSDT',
+  symbol = 'FX:EURUSD',
   interval = 'D',
   height = 540,
   allowSymbolChange = true,

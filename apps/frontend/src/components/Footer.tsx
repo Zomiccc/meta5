@@ -23,7 +23,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="mt-3 text-xs leading-relaxed md:mt-4 md:text-sm">
-              A global crypto broker. Trade 30+ cryptocurrencies with confidence on MT5 with high leverage and instant deposits.
+              A global multi-asset broker. Trade forex, crypto, stocks, indices and commodities with confidence on MT5.
             </p>
           </div>
           <div>

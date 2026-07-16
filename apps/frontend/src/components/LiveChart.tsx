@@ -21,6 +21,13 @@ interface LiveChartProps {
 const EXCHANGE_TO_TRADINGVIEW: Record<string, string> = {
   BINANCE: 'BINANCE',
   BITSTAMP: 'BITSTAMP',
+  FX: 'FX',
+  NASDAQ: 'NASDAQ',
+  NYSE: 'NYSE',
+  OANDA: 'OANDA',
+  TVC: 'TVC',
+  FOREXCOM: 'FOREXCOM',
+  INDEX: 'CAPITALCOM',
 };
 
 function toTradingViewSymbol(symbol: string): string {

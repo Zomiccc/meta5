@@ -22,8 +22,13 @@ const MARKETS: { symbol: string; label: string; decimals: number }[] = [
   { symbol: 'BINANCE:BNBUSDT', label: 'BNB/USDT', decimals: 2 },
   { symbol: 'BINANCE:XRPUSDT', label: 'XRP/USDT', decimals: 4 },
   { symbol: 'BINANCE:DOGEUSDT', label: 'DOGE/USDT', decimals: 4 },
-  { symbol: 'BINANCE:ADAUSDT', label: 'ADA/USDT', decimals: 4 },
-  { symbol: 'BINANCE:AVAXUSDT', label: 'AVAX/USDT', decimals: 2 },
+  { symbol: 'FX:EURUSD', label: 'EUR/USD', decimals: 5 },
+  { symbol: 'FX:GBPUSD', label: 'GBP/USD', decimals: 5 },
+  { symbol: 'OANDA:XAUUSD', label: 'Gold', decimals: 2 },
+  { symbol: 'TVC:USOIL', label: 'Crude Oil', decimals: 2 },
+  { symbol: 'NASDAQ:AAPL', label: 'AAPL', decimals: 2 },
+  { symbol: 'NASDAQ:TSLA', label: 'TSLA', decimals: 2 },
+  { symbol: 'FOREXCOM:SPXUSD', label: 'S&P 500', decimals: 2 },
 ];
 
 function formatPrice(price: number, decimals: number) {

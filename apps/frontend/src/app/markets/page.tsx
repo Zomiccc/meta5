@@ -23,6 +23,40 @@ const categories: Record<string, { label: string; symbol: string }[]> = {
     { label: 'LTC/USDT', symbol: 'BINANCE:LTCUSDT' },
     { label: 'MATIC/USDT', symbol: 'BINANCE:MATICUSDT' },
   ],
+  Forex: [
+    { label: 'EUR/USD', symbol: 'FX:EURUSD' },
+    { label: 'GBP/USD', symbol: 'FX:GBPUSD' },
+    { label: 'USD/JPY', symbol: 'FX:USDJPY' },
+    { label: 'AUD/USD', symbol: 'FX:AUDUSD' },
+    { label: 'USD/CAD', symbol: 'FX:USDCAD' },
+    { label: 'USD/CHF', symbol: 'FX:USDCHF' },
+    { label: 'NZD/USD', symbol: 'FX:NZDUSD' },
+    { label: 'EUR/GBP', symbol: 'FX:EURGBP' },
+    { label: 'EUR/JPY', symbol: 'FX:EURJPY' },
+    { label: 'GBP/JPY', symbol: 'FX:GBPJPY' },
+  ],
+  Commodities: [
+    { label: 'Gold', symbol: 'OANDA:XAUUSD' },
+    { label: 'Silver', symbol: 'OANDA:XAGUSD' },
+    { label: 'Crude Oil (WTI)', symbol: 'TVC:USOIL' },
+    { label: 'Brent Oil', symbol: 'TVC:UKOIL' },
+  ],
+  Stocks: [
+    { label: 'Apple', symbol: 'NASDAQ:AAPL' },
+    { label: 'Tesla', symbol: 'NASDAQ:TSLA' },
+    { label: 'Nvidia', symbol: 'NASDAQ:NVDA' },
+    { label: 'Amazon', symbol: 'NASDAQ:AMZN' },
+    { label: 'Microsoft', symbol: 'NASDAQ:MSFT' },
+    { label: 'Meta', symbol: 'NASDAQ:META' },
+    { label: 'Alphabet', symbol: 'NASDAQ:GOOGL' },
+  ],
+  Indices: [
+    { label: 'S&P 500', symbol: 'FOREXCOM:SPXUSD' },
+    { label: 'Nasdaq 100', symbol: 'FOREXCOM:NSXUSD' },
+    { label: 'Dow 30', symbol: 'FOREXCOM:DJI' },
+    { label: 'DAX 40', symbol: 'INDEX:DEU40' },
+    { label: 'FTSE 100', symbol: 'OANDA:UK100GBP' },
+  ],
   'DeFi Tokens': [
     { label: 'UNI/USDT', symbol: 'BINANCE:UNIUSDT' },
     { label: 'AAVE/USDT', symbol: 'BINANCE:AAVEUSDT' },
@@ -78,7 +112,7 @@ export default function MarketsPage() {
           </div>
           <h1 className="text-3xl font-bold text-bnText-primary md:text-4xl">Live Markets</h1>
           <p className="mt-3 max-w-2xl text-bnText-secondary">
-            Track real-time prices across 30+ cryptocurrencies. Open an account to trade BTC, ETH, SOL and more on MetaTrader 5.
+            Track real-time prices across forex, crypto, stocks, indices and commodities. Open an account to trade 1,000+ instruments on MetaTrader 5.
           </p>
         </div>
       </section>

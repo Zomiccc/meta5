@@ -8,9 +8,9 @@ import Link from 'next/link';
 
 const features = [
   { icon: <Zap className="h-5 w-5 text-yellow" />, title: 'Lightning Execution', desc: '99.9% of orders filled in under 40ms with deep institutional liquidity.' },
-  { icon: <TrendingUp className="h-5 w-5 text-yellow" />, title: 'Raw Spreads', desc: 'Trade BTC/USDT from 0.0 pips with transparent, commission-based pricing.' },
+  { icon: <TrendingUp className="h-5 w-5 text-yellow" />, title: 'Raw Spreads', desc: 'Trade EUR/USD from 0.0 pips with transparent, commission-based pricing.' },
   { icon: <Shield className="h-5 w-5 text-yellow" />, title: 'Funds Protected', desc: 'Segregated client accounts, encryption, and negative balance protection.' },
-  { icon: <Globe className="h-5 w-5 text-yellow" />, title: '30+ Crypto Pairs', desc: 'Trade BTC, ETH, SOL, XRP, BNB and more on MetaTrader 5 with high leverage.' },
+  { icon: <Globe className="h-5 w-5 text-yellow" />, title: '1,000+ Instruments', desc: 'Trade forex, crypto, stocks, indices and commodities on MetaTrader 5 with high leverage.' },
 ];
 
 const accountTypes = [
@@ -163,7 +163,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-2 md:gap-3">
             {[
               { icon: <Zap className="h-5 w-5 text-yellow" />, t: '40ms', s: 'Avg execution' },
-              { icon: <Globe className="h-5 w-5 text-yellow" />, t: '30+', s: 'Crypto pairs' },
+              { icon: <Globe className="h-5 w-5 text-yellow" />, t: '1,000+', s: 'Instruments' },
               { icon: <Shield className="h-5 w-5 text-yellow" />, t: '1:1000', s: 'Max leverage' },
               { icon: <Smartphone className="h-5 w-5 text-yellow" />, t: 'All devices', s: 'Web & mobile' },
             ].map((b) => (
