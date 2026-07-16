@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
+import { getDisplaySymbol } from '../../../lib/symbolUtils';
 
 export default function AdminRiskPage() {
   const [trades, setTrades] = useState<any[]>([]);
@@ -31,7 +32,7 @@ export default function AdminRiskPage() {
             {trades.map((t) => (
               <tr key={t.id} className="border-b border-bn-border">
                 <td className="px-4 py-3 text-bnText-primary">{t.mt5Login}</td>
-                <td className="px-4 py-3 text-bnText-primary">{t.symbol}</td>
+                <td className="px-4 py-3 text-bnText-primary">{getDisplaySymbol(t.symbol)}</td>
                 <td className="px-4 py-3 text-bnText-primary">{t.type}</td>
                 <td className="px-4 py-3 text-bnText-primary">{t.volume}</td>
                 <td className="px-4 py-3 text-bnText-primary">{t.openPrice}</td>

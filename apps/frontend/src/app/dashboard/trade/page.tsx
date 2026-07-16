@@ -7,6 +7,7 @@ import { useAuth } from '../../../lib/useAuth';
 import { api, consumeSse } from '../../../lib/api';
 import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
 import { useToast } from '../../../components/ui/Toast';
+import { getDisplaySymbol, getSymbolName, formatPriceForSymbol, getDecimalsForSymbol } from '../../../lib/symbolUtils';
 
 interface Instrument {
   label: string;
@@ -56,6 +57,23 @@ export default function TradePage() {
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [streamConnected, setStreamConnected] = useState(false);
+  const [tvPrice, setTvPrice] = useState<number | null>(null);
+
+  // Listen to TradingView price updates to sync watchlist with chart
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.name === 'quoteUpdate' || event.data?.price) {
+        const price = event.data.price || event.data?.p;
+        if (price && typeof price === 'number') {
+          setTvPrice(parseFloat(price.toString()));
+          // Also update livePrices for the active symbol so watchlist matches chart
+          setLivePrices((prev) => ({ ...prev, [active.symbol]: parseFloat(price.toString()) }));
+        }
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [active.symbol]);
 
   const hasMt5 = !!user?.mt5Account;
   const balance = Number(account?.balance ?? user?.mt5Account?.balance ?? 0);
@@ -322,12 +340,12 @@ export default function TradePage() {
                   }`}
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium text-bnText-primary">{item.label}</span>
-                    <span className="text-[10px] text-bnText-muted">{item.symbol}</span>
+                    <span className="font-medium text-bnText-primary">{getDisplaySymbol(item.symbol)}</span>
+                    <span className="text-[10px] text-bnText-muted">{getSymbolName(item.symbol)}</span>
                   </div>
                   <div className="text-right">
                     <span className={`font-mono text-sm ${live ? (up ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
-                      {live ? live.toFixed(item.price > 1000 ? 2 : item.price > 10 ? 4 : 5) : '—'}
+                      {live ? formatPriceForSymbol(item.symbol, live) : '—'}
                     </span>
                     {live && <span className={`ml-2 text-[10px] ${up ? 'text-bnGreen' : 'text-bnRed'}`}>{up ? '▲' : '▼'}</span>}
                   </div>
@@ -344,9 +362,9 @@ export default function TradePage() {
         <div className="flex min-w-0 flex-col rounded-bn border border-bn-border bg-bn-card p-1 lg:col-span-2">
           <div className="flex flex-col gap-2 border-b border-bn-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2">
             <div>
-              <span className="font-semibold text-bnText-primary">{active.label}</span>
+              <span className="font-semibold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
               <span className={`ml-2 font-mono text-sm ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
-                {livePrices[active.symbol] ? activeLivePrice.toFixed(active.price > 1000 ? 2 : active.price > 10 ? 4 : 5) : '—'}
+                {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -364,7 +382,7 @@ export default function TradePage() {
         {/* Order ticket */}
         <div className="lg:col-span-1">
           <div className="bn-card">
-            <h3 className="mb-4 text-lg font-semibold text-bnText-primary">{active.label}</h3>
+            <h3 className="mb-4 text-lg font-semibold text-bnText-primary">{getDisplaySymbol(active.symbol)}</h3>
             <div className="mb-4 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setSide('SELL')}
@@ -408,7 +426,7 @@ export default function TradePage() {
             <div className="mb-4 space-y-2 rounded-bn bg-bn-card p-3 text-sm">
               <div className="flex justify-between"><span className="text-bnText-secondary">Est. margin</span><span className="text-bnText-primary">${estMargin}</span></div>
               <div className="flex justify-between"><span className="text-bnText-secondary">Leverage</span><span className="text-bnText-primary">1:{LEVERAGE}</span></div>
-              <div className="flex justify-between"><span className="text-bnText-secondary">Live price</span><span className="font-mono text-bnText-primary">{activeLivePrice.toFixed(active.price > 1000 ? 2 : active.price > 10 ? 4 : 5)}</span></div>
+              <div className="flex justify-between"><span className="text-bnText-secondary">Live price</span><span className="font-mono text-bnText-primary">{formatPriceForSymbol(active.symbol, activeLivePrice)}</span></div>
               {margin > 0 && (
                 <div className="flex justify-between border-t border-bn-border pt-2">
                   <span className="text-bnText-secondary">Margin level</span>
@@ -426,7 +444,7 @@ export default function TradePage() {
                 side === 'BUY' ? 'bg-bnGreen hover:bg-green-600' : 'bg-bnRed hover:bg-red-600'
               }`}
             >
-              {submitting ? 'Submitting...' : `${side} ${active.label}`}
+              {submitting ? 'Submitting...' : `${side} ${getDisplaySymbol(active.symbol)}`}
             </button>
             <p className="mt-3 flex items-center gap-1.5 text-xs text-bnText-muted">
               <Info className="h-3 w-3" /> Orders execute instantly on your MT5 account.
@@ -465,11 +483,11 @@ export default function TradePage() {
                     const liveP = livePrices[t.symbol] ?? t.currentPrice;
                     return (
                       <tr key={t.id} className="border-b border-bn-border">
-                        <td className="py-2.5 font-medium text-bnText-primary">{t.symbol}</td>
+                        <td className="py-2.5 font-medium text-bnText-primary">{getDisplaySymbol(t.symbol)}</td>
                         <td className={`py-2.5 font-bold ${t.type === 'BUY' ? 'text-bnGreen' : 'text-bnRed'}`}>{t.type}</td>
                         <td className="py-2.5 text-bnText-secondary">{t.volume.toFixed(2)}</td>
-                        <td className="py-2.5 font-mono text-bnText-secondary">{t.openPrice}</td>
-                        <td className="py-2.5 font-mono text-bnText-primary">{liveP.toFixed(t.openPrice > 1000 ? 2 : t.openPrice > 10 ? 4 : 5)}</td>
+                        <td className="py-2.5 font-mono text-bnText-secondary">{formatPriceForSymbol(t.symbol, t.openPrice)}</td>
+                        <td className="py-2.5 font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</td>
                         <td className={`py-2.5 font-bold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>
                           ${t.profit.toFixed(2)}
                         </td>

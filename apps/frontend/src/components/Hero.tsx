@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, TrendingUp, TrendingDown } from 'lucide-react';
+import { getSymbolName } from '../lib/symbolUtils';
 import { api } from '../lib/api';
 
 interface MarketPrice {
@@ -102,7 +103,7 @@ export default function Hero() {
                         </div>
                         <div>
                           <div className="text-sm font-bold text-bnText-primary">{m.label}</div>
-                          <div className="text-[10px] text-bnText-muted">{m.symbol.split(':')[0]}</div>
+                          <div className="text-[10px] text-bnText-muted">{getSymbolName(m.symbol)}</div>
                         </div>
                       </div>
                       <div className="text-right">
