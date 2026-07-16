@@ -22,7 +22,7 @@ import {
   TrendingUp,
   Home,
 } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, clearAuthTokens } from '../lib/api';
 import { useAuth } from '../lib/useAuth';
 import { Button } from './ui/Button';
 
@@ -52,7 +52,7 @@ const navGroups = [
   },
 ];
 
-export default function DashboardShell({ children }: { children: React.ReactNode }) {
+export default function DashboardShell({ children, fullHeight }: { children: React.ReactNode; fullHeight?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
@@ -63,7 +63,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     try {
       await api.post('/auth/logout');
     } catch {}
-    localStorage.removeItem('accessToken');
+    clearAuthTokens();
     router.push('/login');
   };
 
@@ -255,7 +255,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         )}
 
         {/* Main content */}
-        <main className="flex-1 overflow-x-hidden p-4 pb-24 lg:p-8 lg:pb-8">{children}</main>
+        <main className={fullHeight ? 'flex-1 overflow-hidden' : 'flex-1 overflow-x-hidden p-4 pb-24 lg:p-8 lg:pb-8'}>{children}</main>
 
         {/* Mobile bottom nav — Binance style with 5 items */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-bn-border bg-bn-secondary lg:hidden">

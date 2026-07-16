@@ -17,7 +17,7 @@ export class AuthController {
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.register(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return { user: result.user, accessToken: result.accessToken };
+    return { user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken };
   }
 
   @Post('login')
@@ -25,7 +25,7 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return { user: result.user, accessToken: result.accessToken };
+    return { user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken };
   }
 
   @Post('refresh')
@@ -39,7 +39,7 @@ export class AuthController {
     if (!token) throw new UnauthorizedException('No refresh token provided');
     const result = await this.authService.refreshTokens(token);
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return { user: result.user, accessToken: result.accessToken };
+    return { user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken };
   }
 
   @Post('logout')

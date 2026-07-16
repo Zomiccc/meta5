@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api, consumeSse } from '../../../lib/api';
-import { Loader2, TrendingUp, TrendingDown, Info, Wallet, Zap, X, AlertTriangle, Search } from 'lucide-react';
+import { Loader2, Zap, X, AlertTriangle, Search } from 'lucide-react';
 import { useToast } from '../../../components/ui/Toast';
-import { getDisplaySymbol, getSymbolName, formatPriceForSymbol, getDecimalsForSymbol } from '../../../lib/symbolUtils';
+import { getDisplaySymbol, getSymbolName, formatPriceForSymbol } from '../../../lib/symbolUtils';
 
 interface Instrument {
   label: string;
@@ -232,6 +232,8 @@ export default function TradePage() {
     }
   };
 
+  const [mobileTab, setMobileTab] = useState<'markets' | 'chart' | 'trade' | 'positions'>('chart');
+
   if (loading) {
     return (
       <DashboardShell>
@@ -244,272 +246,319 @@ export default function TradePage() {
 
   const criticalMargin = marginLevel > 0 && marginLevel < 60;
 
-  return (
-    <DashboardShell>
-      <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-xl font-bold text-bnText-primary md:text-2xl">Trade</h1>
-          <p className="text-sm text-bnText-secondary">Live charts and order execution</p>
-        </div>
-        {hasMt5 && (
+  // ---- Shared sections ----
+
+  const watchlistContent = (
+    <>
+      <div className="relative p-2 flex-shrink-0">
+        <Search className="absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-bnText-muted" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search..."
+          className="w-full rounded bg-bn-input py-1.5 pl-8 pr-2 text-xs text-bnText-primary placeholder:text-bnText-muted focus:outline-none"
+        />
+      </div>
+      <div className="flex flex-shrink-0 gap-1 overflow-x-auto border-b border-bn-border px-2 pb-1.5 scrollbar-hide">
+        {CATEGORY_ORDER.map((cat) => (
           <button
-            onClick={addTestFunds}
-            disabled={funding}
-            className="flex w-full items-center justify-center gap-2 rounded-bn border border-yellow/30 bg-yellow/10 px-4 py-2.5 text-sm font-bold text-yellow transition hover:bg-yellow/20 disabled:opacity-50 sm:w-auto"
+            key={cat}
+            onClick={() => setCategory(cat)}
+            className={`shrink-0 rounded px-2 py-1 text-[10px] font-medium transition ${
+              category === cat ? 'bg-yellow text-bn-bg' : 'text-bnText-secondary hover:text-bnText-primary'
+            }`}
           >
-            <Zap className="h-4 w-4" />
-            {funding ? 'Adding...' : 'Add $10,000 Test Funds'}
+            {cat}
           </button>
+        ))}
+      </div>
+      <div className="flex-1 space-y-0.5 overflow-y-auto p-1">
+        {filtered.map((item) => {
+          const live = livePrices[item.symbol];
+          const up = live ? live >= item.price : false;
+          return (
+            <button
+              key={item.symbol}
+              onClick={() => setActive(item)}
+              className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition ${
+                active.symbol === item.symbol ? 'bg-yellow/10' : 'hover:bg-bn-hover'
+              }`}
+            >
+              <div className="flex min-w-0 flex-col">
+                <span className={`text-xs font-medium ${active.symbol === item.symbol ? 'text-yellow' : 'text-bnText-primary'}`}>{getDisplaySymbol(item.symbol)}</span>
+                <span className="truncate text-[9px] text-bnText-muted">{getSymbolName(item.symbol)}</span>
+              </div>
+              <div className="text-right">
+                <span className={`font-mono text-[11px] ${live ? (up ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
+                  {live ? formatPriceForSymbol(item.symbol, live) : '—'}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="py-4 text-center text-xs text-bnText-muted">No matches</p>
+        )}
+      </div>
+    </>
+  );
+
+  const chartContent = (
+    <div className="flex h-full flex-col">
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-bn-border px-3 py-1.5">
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
+          <span className={`font-mono text-xs ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
+            {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
+          </span>
+        </div>
+        <span className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
+          <span className={`h-1 w-1 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
+          {streamConnected ? 'LIVE' : '...'}
+        </span>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <LiveChart symbol={active.symbol} price={activeLivePrice} height={1000} />
+      </div>
+    </div>
+  );
+
+  const orderPanel = (
+    <div className="flex h-full flex-col overflow-y-auto p-3">
+      <div className="mb-3 flex flex-shrink-0 gap-1">
+        <button
+          onClick={() => setSide('BUY')}
+          className={`flex-1 rounded py-2 text-xs font-bold transition ${
+            side === 'BUY' ? 'bg-bnGreen text-bn-bg' : 'bg-bn-input text-bnText-secondary hover:bg-bn-border'
+          }`}
+        >
+          BUY
+        </button>
+        <button
+          onClick={() => setSide('SELL')}
+          className={`flex-1 rounded py-2 text-xs font-bold transition ${
+            side === 'SELL' ? 'bg-bnRed text-white' : 'bg-bn-input text-bnText-secondary hover:bg-bn-border'
+          }`}
+        >
+          SELL
+        </button>
+      </div>
+
+      <label className="mb-1 block text-[10px] font-medium text-bnText-secondary">Volume (lots)</label>
+      <input
+        type="number"
+        step="0.01"
+        min="0.01"
+        value={volume}
+        onChange={(e) => setVolume(e.target.value)}
+        className="mb-2 w-full rounded border border-bn-border bg-bn-input px-2 py-1.5 text-sm text-bnText-primary focus:outline-none"
+      />
+      <div className="mb-3 flex flex-wrap gap-1">
+        {['0.01', '0.10', '0.50', '1.00'].map((v) => (
+          <button
+            key={v}
+            onClick={() => setVolume(v)}
+            className="rounded bg-bn-input px-2 py-0.5 text-[10px] text-bnText-secondary hover:bg-bn-border hover:text-bnText-primary"
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-3 space-y-1.5 rounded bg-bn-input p-2.5 text-[11px]">
+        <div className="flex justify-between"><span className="text-bnText-muted">Est. margin</span><span className="text-bnText-primary">${estMargin}</span></div>
+        <div className="flex justify-between"><span className="text-bnText-muted">Leverage</span><span className="text-bnText-primary">1:{LEVERAGE}</span></div>
+        <div className="flex justify-between"><span className="text-bnText-muted">Live price</span><span className="font-mono text-bnText-primary">{formatPriceForSymbol(active.symbol, activeLivePrice)}</span></div>
+        {margin > 0 && (
+          <div className="flex justify-between border-t border-bn-border pt-1.5">
+            <span className="text-bnText-muted">Margin level</span>
+            <span className={`font-bold ${marginLevel < 60 ? 'text-bnRed' : marginLevel < 100 ? 'text-yellow' : 'text-bnGreen'}`}>
+              {marginLevel.toFixed(1)}%
+            </span>
+          </div>
         )}
       </div>
 
       {criticalMargin && (
-        <div className="mb-6 flex items-center gap-2 rounded-bn border border-red-500/30 bg-bnRed/10 px-4 py-3 text-sm text-bnRed">
-          <AlertTriangle className="h-4 w-4 animate-pulse" /> Margin call! Your margin level is {marginLevel.toFixed(1)}%. Positions may be liquidated soon. Consider closing positions or adding funds.
+        <div className="mb-3 flex items-center gap-1.5 rounded border border-red-500/30 bg-bnRed/10 px-2 py-1.5 text-[10px] text-bnRed">
+          <AlertTriangle className="h-3 w-3 flex-shrink-0" /> Margin call: {marginLevel.toFixed(1)}%
         </div>
       )}
 
-      {/* Account stats bar */}
+      <button
+        onClick={placeOrder}
+        disabled={!hasMt5 || submitting}
+        className={`w-full rounded py-2.5 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+          side === 'BUY' ? 'bg-bnGreen text-bn-bg hover:bg-green-600' : 'bg-bnRed text-white hover:bg-red-600'
+        }`}
+      >
+        {submitting ? 'Submitting...' : `Open ${side} ${getDisplaySymbol(active.symbol)}`}
+      </button>
+
       {hasMt5 && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
-          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
-            <div className="flex items-center gap-1.5 text-xs text-bnText-secondary"><Wallet className="h-3 w-3" /> Balance</div>
-            <div className="mt-1 text-base font-bold text-bnText-primary sm:text-lg">${balance.toFixed(2)}</div>
-          </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
-            <div className="text-xs text-bnText-secondary">Equity</div>
-            <div className={`mt-1 text-base font-bold ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'} sm:text-lg`}>${equity.toFixed(2)}</div>
-          </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
-            <div className="text-xs text-bnText-secondary">Used Margin</div>
-            <div className="mt-1 text-base font-bold text-bnText-primary sm:text-lg">${margin.toFixed(2)}</div>
-          </div>
-          <div className="rounded-bn border border-bn-border bg-bn-card p-3">
-            <div className="text-xs text-bnText-secondary">Free Margin</div>
-            <div className={`mt-1 text-base font-bold ${freeMargin > 0 ? 'text-bnText-primary' : 'text-bnRed'} sm:text-lg`}>${freeMargin.toFixed(2)}</div>
-          </div>
-        </div>
+        <button
+          onClick={addTestFunds}
+          disabled={funding}
+          className="mt-2 w-full rounded border border-yellow/30 bg-yellow/10 py-1.5 text-[10px] font-bold text-yellow transition hover:bg-yellow/20 disabled:opacity-50"
+        >
+          <Zap className="mr-1 inline h-3 w-3" />
+          {funding ? 'Adding...' : 'Add $10,000 Test Funds'}
+        </button>
       )}
 
-      <div className="grid min-w-0 gap-3 lg:gap-4 lg:grid-cols-4">
-        {/* Watchlist */}
-        <div className="flex min-w-0 flex-col rounded-bn border border-bn-border bg-bn-card p-3 lg:col-span-1">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-bnText-muted">Markets</h3>
-              <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
-                <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
-                {streamConnected ? 'LIVE' : 'CONNECTING'}
-              </span>
-            </div>
-            <span className="text-xs text-bnText-muted">{filtered.length}</span>
-          </div>
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bnText-muted" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search pair / symbol..."
-              className="bn-input w-full py-2 pl-9 pr-3 text-sm"
-            />
-          </div>
-          <div className="mb-3 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
-            {CATEGORY_ORDER.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                  category === cat ? 'bg-yellow text-bn-bg' : 'bg-bn-input text-bnText-secondary hover:bg-bn-border hover:text-bnText-primary'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-          <div className="max-h-80 flex-1 space-y-1 overflow-y-auto pr-1 lg:max-h-[520px]">
-            {filtered.map((item) => {
-              const live = livePrices[item.symbol];
-              const up = live ? live >= item.price : false;
-              return (
-                <button
-                  key={item.symbol}
-                  onClick={() => setActive(item)}
-                  className={`flex w-full items-center justify-between rounded-bn border px-3 py-2.5 text-left transition ${
-                    active.symbol === item.symbol ? 'border-yellow bg-yellow/10' : 'border-bn-border bg-bn-card hover:border-bn-border'
-                  }`}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium text-bnText-primary">{getDisplaySymbol(item.symbol)}</span>
-                    <span className="text-[10px] text-bnText-muted">{getSymbolName(item.symbol)}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className={`font-mono text-sm ${live ? (up ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
-                      {live ? formatPriceForSymbol(item.symbol, live) : '—'}
-                    </span>
-                    {live && <span className={`ml-2 text-[10px] ${up ? 'text-bnGreen' : 'text-bnRed'}`}>{up ? '▲' : '▼'}</span>}
-                  </div>
-                </button>
-              );
-            })}
-            {filtered.length === 0 && (
-              <p className="py-6 text-center text-sm text-bnText-muted">No instruments match your search.</p>
-            )}
-          </div>
+      {/* Account summary at bottom */}
+      {hasMt5 && (
+        <div className="mt-auto flex-shrink-0 space-y-1.5 border-t border-bn-border pt-3 text-[11px]">
+          <div className="flex justify-between"><span className="text-bnText-muted">Balance</span><span className="font-mono text-bnText-primary">${balance.toFixed(2)}</span></div>
+          <div className="flex justify-between"><span className="text-bnText-muted">Equity</span><span className={`font-mono ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'}`}>${equity.toFixed(2)}</span></div>
+          <div className="flex justify-between"><span className="text-bnText-muted">Free margin</span><span className="font-mono text-bnText-primary">${freeMargin.toFixed(2)}</span></div>
         </div>
+      )}
+    </div>
+  );
 
-        {/* Chart */}
-        <div className="flex min-w-0 flex-col rounded-bn border border-bn-border bg-bn-card p-1 lg:col-span-2">
-          <div className="flex flex-col gap-2 border-b border-bn-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2">
-            <div>
-              <span className="font-semibold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
-              <span className={`ml-2 font-mono text-sm ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
-                {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
-                <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
-                {streamConnected ? 'LIVE' : 'CONNECTING'}
-              </span>
-            </div>
-          </div>
-          <div className="h-[360px] w-full flex-1 sm:h-[460px]">
-            <LiveChart symbol={active.symbol} price={activeLivePrice} height={460} />
-          </div>
+  const positionsPanel = (
+    <div className="flex h-full flex-col">
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-bn-border px-3 py-1.5">
+        <span className="text-xs font-semibold text-bnText-primary">Open Positions ({trades.length})</span>
+      </div>
+      {trades.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-xs text-bnText-muted">No open positions</p>
         </div>
-
-        {/* Order ticket */}
-        <div className="lg:col-span-1">
-          <div className="bn-card">
-            <h3 className="mb-4 text-lg font-semibold text-bnText-primary">{getDisplaySymbol(active.symbol)}</h3>
-            <div className="mb-4 grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setSide('SELL')}
-                className={`flex items-center justify-center gap-1.5 rounded-bn py-2.5 text-sm font-bold transition ${
-                  side === 'SELL' ? 'bg-bnRed text-bnText-primary' : 'bg-bn-input text-bnText-secondary hover:bg-bn-border'
-                }`}
-              >
-                <TrendingDown className="h-4 w-4" /> Sell
-              </button>
-              <button
-                onClick={() => setSide('BUY')}
-                className={`flex items-center justify-center gap-1.5 rounded-bn py-2.5 text-sm font-bold transition ${
-                  side === 'BUY' ? 'bg-bnGreen text-bnText-primary' : 'bg-bn-input text-bnText-secondary hover:bg-bn-border'
-                }`}
-              >
-                <TrendingUp className="h-4 w-4" /> Buy
-              </button>
-            </div>
-
-            <label className="mb-1.5 block text-sm font-medium text-bnText-secondary">Volume (lots)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={volume}
-              onChange={(e) => setVolume(e.target.value)}
-              className="bn-input mb-2"
-            />
-            <div className="mb-4 flex flex-wrap gap-1.5">
-              {['0.01', '0.10', '0.50', '1.00'].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setVolume(v)}
-                  className="rounded-md bg-bn-input px-2.5 py-1 text-xs text-bnText-secondary hover:bg-bn-border hover:text-bnText-primary"
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-
-            <div className="mb-4 space-y-2 rounded-bn bg-bn-card p-3 text-sm">
-              <div className="flex justify-between"><span className="text-bnText-secondary">Est. margin</span><span className="text-bnText-primary">${estMargin}</span></div>
-              <div className="flex justify-between"><span className="text-bnText-secondary">Leverage</span><span className="text-bnText-primary">1:{LEVERAGE}</span></div>
-              <div className="flex justify-between"><span className="text-bnText-secondary">Live price</span><span className="font-mono text-bnText-primary">{formatPriceForSymbol(active.symbol, activeLivePrice)}</span></div>
-              {margin > 0 && (
-                <div className="flex justify-between border-t border-bn-border pt-2">
-                  <span className="text-bnText-secondary">Margin level</span>
-                  <span className={`font-bold ${marginLevel < 60 ? 'text-bnRed' : marginLevel < 100 ? 'text-yellow' : 'text-bnGreen'}`}>
-                    {marginLevel.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={placeOrder}
-              disabled={!hasMt5 || submitting}
-              className={`w-full rounded-bn py-3 text-sm font-bold text-bnText-primary transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                side === 'BUY' ? 'bg-bnGreen hover:bg-green-600' : 'bg-bnRed hover:bg-red-600'
-              }`}
-            >
-              {submitting ? 'Submitting...' : `${side} ${getDisplaySymbol(active.symbol)}`}
-            </button>
-            <p className="mt-3 flex items-center gap-1.5 text-xs text-bnText-muted">
-              <Info className="h-3 w-3" /> Orders execute instantly on your MT5 account.
-            </p>
-          </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto">
+          <table className="w-full text-left text-[11px]">
+            <thead className="sticky top-0 border-b border-bn-border bg-bn-card text-bnText-muted">
+              <tr>
+                <th className="px-2 py-1.5 font-medium">Symbol</th>
+                <th className="px-2 py-1.5 font-medium">Side</th>
+                <th className="px-2 py-1.5 font-medium">Vol</th>
+                <th className="px-2 py-1.5 font-medium">Open</th>
+                <th className="px-2 py-1.5 font-medium">Current</th>
+                <th className="px-2 py-1.5 font-medium">P&L</th>
+                <th className="px-2 py-1.5 font-medium text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {trades.map((t) => {
+                const liveP = livePrices[t.symbol] ?? t.currentPrice;
+                return (
+                  <tr key={t.id} className="border-b border-bn-border/50">
+                    <td className="px-2 py-1.5 font-medium text-bnText-primary">{getDisplaySymbol(t.symbol)}</td>
+                    <td className={`px-2 py-1.5 font-bold ${t.type === 'BUY' ? 'text-bnGreen' : 'text-bnRed'}`}>{t.type}</td>
+                    <td className="px-2 py-1.5 text-bnText-secondary">{t.volume.toFixed(2)}</td>
+                    <td className="px-2 py-1.5 font-mono text-bnText-secondary">{formatPriceForSymbol(t.symbol, t.openPrice)}</td>
+                    <td className="px-2 py-1.5 font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</td>
+                    <td className={`px-2 py-1.5 font-bold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>
+                      ${t.profit.toFixed(2)}
+                    </td>
+                    <td className="px-2 py-1.5 text-right">
+                      <button
+                        onClick={() => closeTrade(t.id)}
+                        disabled={closingId === t.id}
+                        className="rounded bg-bnRed/10 px-1.5 py-0.5 text-[10px] font-bold text-bnRed transition hover:bg-bnRed/20 disabled:opacity-50"
+                      >
+                        {closingId === t.id ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <X className="h-2.5 w-2.5" />}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
+      )}
+    </div>
+  );
+
+  // ---- Desktop layout: fixed 3-column, no page scroll ----
+  const desktopLayout = (
+    <div className="hidden h-full flex-row overflow-hidden lg:flex">
+      {/* Left — Watchlist */}
+      <div className="flex w-56 flex-shrink-0 flex-col overflow-hidden border-r border-bn-border bg-bn-card">
+        {watchlistContent}
       </div>
 
-      {/* Open positions */}
-      {hasMt5 && (
-        <div className="mt-4 bn-card">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-bnText-primary md:text-lg">Open Positions</h3>
-            {trades.length > 0 && (
-              <span className="text-xs text-bnText-muted md:text-sm">{trades.length} active</span>
-            )}
-          </div>
-          {trades.length === 0 ? (
-            <p className="py-6 text-center text-sm text-bnText-muted">No open positions. Place an order to start trading.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-[760px] w-full text-left text-sm">
-                <thead className="border-b border-bn-border text-bnText-secondary">
-                  <tr>
-                    <th className="py-2 font-medium">Symbol</th>
-                    <th className="py-2 font-medium">Side</th>
-                    <th className="py-2 font-medium">Volume</th>
-                    <th className="py-2 font-medium">Open Price</th>
-                    <th className="py-2 font-medium">Current</th>
-                    <th className="py-2 font-medium">P&L</th>
-                    <th className="py-2 font-medium text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trades.map((t) => {
-                    const liveP = livePrices[t.symbol] ?? t.currentPrice;
-                    return (
-                      <tr key={t.id} className="border-b border-bn-border">
-                        <td className="py-2.5 font-medium text-bnText-primary">{getDisplaySymbol(t.symbol)}</td>
-                        <td className={`py-2.5 font-bold ${t.type === 'BUY' ? 'text-bnGreen' : 'text-bnRed'}`}>{t.type}</td>
-                        <td className="py-2.5 text-bnText-secondary">{t.volume.toFixed(2)}</td>
-                        <td className="py-2.5 font-mono text-bnText-secondary">{formatPriceForSymbol(t.symbol, t.openPrice)}</td>
-                        <td className="py-2.5 font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</td>
-                        <td className={`py-2.5 font-bold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>
-                          ${t.profit.toFixed(2)}
-                        </td>
-                        <td className="py-2.5 text-right">
-                          <button
-                            onClick={() => closeTrade(t.id)}
-                            disabled={closingId === t.id}
-                            className="inline-flex items-center gap-1 rounded-md bg-bnRed/10 px-3 py-1.5 text-xs font-bold text-bnRed transition hover:bg-bnRed/20 disabled:opacity-50"
-                          >
-                            {closingId === t.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
-                            Close
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+      {/* Center — Chart + Positions */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex-1 overflow-hidden">{chartContent}</div>
+        {hasMt5 && (
+          <div className="h-44 flex-shrink-0 border-t border-bn-border">{positionsPanel}</div>
+        )}
+      </div>
+
+      {/* Right — Order panel */}
+      <div className="flex w-72 flex-shrink-0 flex-col overflow-hidden border-l border-bn-border bg-bn-card">
+        {orderPanel}
+      </div>
+    </div>
+  );
+
+  // ---- Mobile layout: bottom tabs, no scroll ----
+  const mobileLayout = (
+    <div className="flex h-full flex-col overflow-hidden lg:hidden">
+      {/* Symbol bar */}
+      <div className="flex h-10 flex-shrink-0 items-center justify-between border-b border-bn-border px-3">
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
+          <span className={`font-mono text-xs ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
+            {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
+          </span>
         </div>
-      )}
+        <span className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
+          <span className={`h-1 w-1 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
+          {streamConnected ? 'LIVE' : '...'}
+        </span>
+      </div>
+
+      {/* Content area */}
+      <div className="flex-1 overflow-hidden">
+        {mobileTab === 'chart' && (
+          <div className="flex h-full flex-col">
+            <div className="flex-1 overflow-hidden">{chartContent}</div>
+          </div>
+        )}
+        {mobileTab === 'trade' && (
+          <div className="h-full overflow-y-auto bg-bn-card">{orderPanel}</div>
+        )}
+        {mobileTab === 'positions' && (
+          <div className="h-full bg-bn-card">
+            {hasMt5 ? positionsPanel : <div className="flex h-full items-center justify-center text-xs text-bnText-muted">No MT5 account</div>}
+          </div>
+        )}
+        {mobileTab === 'markets' && (
+          <div className="flex h-full flex-col bg-bn-card">{watchlistContent}</div>
+        )}
+      </div>
+
+      {/* Bottom tab bar */}
+      <div className="flex h-12 flex-shrink-0 border-t border-bn-border bg-bn-card">
+        {[
+          { key: 'markets', label: 'Markets' },
+          { key: 'chart', label: 'Chart' },
+          { key: 'trade', label: 'Trade' },
+          { key: 'positions', label: 'Positions' },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setMobileTab(tab.key as typeof mobileTab)}
+            className={`flex-1 py-2 text-[10px] font-medium transition ${
+              mobileTab === tab.key ? 'text-yellow' : 'text-bnText-muted'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <DashboardShell fullHeight>
+      {desktopLayout}
+      {mobileLayout}
     </DashboardShell>
   );
 }

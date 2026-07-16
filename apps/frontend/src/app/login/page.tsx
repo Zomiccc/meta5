@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api } from '../../lib/api';
+import { api, saveAuthTokens } from '../../lib/api';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { Card } from '../../components/ui/Card';
@@ -27,7 +27,7 @@ export default function LoginPage() {
     setErrMsg('');
     try {
       const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem('accessToken', res.data.accessToken);
+      saveAuthTokens(res.data.accessToken, res.data.refreshToken);
       const role = res.data.user.role;
       router.push(role === 'admin' ? '/admin' : '/dashboard');
     } catch (err: any) {

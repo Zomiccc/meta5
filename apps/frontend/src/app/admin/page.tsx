@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '../../lib/api';
+import { api, getAccessToken, clearAuthTokens } from '../../lib/api';
 import AdminShell from '../../components/AdminShell';
 import { Users, DollarSign, ArrowUpCircle, Activity, Loader2 } from 'lucide-react';
 
@@ -12,12 +12,12 @@ export default function AdminDashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
     if (!token) { router.push('/login'); return; }
     api.get('/admin/dashboard')
       .then((res) => setStats(res.data))
       .catch(() => {
-        localStorage.removeItem('accessToken');
+        clearAuthTokens();
         router.push('/login');
       })
       .finally(() => setLoading(false));

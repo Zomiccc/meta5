@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api } from '../../lib/api';
+import { api, saveAuthTokens } from '../../lib/api';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { Card } from '../../components/ui/Card';
@@ -114,7 +114,7 @@ export default function RegisterPage() {
         referralCode: form.referralCode,
       };
       const res = await api.post('/auth/register', payload);
-      localStorage.setItem('accessToken', res.data.accessToken);
+      saveAuthTokens(res.data.accessToken, res.data.refreshToken);
       setStep('verify');
       success('Account created. Please verify your email.');
     } catch (err: any) {

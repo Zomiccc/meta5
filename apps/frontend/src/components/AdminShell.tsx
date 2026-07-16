@@ -16,7 +16,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, clearAuthTokens } from '../lib/api';
 
 const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,7 +35,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   const logout = async () => {
     try { await api.post('/auth/logout'); } catch {}
-    localStorage.removeItem('accessToken');
+    clearAuthTokens();
     router.push('/login');
   };
 
