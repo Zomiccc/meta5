@@ -455,7 +455,7 @@ export class PriceFeedService {
 
     // Final fallback: generate realistic synthetic candles so charts never stay blank
     if (!data || data.length === 0) {
-      data = this.simulateHistory(symbol, interval);
+      data = await this.simulateHistory(symbol, interval);
       this.logger.debug(`Using synthetic history for ${symbol} (${data.length} candles)`);
     }
 
@@ -743,8 +743,11 @@ export class PriceFeedService {
     }
   }
 
-  private simulateHistory(symbol: string, interval?: string): { time: number; open: number; high: number; low: number; close: number }[] {
-    const basePrice = this.getBasePrice(symbol);
+  private async simulateHistory(symbol: string, interval?: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
+    // Anchor the synthetic walk to the most recent real price so the chart
+    // doesn't open with a huge gap / skyrocket candle.
+    const currentPrice = await this.getPrice(symbol, this.getBasePrice(symbol));
+    const basePrice = currentPrice && currentPrice > 0 ? currentPrice : this.getBasePrice(symbol);
     const seed = symbol.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
     const secondsPerCandle: Record<string, number> = {
       '1min': 60,
@@ -756,20 +759,26 @@ export class PriceFeedService {
       '1day': 86400,
     };
     const candleSeconds = secondsPerCandle[interval || '15min'] || 900;
-    const now = Date.now();
+    const nowSec = Math.floor(Date.now() / 1000);
     const count = Math.floor((24 * 60 * 60) / candleSeconds); // 1 day of candles
     const candles: { time: number; open: number; high: number; low: number; close: number }[] = [];
 
+    // Generate a random walk that ends exactly near basePrice
     let prevClose = basePrice;
+    const maxMove = basePrice * 0.003; // 0.3% max move per candle
     for (let i = 0; i < count; i++) {
-      const time = Math.floor((now - (count - 1 - i) * candleSeconds * 1000) / 1000);
+      const time = nowSec - (count - 1 - i) * candleSeconds;
       const t = (i + seed) * 0.3;
-      const drift = Math.sin(t) * 0.001 + Math.cos(t * 1.7) * 0.0005;
-      const noise = ((Math.sin(t * 3.1) + Math.cos(t * 5.7)) * 0.002);
+      const drift = Math.sin(t) * 0.0008 + Math.cos(t * 1.7) * 0.0004;
+      const noise = (Math.sin(t * 3.1) + Math.cos(t * 5.7)) * 0.0015;
+      const change = drift + noise;
       const open = prevClose;
-      let close = open * (1 + drift + noise);
-      const high = Math.max(open, close) * (1 + Math.abs(Math.sin(t * 2.3)) * 0.001);
-      const low = Math.min(open, close) * (1 - Math.abs(Math.cos(t * 2.9)) * 0.001);
+      let close = open * (1 + Math.max(-0.03, Math.min(0.03, change)));
+      let high = Math.max(open, close) + Math.abs(Math.sin(t * 2.3)) * maxMove;
+      let low = Math.min(open, close) - Math.abs(Math.cos(t * 2.9)) * maxMove;
+      // Keep the series anchored to basePrice overall
+      if (i === count - 1) close = basePrice;
+      if (low > high) [low, high] = [high, low];
       candles.push({ time, open, high, low, close });
       prevClose = close;
     }

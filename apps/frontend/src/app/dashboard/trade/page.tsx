@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardShell from '../../../components/DashboardShell';
-import LiveChart from '../../../components/LiveChart';
+import AdvancedChart from '../../../components/tradingview/AdvancedChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api, consumeSse } from '../../../lib/api';
 import { Loader2, X, AlertTriangle, Search, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
@@ -58,26 +58,9 @@ export default function TradePage() {
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [streamConnected, setStreamConnected] = useState(false);
-  const [tvPrice, setTvPrice] = useState<number | null>(null);
   const [orderType, setOrderType] = useState<'Market' | 'Limit' | 'Stop Limit'>('Market');
   const [bottomTab, setBottomTab] = useState<'Open Orders' | 'Positions' | 'History' | 'Account Summary'>('Open Orders');
   const [subFilter, setSubFilter] = useState<'All' | 'Working' | 'Filled' | 'Cancelled'>('All');
-
-  // Listen to TradingView price updates to sync watchlist with chart
-  useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      if (event.data?.name === 'quoteUpdate' || event.data?.price) {
-        const price = event.data.price || event.data?.p;
-        if (price && typeof price === 'number') {
-          setTvPrice(parseFloat(price.toString()));
-          // Also update livePrices for the active symbol so watchlist matches chart
-          setLivePrices((prev) => ({ ...prev, [active.symbol]: parseFloat(price.toString()) }));
-        }
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, [active.symbol]);
 
   const hasMt5 = !!user?.mt5Account;
   const balance = Number(account?.balance ?? user?.mt5Account?.balance ?? 0);
@@ -327,10 +310,8 @@ export default function TradePage() {
   );
 
   const chartContent = (
-    <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-hidden">
-        <LiveChart symbol={active.symbol} price={activeLivePrice} height={260} />
-      </div>
+    <div className="h-full w-full overflow-hidden">
+      <AdvancedChart symbol={active.symbol} interval="15" height="100%" allowSymbolChange={false} />
     </div>
   );
 
@@ -356,10 +337,10 @@ export default function TradePage() {
             <span className="text-xs text-bnText-secondary">ticks</span>
           </div>
           <div className="flex items-center rounded border border-bn-border-light bg-bn-input px-3 py-2">
-            <input type="number" value={orderType === 'Market' ? (activeLivePrice || '').toString() : (tvPrice?.toString() || activeLivePrice.toString())} disabled={orderType === 'Market'} className="flex-1 bg-transparent text-sm text-bnText-primary outline-none font-mono" />
+            <input type="number" value={activeLivePrice || ''} disabled={orderType === 'Market'} className="flex-1 bg-transparent text-sm text-bnText-primary outline-none font-mono" />
             <div className="ml-2 flex flex-col">
-              <ChevronUp className="h-3 w-3 cursor-pointer text-bnText-secondary" onClick={() => setTvPrice((p) => (p || 0) + 0.00001)} />
-              <ChevronDown className="h-3 w-3 cursor-pointer text-bnText-secondary" onClick={() => setTvPrice((p) => Math.max(0, (p || 0) - 0.00001))} />
+              <ChevronUp className="h-3 w-3 cursor-pointer text-bnText-secondary" onClick={() => {}} />
+              <ChevronDown className="h-3 w-3 cursor-pointer text-bnText-secondary" onClick={() => {}} />
             </div>
           </div>
         </div>
@@ -615,7 +596,7 @@ export default function TradePage() {
       <div className="flex-1 overflow-hidden">
         {mobileTab === 'chart' && (
           <div className="flex h-full flex-col overflow-hidden">
-            <div className="h-[240px] flex-shrink-0 overflow-hidden sm:h-[280px]">{chartContent}</div>
+            <div className="h-[280px] flex-shrink-0 overflow-hidden sm:h-[340px]">{chartContent}</div>
             {hasMt5 && <div className="min-h-0 flex-1 overflow-hidden border-t border-bn-border">{bottomPanel}</div>}
           </div>
         )}
