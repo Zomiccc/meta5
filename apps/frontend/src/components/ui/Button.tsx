@@ -1,7 +1,7 @@
 import React from 'react';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type Size = 'sm' | 'md' | 'lg';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+type Size = 'xs' | 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -12,15 +12,18 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-yellow text-black hover:bg-yellow-hover disabled:hover:bg-yellow disabled:opacity-60',
+    'bg-yellow text-black hover:bg-yellow-hover disabled:hover:bg-yellow disabled:opacity-40 shadow-glow-yellow',
   secondary:
-    'border border-bn-border-light bg-bn-secondary text-bnText-primary hover:border-yellow hover:text-yellow',
+    'border border-bn-border-light bg-bn-elevated text-bnText-primary hover:border-yellow/50 hover:text-yellow',
   ghost: 'text-bnText-secondary hover:bg-bn-hover hover:text-bnText-primary',
   danger:
     'bg-bnRed/10 text-bnRed border border-bnRed/20 hover:bg-bnRed/20',
+  success:
+    'bg-bnGreen/10 text-bnGreen border border-bnGreen/20 hover:bg-bnGreen/20',
 };
 
 const sizes: Record<Size, string> = {
+  xs: 'px-2.5 py-1 text-2xs rounded-bn-sm',
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2.5 text-sm',
   lg: 'px-6 py-3 text-base',
@@ -32,11 +35,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || isLoading}
       className={[
-        'inline-flex items-center justify-center rounded-bn font-semibold transition-all active:scale-[0.98]',
+        'inline-flex items-center justify-center rounded-bn font-semibold transition-all duration-200 active:scale-[0.97] focus-ring',
         variants[variant],
         sizes[size],
         fullWidth ? 'w-full' : '',
-        (disabled || isLoading) ? 'opacity-60 cursor-not-allowed' : '',
+        (disabled || isLoading) ? 'cursor-not-allowed opacity-40' : '',
         className,
       ].join(' ')}
       {...props}

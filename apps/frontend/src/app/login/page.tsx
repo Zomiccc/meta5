@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../lib/useAuth';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -39,74 +40,84 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col bg-bn-bg">
       <Navbar />
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[420px] animate-slide-up">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[420px]"
+        >
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-bn bg-yellow text-black">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-bn bg-yellow text-black shadow-glow-yellow">
               <TrendingUp className="h-6 w-6" />
             </div>
             <h1 className="text-2xl font-bold text-bnText-primary">Log In</h1>
             <p className="mt-2 text-sm text-bnText-secondary">Welcome back to FXONS</p>
           </div>
 
-          <Card className="p-6">
-            {errMsg && (
-              <div className="mb-4 rounded-bn border border-bnRed/20 bg-bnRed/10 px-4 py-3 text-sm text-bnRed">
-                {errMsg}
+          <Card className="p-6" noPadding>
+            <div className="p-6">
+              {errMsg && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mb-4 rounded-bn border border-bnRed/20 bg-bnRed/10 px-4 py-3 text-sm text-bnRed"
+                >
+                  {errMsg}
+                </motion.div>
+              )}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <Input
+                  label="Email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  icon={<Mail className="h-4 w-4" />}
+                />
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  icon={<Lock className="h-4 w-4" />}
+                  right={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="text-bnText-muted transition hover:text-bnText-primary"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  }
+                />
+                <div className="flex justify-end">
+                  <Link href="/forgot-password" className="text-xs text-bnText-secondary transition hover:text-yellow">
+                    Forgot Password?
+                  </Link>
+                </div>
+                <Button type="submit" variant="primary" fullWidth isLoading={loading}>
+                  Log In
+                </Button>
+              </form>
+
+              <div className="mt-6 flex items-center gap-3">
+                <div className="h-px flex-1 bg-bn-border" />
+                <span className="text-xs text-bnText-muted">or</span>
+                <div className="h-px flex-1 bg-bn-border" />
               </div>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <Input
-                label="Email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                icon={<Mail className="h-4 w-4" />}
-              />
-              <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                icon={<Lock className="h-4 w-4" />}
-                right={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="text-bnText-muted hover:text-bnText-primary"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                }
-              />
-              <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-xs text-bnText-secondary hover:text-yellow">
-                  Forgot Password?
+
+              <p className="mt-6 text-center text-sm text-bnText-secondary">
+                Don't have an account?{' '}
+                <Link href="/register" className="font-medium text-yellow transition hover:text-yellow-hover">
+                  Register
                 </Link>
-              </div>
-              <Button type="submit" variant="primary" fullWidth isLoading={loading}>
-                Log In
-              </Button>
-            </form>
-
-            <div className="mt-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-bn-border" />
-              <span className="text-xs text-bnText-muted">or</span>
-              <div className="h-px flex-1 bg-bn-border" />
+              </p>
             </div>
-
-            <p className="mt-6 text-center text-sm text-bnText-secondary">
-              Don't have an account?{' '}
-              <Link href="/register" className="font-medium text-yellow hover:text-yellow-hover">
-                Register
-              </Link>
-            </p>
           </Card>
-
-        </div>
+        </motion.div>
       </main>
       <Footer />
     </div>

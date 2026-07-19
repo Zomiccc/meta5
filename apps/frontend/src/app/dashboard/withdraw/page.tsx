@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import { ArrowUpCircle, Loader2, CheckCircle, History, ChevronDown, Shield, AlertCircle, Wallet, Clipboard } from 'lucide-react';
@@ -65,7 +66,12 @@ export default function WithdrawPage() {
     <DashboardShell>
       <div className="mx-auto max-w-2xl">
         {/* Header */}
-        <div className="mb-5 flex items-center gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-5 flex items-center gap-3"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bnRed/10">
             <ArrowUpCircle className="h-5 w-5 text-bnRed" />
           </div>
@@ -73,16 +79,20 @@ export default function WithdrawPage() {
             <h1 className="text-xl font-bold text-bnText-primary">Withdraw</h1>
             <p className="text-xs text-bnText-secondary">Withdraw USDT to your personal TRC20 wallet</p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="animate-slide-up space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-4">
           {/* Balance card */}
-          <div className="flex items-center justify-between rounded-bn border border-bn-border bg-bn-card p-4">
+          <div className="flex items-center justify-between rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bnGreen/20 text-sm font-bold text-bnGreen">₸</div>
               <div>
                 <div className="text-xs text-bnText-muted">Available Balance</div>
-                <div className="text-lg font-bold text-bnText-primary">${balance.toFixed(2)} <span className="text-xs font-normal text-bnText-secondary">USDT</span></div>
+                <div className="text-lg font-bold tnum text-bnText-primary">${balance.toFixed(2)} <span className="text-xs font-normal text-bnText-secondary">USDT</span></div>
               </div>
             </div>
             <button
@@ -94,7 +104,7 @@ export default function WithdrawPage() {
           </div>
 
           {/* Asset selector */}
-          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+          <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
             <label className="mb-2 block text-xs font-medium text-bnText-secondary">Asset</label>
             <div className="flex items-center justify-between rounded-bn border border-bn-border bg-bn-input px-4 py-3">
               <div className="flex items-center gap-3">
@@ -109,7 +119,7 @@ export default function WithdrawPage() {
           </div>
 
           {/* Network selector */}
-          <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+          <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
             <label className="mb-2 block text-xs font-medium text-bnText-secondary">Network</label>
             <div className="flex items-center justify-between rounded-bn border border-yellow/30 bg-yellow/5 px-4 py-3">
               <div className="flex items-center gap-3">
@@ -126,7 +136,7 @@ export default function WithdrawPage() {
           {/* Withdraw form */}
           <form onSubmit={submit} className="space-y-4">
             {/* Address input */}
-            <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+            <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
               <label className="mb-2 block text-xs font-medium text-bnText-secondary">USDT Wallet Address (TRC20)</label>
               <div className="relative">
                 <input
@@ -153,7 +163,7 @@ export default function WithdrawPage() {
             </div>
 
             {/* Amount input */}
-            <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+            <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
               <label className="mb-2 block text-xs font-medium text-bnText-secondary">Amount (USD)</label>
               <div className="relative">
                 <input
@@ -184,7 +194,7 @@ export default function WithdrawPage() {
             {/* Fee info */}
             <div className="flex items-center justify-between rounded-bn bg-bn-input/50 px-4 py-3 text-xs">
               <span className="text-bnText-muted">Network Fee</span>
-              <span className="font-medium text-bnText-secondary">~1.00 USDT</span>
+              <span className="font-medium tnum text-bnText-secondary">~1.00 USDT</span>
             </div>
 
             {/* Message */}
@@ -201,17 +211,22 @@ export default function WithdrawPage() {
             <button
               type="submit"
               disabled={loading || !amount || !walletAddress}
-              className="flex w-full items-center justify-center gap-2 rounded-bn bg-yellow py-3.5 text-sm font-bold text-bn-bg transition hover:bg-yellow-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 rounded-bn bg-yellow py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-yellow-hover active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 shadow-glow-yellow"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpCircle className="h-4 w-4" />}
               {loading ? 'Submitting...' : 'Submit Withdrawal'}
             </button>
           </form>
-        </div>
+        </motion.div>
 
         {/* Withdrawal history */}
         {withdrawals.length > 0 && (
-          <div className="mt-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-6"
+          >
             <div className="mb-2.5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-bnText-muted" />
@@ -219,7 +234,7 @@ export default function WithdrawPage() {
               </div>
               <span className="text-xs text-bnText-muted">{withdrawals.length} total</span>
             </div>
-            <div className="overflow-x-auto rounded-bn border border-bn-border">
+            <div className="overflow-x-auto rounded-bn-lg border border-bn-border shadow-card">
               <table className="w-full min-w-[400px] text-left text-sm">
                 <thead className="bg-bn-secondary text-xs text-bnText-muted">
                   <tr>
@@ -232,7 +247,7 @@ export default function WithdrawPage() {
                 <tbody>
                   {withdrawals.slice(0, 8).map((w) => (
                     <tr key={w.id} className="border-t border-bn-border">
-                      <td className="px-3 py-2.5 font-bold text-bnText-primary">${Number(w.amount).toFixed(2)}</td>
+                      <td className="px-3 py-2.5 font-bold tnum text-bnText-primary">${Number(w.amount).toFixed(2)}</td>
                       <td className="max-w-[120px] truncate px-3 py-2.5 font-mono text-xs text-bnText-secondary">{w.walletAddress || '—'}</td>
                       <td className="px-3 py-2.5 text-xs text-bnText-secondary">{new Date(w.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</td>
                       <td className="px-3 py-2.5 text-right">
@@ -243,7 +258,7 @@ export default function WithdrawPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </DashboardShell>

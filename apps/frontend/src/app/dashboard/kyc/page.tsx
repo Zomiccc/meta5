@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import {
@@ -131,15 +132,23 @@ export default function KycPage() {
 
   return (
     <DashboardShell>
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-8"
+      >
         <h1 className="text-2xl font-bold text-bnText-primary">KYC Verification</h1>
         <p className="text-bnText-secondary">AI-powered identity verification in 3 simple steps</p>
-      </div>
+      </motion.div>
 
       <div className="mx-auto max-w-2xl">
         {kyc && (isApproved || isPending || isRejected) && (
-          <div
-            className={`mb-6 flex flex-col items-start gap-3 rounded-bn border p-4 sm:flex-row sm:items-center animate-slide-up ${
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className={`mb-6 flex flex-col items-start gap-3 rounded-bn-lg border p-4 sm:flex-row sm:items-center ${
               isApproved
                 ? 'border-bnGreen/20 bg-bnGreen/10'
                 : isRejected
@@ -192,17 +201,22 @@ export default function KycPage() {
                 Reset
               </button>
             )}
-          </div>
+          </motion.div>
         )}
 
         {isApproved ? (
-          <div className="bn-card animate-slide-up text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-bn-lg border border-bn-border bg-bn-card p-6 text-center shadow-card"
+          >
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-bn bg-bnGreen/10">
               <ShieldCheck className="h-8 w-8 text-bnGreen" />
             </div>
             <h3 className="text-lg font-semibold text-bnText-primary">KYC Complete</h3>
             <p className="mt-2 text-sm text-bnText-secondary">Your account is fully verified. You can now deposit and trade.</p>
-          </div>
+          </motion.div>
         ) : (
           <>
             <div className="mb-6 flex items-center justify-between">
@@ -286,7 +300,7 @@ export default function KycPage() {
               <button
                 type="submit"
                 disabled={loading || !cnicFront || !cnicBack || !selfie}
-                className="bn-btn-primary min-h-12 w-full"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-bn bg-yellow py-3 text-sm font-bold text-black transition-all duration-200 hover:bg-yellow-hover active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 shadow-glow-yellow"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

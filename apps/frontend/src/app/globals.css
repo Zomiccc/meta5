@@ -4,18 +4,20 @@
 
 :root {
   --bn-bg: #0B0E11;
-  --bn-secondary: #1E2026;
-  --bn-card: #252930;
+  --bn-secondary: #1E2329;
+  --bn-card: #1E2329;
+  --bn-elevated: #2B3139;
   --bn-input: #2B3139;
   --bn-border: #2B3139;
   --bn-border-light: #363C45;
-  --bn-yellow: #F0B90B;
-  --bn-yellow-hover: #F8D33A;
+  --bn-hover: #2B3139;
+  --bn-yellow: #FCD535;
+  --bn-yellow-hover: #F0B90B;
   --bn-green: #0ECB81;
   --bn-red: #F6465D;
   --bn-text-primary: #EAECEF;
-  --bn-text-secondary: #848E9C;
-  --bn-text-muted: #5E6673;
+  --bn-text-secondary: #B7BDC6;
+  --bn-text-muted: #707A8A;
 }
 
 html,
@@ -25,6 +27,12 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
 * {
@@ -63,22 +71,25 @@ textarea {
 
 @layer components {
   .bn-card {
-    @apply rounded-bn border border-bn-border bg-bn-card p-4 shadow-bn;
+    @apply rounded-bn border border-bn-border bg-bn-card p-4 shadow-card transition-shadow duration-300 hover:shadow-card-hover;
+  }
+  .bn-card-flat {
+    @apply rounded-bn border border-bn-border bg-bn-card;
   }
   .bn-input {
-    @apply min-h-[44px] w-full rounded-bn border border-bn-border bg-bn-input px-3 py-2 text-sm text-bnText-primary placeholder-bnText-muted outline-none transition-all focus:border-yellow focus:ring-1 focus:ring-yellow/30;
+    @apply min-h-[44px] w-full rounded-bn border border-bn-border bg-bn-input px-3 py-2 text-sm text-bnText-primary placeholder-bnText-muted outline-none transition-all duration-200 focus:border-yellow focus:ring-2 focus:ring-yellow/20;
   }
   .bn-select {
-    @apply bn-input appearance-none;
+    @apply bn-input appearance-none pr-10;
   }
   .bn-btn-primary {
-    @apply rounded-bn bg-yellow px-4 py-2.5 text-sm font-semibold text-black transition-all hover:bg-yellow-hover active:scale-[0.98] disabled:opacity-60 disabled:hover:bg-yellow;
+    @apply rounded-bn bg-yellow px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-yellow-hover active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-yellow;
   }
   .bn-btn-secondary {
-    @apply rounded-bn border border-bn-border-light bg-bn-secondary px-4 py-2.5 text-sm font-medium text-bnText-primary transition-all hover:border-yellow hover:text-yellow active:scale-[0.98];
+    @apply rounded-bn border border-bn-border-light bg-bn-elevated px-4 py-2.5 text-sm font-medium text-bnText-primary transition-all duration-200 hover:border-yellow/50 hover:text-yellow active:scale-[0.97];
   }
   .bn-btn-ghost {
-    @apply rounded-bn px-3 py-2 text-sm font-medium text-bnText-secondary transition-all hover:bg-bn-hover hover:text-bnText-primary;
+    @apply rounded-bn px-3 py-2 text-sm font-medium text-bnText-secondary transition-all duration-200 hover:bg-bn-hover hover:text-bnText-primary;
   }
   .bn-text-positive {
     @apply text-bnGreen;
@@ -91,6 +102,16 @@ textarea {
   }
   .bn-bg-negative {
     @apply bg-bnRed/10;
+  }
+  .glass {
+    background: rgba(11, 14, 17, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .glass-card {
+    background: rgba(30, 35, 41, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 
@@ -107,5 +128,27 @@ textarea {
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-yellow/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bn-bg;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-fade {
+    animation: fadeIn 0.3s ease-out both;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

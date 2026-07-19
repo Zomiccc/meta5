@@ -261,11 +261,11 @@ export default function TradePage() {
         <span className="text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
         <ChevronDown className="h-3 w-3 text-bnText-secondary" />
       </button>
-      <span className={`text-lg font-bold ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-secondary'}`}>
+      <span className={`text-lg font-bold tnum ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-secondary'}`}>
         {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
       </span>
       {livePrices[active.symbol] && (
-        <span className={`text-xs ${activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed'}`}>
+        <span className={`text-xs tnum ${activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed'}`}>
           {activeLivePrice >= active.price ? '+' : ''}{((activeLivePrice - active.price) / active.price * 100).toFixed(2)}%
         </span>
       )}
@@ -316,7 +316,7 @@ export default function TradePage() {
                 <div className="text-[10px] text-bnText-muted">{item.category}</div>
               </div>
               <div className="text-right">
-                <div className={`font-mono text-xs ${live ? (up ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>{live ? formatPriceForSymbol(item.symbol, live) : '—'}</div>
+                <div className={`tnum text-xs ${live ? (up ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>{live ? formatPriceForSymbol(item.symbol, live) : '—'}</div>
               </div>
             </button>
           );
@@ -378,11 +378,11 @@ export default function TradePage() {
         </div>
         <div>
           <div className="mb-1 text-xs text-bnText-secondary">Total (USDT)</div>
-          <div className="rounded border border-bn-border-light bg-bn-input px-3 py-2"><span className="text-sm font-mono text-bnText-primary">{total.toFixed(2)}</span></div>
+          <div className="rounded border border-bn-border-light bg-bn-input px-3 py-2"><span className="text-sm tnum text-bnText-primary">{total.toFixed(2)}</span></div>
         </div>
-        <div className="flex items-center justify-between text-xs"><span className="text-bnText-secondary">Avbl</span><span className="font-mono text-bnText-primary">{balance.toFixed(2)} USDT</span></div>
+        <div className="flex items-center justify-between text-xs"><span className="text-bnText-secondary">Avbl</span><span className="tnum text-bnText-primary">{balance.toFixed(2)} USDT</span></div>
         <div className="flex items-center justify-between text-xs"><span className="text-bnText-secondary">Est. Fee</span><span className="text-bnText-primary">-- {activeBaseAsset}</span></div>
-        <button onClick={placeOrder} disabled={!hasMt5 || submitting} className={`w-full rounded py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${side === 'BUY' ? 'bg-bnGreen text-black hover:bg-green-600' : 'bg-bnRed text-white hover:bg-red-600'}`}>
+        <button onClick={placeOrder} disabled={!hasMt5 || submitting} className={`w-full rounded-bn py-3 text-sm font-bold transition-all duration-200 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${side === 'BUY' ? 'bg-bnGreen text-black hover:brightness-110' : 'bg-bnRed text-white hover:brightness-110'}`}>
           {submitting ? 'Submitting...' : `${side === 'BUY' ? 'Buy' : 'Sell'} ${activeBaseAsset}`}
         </button>
         {criticalMargin && (
@@ -393,9 +393,9 @@ export default function TradePage() {
       </div>
       {hasMt5 && (
         <div className="space-y-2 border-t border-bn-border p-3">
-          <div className="flex justify-between text-xs"><span className="text-bnText-secondary">Account Balance</span><span className="font-mono text-bnText-primary">{balance.toFixed(2)}</span></div>
-          <div className="flex justify-between text-xs"><span className="text-bnText-secondary">Equity</span><span className={`font-mono ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'}`}>{equity.toFixed(2)}</span></div>
-          <div className="flex justify-between text-xs"><span className="text-bnText-secondary">Profit</span><span className={`font-mono ${totalPnl >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)}</span></div>
+          <div className="flex justify-between text-xs"><span className="text-bnText-secondary">Account Balance</span><span className="tnum text-bnText-primary">{balance.toFixed(2)}</span></div>
+          <div className="flex justify-between text-xs"><span className="text-bnText-secondary">Equity</span><span className={`tnum ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'}`}>{equity.toFixed(2)}</span></div>
+          <div className="flex justify-between text-xs"><span className="text-bnText-secondary">Profit</span><span className={`tnum ${totalPnl >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)}</span></div>
         </div>
       )}
     </div>
@@ -447,11 +447,11 @@ export default function TradePage() {
                     </td>
                     <td className={`py-3 font-semibold ${t.type === 'BUY' ? 'text-bnGreen' : 'text-bnRed'}`}>{t.type === 'BUY' ? 'Buy' : 'Sell'}</td>
                     <td className="py-3 text-bnText-secondary">Market</td>
-                    <td className="py-3 text-right font-mono text-bnText-primary">{t.volume.toFixed(2)}</td>
-                    <td className="py-3 text-right font-mono text-bnText-primary">{t.volume.toFixed(2)}</td>
-                    <td className="py-3 text-right font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, t.openPrice)}</td>
-                    <td className="py-3 text-right font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</td>
-                    <td className={`py-3 text-right font-mono font-semibold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}</td>
+                    <td className="py-3 text-right tnum text-bnText-primary">{t.volume.toFixed(2)}</td>
+                    <td className="py-3 text-right tnum text-bnText-primary">{t.volume.toFixed(2)}</td>
+                    <td className="py-3 text-right tnum text-bnText-primary">{formatPriceForSymbol(t.symbol, t.openPrice)}</td>
+                    <td className="py-3 text-right tnum text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</td>
+                    <td className={`py-3 text-right tnum font-semibold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}</td>
                     <td className="px-4 py-3 text-right">
                       <button onClick={() => closeTrade(t.id)} disabled={closingId === t.id} className="p-1 text-bnText-secondary transition hover:text-bnRed disabled:opacity-50">
                         {closingId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
@@ -486,13 +486,13 @@ export default function TradePage() {
                     </div>
                     <div className="mb-2">
                       <div className="text-xs text-bnText-secondary">Unrealized PNL (USDT)</div>
-                      <div className={`text-xl font-bold ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}</div>
-                      <div className={`text-xs ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>ROI: {t.profit >= 0 ? '+' : ''}{roi.toFixed(2)}%</div>
+                      <div className={`text-xl font-bold tnum ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}</div>
+                      <div className={`text-xs tnum ${t.profit >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>ROI: {t.profit >= 0 ? '+' : ''}{roi.toFixed(2)}%</div>
                     </div>
                     <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
-                      <div><div className="text-bnText-secondary">Size</div><div className="font-mono text-bnText-primary">{t.volume.toFixed(2)}</div></div>
-                      <div><div className="text-bnText-secondary">Entry Price</div><div className="font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, t.openPrice)}</div></div>
-                      <div><div className="text-bnText-secondary">Mark Price</div><div className="font-mono text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</div></div>
+                      <div><div className="text-bnText-secondary">Size</div><div className="tnum text-bnText-primary">{t.volume.toFixed(2)}</div></div>
+                      <div><div className="text-bnText-secondary">Entry Price</div><div className="tnum text-bnText-primary">{formatPriceForSymbol(t.symbol, t.openPrice)}</div></div>
+                      <div><div className="text-bnText-secondary">Mark Price</div><div className="tnum text-bnText-primary">{formatPriceForSymbol(t.symbol, liveP)}</div></div>
                     </div>
                     <div className="flex gap-2">
                       <button className="flex-1 rounded border border-bn-border py-2 text-xs text-bnText-primary transition hover:border-yellow">Leverage</button>
@@ -510,14 +510,14 @@ export default function TradePage() {
       {bottomTab === 'Account Summary' && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Balance</div><div className="mt-1 text-lg font-bold text-bnText-primary">${balance.toFixed(2)}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Equity</div><div className={`mt-1 text-lg font-bold ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'}`}>${equity.toFixed(2)}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Used Margin</div><div className="mt-1 text-lg font-bold text-bnText-primary">${margin.toFixed(2)}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Free Margin</div><div className="mt-1 text-lg font-bold text-bnText-primary">${freeMargin.toFixed(2)}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Total P&L</div><div className={`mt-1 text-lg font-bold ${totalPnl >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Margin Level</div><div className={`mt-1 text-lg font-bold ${marginLevel < 60 ? 'text-bnRed' : marginLevel < 100 ? 'text-yellow' : 'text-bnGreen'}`}>{marginLevel > 0 ? `${marginLevel.toFixed(1)}%` : '—'}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Leverage</div><div className="mt-1 text-lg font-bold text-bnText-primary">1:{LEVERAGE}</div></div>
-            <div className="rounded border border-bn-border bg-bn-secondary p-3"><div className="text-xs text-bnText-secondary">Open Positions</div><div className="mt-1 text-lg font-bold text-bnText-primary">{trades.length}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Balance</div><div className="mt-1 text-lg font-bold tnum text-bnText-primary">${balance.toFixed(2)}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Equity</div><div className={`mt-1 text-lg font-bold tnum ${equity >= balance ? 'text-bnGreen' : 'text-bnRed'}`}>${equity.toFixed(2)}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Used Margin</div><div className="mt-1 text-lg font-bold tnum text-bnText-primary">${margin.toFixed(2)}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Free Margin</div><div className="mt-1 text-lg font-bold tnum text-bnText-primary">${freeMargin.toFixed(2)}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Total P&L</div><div className={`mt-1 text-lg font-bold tnum ${totalPnl >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(2)}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Margin Level</div><div className={`mt-1 text-lg font-bold tnum ${marginLevel < 60 ? 'text-bnRed' : marginLevel < 100 ? 'text-yellow' : 'text-bnGreen'}`}>{marginLevel > 0 ? `${marginLevel.toFixed(1)}%` : '—'}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Leverage</div><div className="mt-1 text-lg font-bold tnum text-bnText-primary">1:{LEVERAGE}</div></div>
+            <div className="rounded-bn border border-bn-border bg-bn-card p-3 transition-all duration-200 hover:shadow-card"><div className="text-xs text-bnText-secondary">Open Positions</div><div className="mt-1 text-lg font-bold tnum text-bnText-primary">{trades.length}</div></div>
           </div>
         </div>
       )}

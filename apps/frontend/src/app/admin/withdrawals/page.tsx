@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
 
@@ -51,8 +52,20 @@ export default function AdminWithdrawalsPage() {
 
   return (
     <AdminShell>
-      <h1 className="mb-6 text-2xl font-bold text-bnText-primary">Withdrawals</h1>
-      <div className="overflow-x-auto rounded border border-bn-border bg-bn-input">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-6"
+      >
+        <h1 className="text-2xl font-bold text-bnText-primary">Withdrawals</h1>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="overflow-x-auto rounded-bn-lg border border-bn-border bg-bn-card shadow-card"
+      >
         <table className="min-w-[820px] w-full text-left text-sm">
           <thead className="border-b border-bn-border text-bnText-secondary">
             <tr>
@@ -68,7 +81,7 @@ export default function AdminWithdrawalsPage() {
             {withdrawals.map((w) => (
               <tr key={w.id} className="border-b border-bn-border">
                 <td className="px-4 py-3 text-bnText-primary">{w.user.name}</td>
-                <td className="px-4 py-3 text-bnText-primary">${Number(w.amount).toFixed(2)}</td>
+                <td className="px-4 py-3 tnum text-bnText-primary">${Number(w.amount).toFixed(2)}</td>
                 <td className="px-4 py-3 font-mono text-xs text-bnText-secondary" title={w.clientWalletAddress || w.walletAddress}>{(w.clientWalletAddress || w.walletAddress).slice(0, 16)}...</td>
                 <td className="px-4 py-3">{txCell(w.txHash)}</td>
                 <td className={`px-4 py-3 capitalize ${w.status === 'approved' ? 'text-bnGreen' : w.status === 'rejected' ? 'text-bnRed' : 'text-yellow'}`}>{w.status}</td>
@@ -78,14 +91,14 @@ export default function AdminWithdrawalsPage() {
                       <button
                         onClick={() => approve(w.id)}
                         disabled={loadingId === w.id}
-                        className="rounded bg-green-600 px-3 py-1 text-xs font-bold text-bnText-primary hover:bg-green-700 disabled:opacity-50"
+                        className="rounded-bn bg-bnGreen px-3 py-1.5 text-xs font-bold text-black transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
                         {loadingId === w.id ? '...' : 'Approve'}
                       </button>
                       <button
                         onClick={() => reject(w.id)}
                         disabled={loadingId === w.id}
-                        className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-bnText-primary hover:bg-red-700 disabled:opacity-50"
+                        className="rounded-bn bg-bnRed px-3 py-1.5 text-xs font-bold text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
                         Reject
                       </button>
@@ -97,7 +110,7 @@ export default function AdminWithdrawalsPage() {
             {withdrawals.length === 0 && <tr><td colSpan={6} className="px-4 py-4 text-bnText-secondary">No withdrawals</td></tr>}
           </tbody>
         </table>
-      </div>
+      </motion.div>
     </AdminShell>
   );
 }

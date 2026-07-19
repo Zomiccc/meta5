@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
 
@@ -52,8 +53,20 @@ export default function AdminDepositsPage() {
 
   return (
     <AdminShell>
-      <h1 className="mb-6 text-2xl font-bold text-bnText-primary">Deposits</h1>
-      <div className="overflow-x-auto rounded border border-bn-border bg-bn-input">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-6"
+      >
+        <h1 className="text-2xl font-bold text-bnText-primary">Deposits</h1>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="overflow-x-auto rounded-bn-lg border border-bn-border bg-bn-card shadow-card"
+      >
         <table className="min-w-[900px] w-full text-left text-sm">
           <thead className="border-b border-bn-border text-bnText-secondary">
             <tr>
@@ -70,8 +83,8 @@ export default function AdminDepositsPage() {
             {deposits.map((d) => (
               <tr key={d.id} className="border-b border-bn-border">
                 <td className="px-4 py-3 text-bnText-primary">{d.user.name}</td>
-                <td className="px-4 py-3 text-bnText-primary">${Number(d.amount).toFixed(2)}</td>
-                <td className="px-4 py-3 text-bnText-secondary">{Number(d.uniqueAmount || 0).toFixed(2)} USDT</td>
+                <td className="px-4 py-3 tnum text-bnText-primary">${Number(d.amount).toFixed(2)}</td>
+                <td className="px-4 py-3 tnum text-bnText-secondary">{Number(d.uniqueAmount || 0).toFixed(2)} USDT</td>
                 <td className="px-4 py-3 text-bnText-primary">{d.cryptoCurrency}</td>
                 <td className="px-4 py-3">{txCell(d.txHash)}</td>
                 <td className={`px-4 py-3 capitalize ${statusColor(d.status)}`}>{d.status}</td>
@@ -81,14 +94,14 @@ export default function AdminDepositsPage() {
                       <button
                         onClick={() => approve(d.id)}
                         disabled={loadingId === d.id}
-                        className="rounded bg-green-600 px-3 py-1 text-xs font-bold text-bnText-primary hover:bg-green-700 disabled:opacity-50"
+                        className="rounded-bn bg-bnGreen px-3 py-1.5 text-xs font-bold text-black transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
                         {loadingId === d.id ? '...' : 'Approve'}
                       </button>
                       <button
                         onClick={() => reject(d.id)}
                         disabled={loadingId === d.id}
-                        className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-bnText-primary hover:bg-red-700 disabled:opacity-50"
+                        className="rounded-bn bg-bnRed px-3 py-1.5 text-xs font-bold text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                       >
                         Reject
                       </button>
@@ -100,7 +113,7 @@ export default function AdminDepositsPage() {
             {deposits.length === 0 && <tr><td colSpan={7} className="px-4 py-4 text-bnText-secondary">No deposits</td></tr>}
           </tbody>
         </table>
-      </div>
+      </motion.div>
     </AdminShell>
   );
 }

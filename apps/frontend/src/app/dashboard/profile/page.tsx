@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import { User, Mail, Phone, CheckCircle, Loader2 } from 'lucide-react';
@@ -44,12 +45,22 @@ export default function ProfilePage() {
 
   return (
     <DashboardShell>
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-8"
+      >
         <h1 className="text-2xl font-bold text-bnText-primary">Profile Settings</h1>
         <p className="text-bnText-secondary">Manage your account information</p>
-      </div>
+      </motion.div>
 
-      <div className="max-w-lg bn-card animate-slide-up">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-lg rounded-bn-lg border border-bn-border bg-bn-card p-6 shadow-card"
+      >
         {message && (
           <div
             className={`mb-4 flex items-center gap-2 rounded-bn border px-4 py-3 text-sm ${
@@ -77,7 +88,7 @@ export default function ProfilePage() {
           </div>
           <button className="bn-btn-primary w-full">Save Changes</button>
         </form>
-      </div>
+      </motion.div>
     </DashboardShell>
   );
 }

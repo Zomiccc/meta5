@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import { Loader2, ExternalLink } from 'lucide-react';
@@ -58,12 +59,22 @@ export default function HistoryPage() {
 
   return (
     <DashboardShell>
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-8"
+      >
         <h1 className="text-2xl font-bold text-bnText-primary">Transaction History</h1>
         <p className="text-bnText-secondary">View your deposits and withdrawals</p>
-      </div>
+      </motion.div>
 
-      <div className="mb-8 bn-card animate-slide-up">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-8 rounded-bn-lg border border-bn-border bg-bn-card p-5 shadow-card"
+      >
         <h3 className="mb-4 text-lg font-semibold text-bnText-primary">Deposits</h3>
         <div className="overflow-x-auto">
           <table className="min-w-[640px] w-full text-left text-sm">
@@ -80,7 +91,7 @@ export default function HistoryPage() {
               {deposits.map((d) => (
                 <tr key={d.id} className="border-b border-bn-border">
                   <td className="py-3 text-bnText-secondary">{new Date(d.createdAt).toLocaleDateString()}</td>
-                  <td className="py-3 font-medium text-bnText-primary">${Number(d.amount).toFixed(2)}</td>
+                  <td className="py-3 font-medium tnum text-bnText-primary">${Number(d.amount).toFixed(2)}</td>
                   <td className="py-3 text-bnText-secondary">{d.cryptoCurrency}</td>
                   <td className="py-3">{txCell(d.txHash)}</td>
                   <td className="py-3"><span className={statusBadge(d.status)}>{d.status}</span></td>
@@ -92,9 +103,14 @@ export default function HistoryPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bn-card animate-slide-up">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        className="rounded-bn-lg border border-bn-border bg-bn-card p-5 shadow-card"
+      >
         <h3 className="mb-4 text-lg font-semibold text-bnText-primary">Withdrawals</h3>
         <div className="overflow-x-auto">
           <table className="min-w-[640px] w-full text-left text-sm">
@@ -111,7 +127,7 @@ export default function HistoryPage() {
               {withdrawals.map((w) => (
                 <tr key={w.id} className="border-b border-bn-border">
                   <td className="py-3 text-bnText-secondary">{new Date(w.createdAt).toLocaleDateString()}</td>
-                  <td className="py-3 font-medium text-bnText-primary">${Number(w.amount).toFixed(2)}</td>
+                  <td className="py-3 font-medium tnum text-bnText-primary">${Number(w.amount).toFixed(2)}</td>
                   <td className="py-3 font-mono text-xs text-bnText-secondary">{(w.clientWalletAddress || w.walletAddress)?.slice(0, 12)}...</td>
                   <td className="py-3">{txCell(w.txHash)}</td>
                   <td className="py-3"><span className={statusBadge(w.status)}>{w.status}</span></td>
@@ -123,7 +139,7 @@ export default function HistoryPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
     </DashboardShell>
   );
 }

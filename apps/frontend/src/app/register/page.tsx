@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { api, saveAuthTokens } from '../../lib/api';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -160,9 +161,14 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col bg-bn-bg">
       <Navbar />
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[440px] animate-slide-up">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[440px]"
+        >
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-bn bg-yellow text-black">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-bn bg-yellow text-black shadow-glow-yellow">
               {step === 'register' ? <TrendingUp className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
             </div>
             <h1 className="text-2xl font-bold text-bnText-primary">
@@ -175,12 +181,17 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <Card className="p-6">
-            {errMsg && (
-              <div className="mb-4 rounded-bn border border-bnRed/20 bg-bnRed/10 px-4 py-3 text-sm text-bnRed">
-                {errMsg}
-              </div>
-            )}
+          <Card noPadding className="p-6">
+            <div className="p-6">
+              {errMsg && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mb-4 rounded-bn border border-bnRed/20 bg-bnRed/10 px-4 py-3 text-sm text-bnRed"
+                >
+                  {errMsg}
+                </motion.div>
+              )}
 
             {step === 'register' ? (
               <form onSubmit={handleRegister} className="space-y-4">
@@ -361,12 +372,13 @@ export default function RegisterPage() {
             )}
             <p className="mt-6 text-center text-sm text-bnText-secondary">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-yellow hover:text-yellow-hover">
+              <Link href="/login" className="font-medium text-yellow transition hover:text-yellow-hover">
                 Log In
               </Link>
             </p>
+            </div>
           </Card>
-        </div>
+        </motion.div>
       </main>
       <Footer />
     </div>

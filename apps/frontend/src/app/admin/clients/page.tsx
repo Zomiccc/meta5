@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
 import { Check, Copy, Loader2, Trash2 } from 'lucide-react';
@@ -37,8 +38,20 @@ export default function AdminClientsPage() {
 
   return (
     <AdminShell>
-      <h1 className="mb-6 text-2xl font-bold text-bnText-primary">Clients</h1>
-      <div className="overflow-x-auto rounded border border-bn-border bg-bn-input">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-6"
+      >
+        <h1 className="text-2xl font-bold text-bnText-primary">Clients</h1>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="overflow-x-auto rounded-bn-lg border border-bn-border bg-bn-card shadow-card"
+      >
         <table className="min-w-[1050px] w-full text-left text-sm">
           <thead className="border-b border-bn-border text-bnText-secondary">
             <tr>
@@ -71,7 +84,7 @@ export default function AdminClientsPage() {
                 </td>
                 <td className="px-4 py-3 capitalize text-bnText-primary">{client.status}</td>
                 <td className="px-4 py-3 capitalize text-bnText-primary">{client.kyc?.status || 'Not submitted'}</td>
-                <td className="px-4 py-3 text-bnText-primary">${client.mt5Account ? Number(client.mt5Account.balance).toFixed(2) : '0.00'}</td>
+                <td className="px-4 py-3 tnum text-bnText-primary">${client.mt5Account ? Number(client.mt5Account.balance).toFixed(2) : '0.00'}</td>
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => deleteClient(client.id)}
@@ -89,7 +102,7 @@ export default function AdminClientsPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </motion.div>
     </AdminShell>
   );
 }

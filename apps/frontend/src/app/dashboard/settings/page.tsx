@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import { Card } from '../../../components/ui/Card';
@@ -76,7 +77,12 @@ export default function SettingsPage() {
 
   return (
     <DashboardShell>
-      <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-3">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-3"
+      >
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-5">
             <h2 className="mb-4 text-base font-semibold text-bnText-primary">Profile Settings</h2>
@@ -177,7 +183,7 @@ export default function SettingsPage() {
             </div>
           </Card>
         </div>
-      </div>
+      </motion.div>
     </DashboardShell>
   );
 }

@@ -24,10 +24,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={[
-            'bn-input min-h-[44px] w-full flex-1',
+            'bn-input min-h-[44px] w-full flex-1 transition-all duration-200',
             icon ? 'pl-10' : '',
             right ? 'pr-10' : '',
-            error ? 'border-bnRed focus:border-bnRed focus:ring-bnRed/30' : '',
+            error ? 'border-bnRed focus:border-bnRed focus:ring-bnRed/20' : '',
             className,
           ].join(' ')}
           {...props}
@@ -38,7 +38,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </span>
         )}
       </div>
-      {error && <p className="mt-1.5 text-xs text-bnRed">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-bnRed animate-slide-down">{error}</p>}
     </div>
   )
 );

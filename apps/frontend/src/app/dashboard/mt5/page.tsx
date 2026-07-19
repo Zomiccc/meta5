@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import { Copy, Monitor, CheckCircle, Loader2, Server, Key, User } from 'lucide-react';
@@ -32,14 +33,24 @@ export default function Mt5Page() {
 
   return (
     <DashboardShell>
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-8"
+      >
         <h1 className="text-2xl font-bold text-bnText-primary">MT5 Credentials</h1>
         <p className="text-bnText-secondary">Your MetaTrader 5 login details</p>
-      </div>
+      </motion.div>
 
       <div className="max-w-2xl">
         {account ? (
-          <div className="bn-card animate-slide-up space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-bn-lg border border-bn-border bg-bn-card p-6 shadow-card space-y-4"
+          >
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-bn bg-yellow/10">
                 <Monitor className="h-5 w-5 text-yellow" />
@@ -70,15 +81,20 @@ export default function Mt5Page() {
                 </div>
               );
             })}
-          </div>
+          </motion.div>
         ) : (
-          <div className="bn-card animate-slide-up text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-bn-lg border border-bn-border bg-bn-card p-6 text-center shadow-card"
+          >
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-bn bg-bn-input">
               <Monitor className="h-8 w-8 text-bnText-muted" />
             </div>
             <h3 className="text-lg font-semibold text-bnText-primary">No MT5 Account</h3>
             <p className="mt-2 text-sm text-bnText-secondary">Complete KYC verification to receive your MT5 account credentials.</p>
-          </div>
+          </motion.div>
         )}
       </div>
     </DashboardShell>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import DashboardShell from '../../../components/DashboardShell';
 import { ArrowDownCircle, Copy, Loader2, CheckCircle, Clock, RefreshCw, AlertCircle, Wifi, ExternalLink, History, ChevronDown, Wallet, Shield, Link2 } from 'lucide-react';
@@ -100,7 +101,12 @@ export default function DepositPage() {
     <DashboardShell>
       <div className="mx-auto max-w-2xl">
         {/* Header */}
-        <div className="mb-5 flex items-center gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-5 flex items-center gap-3"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bnGreen/10">
             <ArrowDownCircle className="h-5 w-5 text-bnGreen" />
           </div>
@@ -108,12 +114,16 @@ export default function DepositPage() {
             <h1 className="text-xl font-bold text-bnText-primary">Deposit</h1>
             <p className="text-xs text-bnText-secondary">Fund your account with USDT via TRC20</p>
           </div>
-        </div>
+        </motion.div>
 
         {!result ? (
-          <div className="animate-slide-up space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4">
             {/* Asset selector card */}
-            <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+            <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
               <label className="mb-2 block text-xs font-medium text-bnText-secondary">Asset</label>
               <div className="flex items-center justify-between rounded-bn border border-bn-border bg-bn-input px-4 py-3">
                 <div className="flex items-center gap-3">
@@ -128,7 +138,7 @@ export default function DepositPage() {
             </div>
 
             {/* Network selector */}
-            <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+            <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
               <label className="mb-2 block text-xs font-medium text-bnText-secondary">Network</label>
               <div className="flex items-center justify-between rounded-bn border border-yellow/30 bg-yellow/5 px-4 py-3">
                 <div className="flex items-center gap-3">
@@ -147,7 +157,7 @@ export default function DepositPage() {
             </div>
 
             {/* Amount input */}
-            <div className="rounded-bn border border-bn-border bg-bn-card p-4">
+            <div className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card">
               <label className="mb-2 block text-xs font-medium text-bnText-secondary">Amount (USD)</label>
               <div className="relative">
                 <input
@@ -192,17 +202,21 @@ export default function DepositPage() {
               type="button"
               onClick={submit as any}
               disabled={loading || !amount}
-              className="flex w-full items-center justify-center gap-2 rounded-bn bg-yellow py-3.5 text-sm font-bold text-bn-bg transition hover:bg-yellow-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 rounded-bn bg-yellow py-3.5 text-sm font-bold text-black transition-all duration-200 hover:bg-yellow-hover active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 shadow-glow-yellow"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
               {loading ? 'Generating...' : 'Get Deposit Address'}
             </button>
 
-          </div>
+          </motion.div>
         ) : (
-          <div className="animate-slide-up space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4">
             {/* Deposit confirmed card */}
-            <div className="rounded-bn border border-bn-border bg-bn-card overflow-hidden">
+            <div className="rounded-bn-lg border border-bn-border bg-bn-card overflow-hidden shadow-card">
               {/* Top bar */}
               <div className="flex items-center justify-between border-b border-bn-border bg-bn-secondary px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -250,8 +264,8 @@ export default function DepositPage() {
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-bn bg-bn-input/50 p-2.5">
-                        <p className="text-[10px] text-bnText-muted">Amount</p>
-                        <p className="mt-0.5 text-sm font-bold text-bnText-primary">{uniqueAmount.toFixed(2)} <span className="text-xs text-bnText-secondary">USDT</span></p>
+                        <p className="text-2xs text-bnText-muted">Amount</p>
+                        <p className="mt-0.5 text-sm font-bold tnum text-bnText-primary">{uniqueAmount.toFixed(2)} <span className="text-xs text-bnText-secondary">USDT</span></p>
                       </div>
                       <div className="rounded-bn bg-bn-input/50 p-2.5">
                         <p className="text-[10px] text-bnText-muted">Network</p>
@@ -316,7 +330,7 @@ export default function DepositPage() {
                 )}
                 <button
                   onClick={() => { setResult(null); setPaymentStatus(null); }}
-                  className="flex-1 rounded-bn bg-yellow py-2.5 text-xs font-bold text-bn-bg transition hover:bg-yellow-hover"
+                  className="flex-1 rounded-bn bg-yellow py-2.5 text-xs font-bold text-black transition-all duration-200 hover:bg-yellow-hover active:scale-[0.97]"
                 >
                   {result.deposit.status === 'pending' ? 'New Deposit' : 'Done'}
                 </button>
@@ -324,14 +338,19 @@ export default function DepositPage() {
             </div>
 
             {result.deposit.status === 'pending' && (
-              <p className="text-center text-[10px] text-bnText-muted">Auto-checking payment every 30 seconds</p>
+              <p className="text-center text-2xs text-bnText-muted">Auto-checking payment every 30 seconds</p>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Deposit history */}
         {deposits.length > 0 && (
-          <div className="mt-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-6"
+          >
             <div className="mb-2.5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-bnText-muted" />
@@ -339,7 +358,7 @@ export default function DepositPage() {
               </div>
               <span className="text-xs text-bnText-muted">{deposits.length} total</span>
             </div>
-            <div className="overflow-x-auto rounded-bn border border-bn-border">
+            <div className="overflow-x-auto rounded-bn-lg border border-bn-border shadow-card">
               <table className="w-full min-w-[300px] text-left text-sm">
                 <thead className="bg-bn-secondary text-xs text-bnText-muted">
                   <tr>
@@ -351,7 +370,7 @@ export default function DepositPage() {
                 <tbody>
                   {deposits.slice(0, 8).map((d) => (
                     <tr key={d.id} className="border-t border-bn-border">
-                      <td className="px-3 py-2.5 font-bold text-bnText-primary">${Number(d.amount).toFixed(2)}</td>
+                      <td className="px-3 py-2.5 font-bold tnum text-bnText-primary">${Number(d.amount).toFixed(2)}</td>
                       <td className="px-3 py-2.5 text-xs text-bnText-secondary">{new Date(d.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</td>
                       <td className="px-3 py-2.5 text-right">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${statusBg(d.status)} ${statusColor(d.status)}`}>{d.status}</span>
@@ -361,7 +380,7 @@ export default function DepositPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </DashboardShell>

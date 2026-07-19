@@ -6,6 +6,6 @@ interface SkeletonProps {
 
 export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => (
   <div
-    className={`animate-shimmer rounded-bn bg-gradient-to-r from-bn-card via-bn-border to-bn-card bg-[length:200%_100%] ${className}`}
+    className={`animate-shimmer rounded-bn bg-gradient-to-r from-bn-card via-bn-border-light to-bn-card bg-[length:200%_100%] ${className}`}
   />
 );

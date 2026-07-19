@@ -30,15 +30,16 @@ const variantIcon: Record<string, string> = {
 export const StatCard: React.FC<StatCardProps> = ({ label, value, subValue, icon, loading, variant = 'default' }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-bn border ${variantBorder[variant]} bg-bn-card p-4 shadow-bn`}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className={`rounded-bn border ${variantBorder[variant]} bg-bn-card p-4 shadow-card transition-shadow duration-300 hover:shadow-card-hover`}
     >
       <div className="mb-3 flex items-center justify-between">
         <span className="text-xs font-medium text-bnText-secondary">{label}</span>
         {icon && <div className={`flex h-8 w-8 items-center justify-center rounded-bn ${variantIcon[variant]}`}>{icon}</div>}
       </div>
-      {loading ? <Skeleton className="h-7 w-24" /> : <div className="text-xl font-bold text-bnText-primary">{value}</div>}
+      {loading ? <Skeleton className="h-7 w-24" /> : <div className="text-xl font-bold tnum text-bnText-primary">{value}</div>}
       {subValue && !loading && <div className="mt-1 text-xs text-bnText-muted">{subValue}</div>}
     </motion.div>
   );

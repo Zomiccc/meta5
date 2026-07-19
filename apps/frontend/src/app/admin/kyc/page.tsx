@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
 import { RotateCcw, Check, X, Loader2, Eye, AlertTriangle, Trash2 } from 'lucide-react';
@@ -78,7 +79,12 @@ export default function AdminKycPage() {
 
   return (
     <AdminShell>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <h1 className="text-2xl font-bold text-bnText-primary">KYC Management</h1>
         <div className="flex flex-wrap items-center gap-2">
           {['all', 'pending', 'approved', 'rejected'].map((s) => (
@@ -95,13 +101,13 @@ export default function AdminKycPage() {
           <button
             onClick={deleteAll}
             disabled={deletingAll}
-            className="flex items-center gap-1 rounded-bn bg-red-600 px-3 py-1.5 text-sm font-medium text-bnText-primary transition hover:bg-red-700 disabled:opacity-50"
+            className="flex items-center gap-1 rounded-bn bg-bnRed px-3 py-1.5 text-sm font-medium text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
           >
             {deletingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
             Delete all
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
@@ -110,7 +116,13 @@ export default function AdminKycPage() {
       ) : (
         <div className="space-y-4">
           {kycs.map((kyc) => (
-            <div key={kyc.id} className="rounded border border-bn-border bg-bn-input p-4 sm:p-6">
+            <motion.div
+              key={kyc.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-bn-lg border border-bn-border bg-bn-card p-4 shadow-card sm:p-6"
+            >
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-3">
                   <div>
@@ -129,10 +141,10 @@ export default function AdminKycPage() {
                 <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                   {kyc.status === 'pending' && (
                     <>
-                      <button onClick={() => approve(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-green-600 px-4 py-2 text-sm font-bold text-bnText-primary transition hover:bg-green-700 sm:flex-none">
+                      <button onClick={() => approve(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded-bn bg-bnGreen px-4 py-2 text-sm font-bold text-black transition-all hover:brightness-110 active:scale-95 sm:flex-none">
                         <Check className="h-3 w-3" /> Approve
                       </button>
-                      <button onClick={() => reject(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded bg-red-600 px-4 py-2 text-sm font-bold text-bnText-primary transition hover:bg-red-700 sm:flex-none">
+                      <button onClick={() => reject(kyc.id)} className="flex min-h-11 flex-1 items-center justify-center gap-1 rounded-bn bg-bnRed px-4 py-2 text-sm font-bold text-white transition-all hover:brightness-110 active:scale-95 sm:flex-none">
                         <X className="h-3 w-3" /> Reject
                       </button>
                     </>
@@ -166,7 +178,7 @@ export default function AdminKycPage() {
                         <><X className="h-4 w-4 text-bnRed" /> AI recommends REJECT</>
                       )}
                     </p>
-                    <span className={`rounded px-2 py-0.5 text-xs font-bold ${kyc.aiResponse.confidence >= 0.8 ? 'bg-bnGreen/20 text-bnGreen' : kyc.aiResponse.confidence >= 0.5 ? 'bg-yellow-500/20 text-yellow' : 'bg-bnRed/20 text-bnRed'}`}>
+                    <span className={`rounded px-2 py-0.5 text-xs font-bold tnum ${kyc.aiResponse.confidence >= 0.8 ? 'bg-bnGreen/20 text-bnGreen' : kyc.aiResponse.confidence >= 0.5 ? 'bg-yellow-500/20 text-yellow' : 'bg-bnRed/20 text-bnRed'}`}>
                       Confidence {(kyc.aiResponse.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -230,7 +242,7 @@ export default function AdminKycPage() {
                   </ul>
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
           {kycs.length === 0 && <p className="text-bnText-secondary">No KYC records found.</p>}
         </div>

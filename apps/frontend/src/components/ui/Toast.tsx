@@ -72,16 +72,18 @@ export const ToastContainer: React.FC = () => {
         {toasts.map((toast) => (
           <motion.div
             key={toast.id}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 40 }}
-            className="flex items-start gap-3 rounded-bn border border-bn-border bg-bn-card p-3 shadow-bn-lg"
+            initial={{ opacity: 0, x: 60, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 60, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-start gap-3 rounded-bn border border-bn-border bg-bn-card p-3.5 shadow-bn-lg"
           >
-            {icons[toast.type]}
-            <p className="flex-1 text-sm text-bnText-primary">{toast.message}</p>
+            <div className="mt-0.5 shrink-0">{icons[toast.type]}</div>
+            <p className="flex-1 text-sm leading-relaxed text-bnText-primary">{toast.message}</p>
             <button
               onClick={() => toastEmitter.dismiss(toast.id)}
-              className="text-bnText-secondary hover:text-bnText-primary"
+              className="shrink-0 text-bnText-secondary transition hover:text-bnText-primary"
+              aria-label="Dismiss"
             >
               <X className="h-4 w-4" />
             </button>

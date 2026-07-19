@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api } from '../../../lib/api';
 import AdminShell from '../../../components/AdminShell';
 import { getDisplaySymbol } from '../../../lib/symbolUtils';
@@ -14,8 +15,20 @@ export default function AdminRiskPage() {
 
   return (
     <AdminShell>
-      <h1 className="mb-6 text-2xl font-bold text-bnText-primary">Risk Monitoring</h1>
-      <div className="overflow-x-auto rounded border border-bn-border bg-bn-input">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-6"
+      >
+        <h1 className="text-2xl font-bold text-bnText-primary">Risk Monitoring</h1>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        className="overflow-x-auto rounded-bn-lg border border-bn-border bg-bn-card shadow-card"
+      >
         <table className="min-w-[820px] w-full text-left text-sm">
           <thead className="border-b border-bn-border text-bnText-secondary">
             <tr>
@@ -34,16 +47,16 @@ export default function AdminRiskPage() {
                 <td className="px-4 py-3 text-bnText-primary">{t.mt5Login}</td>
                 <td className="px-4 py-3 text-bnText-primary">{getDisplaySymbol(t.symbol)}</td>
                 <td className="px-4 py-3 text-bnText-primary">{t.type}</td>
-                <td className="px-4 py-3 text-bnText-primary">{t.volume}</td>
-                <td className="px-4 py-3 text-bnText-primary">{t.openPrice}</td>
-                <td className="px-4 py-3 text-bnText-primary">{t.currentPrice}</td>
-                <td className={`px-4 py-3 ${Number(t.profit) >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{Number(t.profit).toFixed(2)}</td>
+                <td className="px-4 py-3 tnum text-bnText-primary">{t.volume}</td>
+                <td className="px-4 py-3 tnum text-bnText-primary">{t.openPrice}</td>
+                <td className="px-4 py-3 tnum text-bnText-primary">{t.currentPrice}</td>
+                <td className={`px-4 py-3 tnum ${Number(t.profit) >= 0 ? 'text-bnGreen' : 'text-bnRed'}`}>{Number(t.profit).toFixed(2)}</td>
               </tr>
             ))}
             {trades.length === 0 && <tr><td colSpan={7} className="px-4 py-4 text-bnText-secondary">No open trades</td></tr>}
           </tbody>
         </table>
-      </div>
+      </motion.div>
     </AdminShell>
   );
 }
