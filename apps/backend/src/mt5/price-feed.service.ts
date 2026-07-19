@@ -150,11 +150,6 @@ const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:BNBUSDT': 'BNB/USD',
   'BINANCE:XRPUSDT': 'XRP/USD',
   'BINANCE:SOLUSDT': 'SOL/USD',
-  // Commodities
-  'OANDA:XAUUSD': 'XAU/USD',
-  'OANDA:XAGUSD': 'XAG/USD',
-  'TVC:USOIL': 'USOIL',
-  'TVC:UKOIL': 'UKOIL',
   // Stocks
   'NASDAQ:AAPL': 'AAPL',
   'NASDAQ:TSLA': 'TSLA',
@@ -231,6 +226,14 @@ export class PriceFeedService {
     return symbol.startsWith('FX:');
   }
 
+  private isStockSymbol(symbol: string): boolean {
+    return symbol.startsWith('NASDAQ:') || symbol.startsWith('NYSE:');
+  }
+
+  private isIndexSymbol(symbol: string): boolean {
+    return symbol.startsWith('FOREXCOM:') || symbol.startsWith('INDEX:') || symbol.startsWith('OANDA:UK');
+  }
+
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
     const cached = this.priceCache.get(symbol);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
@@ -263,6 +266,11 @@ export class PriceFeedService {
     if (price === null && this.isForexSymbol(symbol)) {
       price = await this.fetchForexFallback(symbol);
       if (price !== null) source = 'exchangerate';
+    }
+
+    if (price === null && (this.isStockSymbol(symbol) || this.isIndexSymbol(symbol))) {
+      price = await this.fetchYahooFallback(symbol);
+      if (price !== null) source = 'yahoo';
     }
 
     if (price === null && this.isCoinGeckoSymbol(symbol)) {
@@ -325,8 +333,6 @@ export class PriceFeedService {
       'BINANCE:INJUSDT': 34.5, 'BINANCE:SUIUSDT': 1.45, 'BINANCE:AAVEUSDT': 92,
       'BINANCE:MKRUSDT': 1550, 'BINANCE:SANDUSDT': 0.48, 'BINANCE:AXSUSDT': 7.2,
       'BINANCE:GRTUSDT': 0.18,
-      // Commodities
-      'OANDA:XAUUSD': 2034.5, 'OANDA:XAGUSD': 22.8, 'TVC:USOIL': 78.4, 'TVC:UKOIL': 82.6,
       // Stocks
       'NASDAQ:AAPL': 195, 'NASDAQ:TSLA': 210, 'NASDAQ:NVDA': 720,
       'NASDAQ:AMZN': 178, 'NASDAQ:MSFT': 415, 'NASDAQ:META': 480, 'NASDAQ:GOOGL': 152,
@@ -382,6 +388,16 @@ export class PriceFeedService {
         if (price !== null) results[symbol] = price;
       });
       await Promise.all(forexPromises);
+    }
+
+    // Batch Yahoo fallback for any unresolved stock/index symbols
+    const stockRemaining = symbols.filter((s) => results[s] === undefined && (this.isStockSymbol(s) || this.isIndexSymbol(s)));
+    if (stockRemaining.length > 0) {
+      const stockPromises = stockRemaining.map(async (symbol) => {
+        const price = await this.fetchYahooFallback(symbol);
+        if (price !== null) results[symbol] = price;
+      });
+      await Promise.all(stockPromises);
     }
 
     const remaining = symbols.filter((s) => results[s] === undefined);
@@ -658,6 +674,24 @@ export class PriceFeedService {
       return price;
     } catch (err: any) {
       this.logger.debug(`Forex fallback failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async fetchYahooFallback(symbol: string): Promise<number | null> {
+    const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
+    if (!tdSymbol) return null;
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(tdSymbol)}?interval=1d&range=1d`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const price = Number(data?.chart?.result?.[0]?.meta?.regularMarketPrice);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`Yahoo fallback failed for ${symbol}: ${err.message}`);
       return null;
     }
   }

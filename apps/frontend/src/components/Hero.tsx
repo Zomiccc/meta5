@@ -60,7 +60,7 @@ export default function Hero() {
               The Multi-Asset Trading Platform
             </h1>
             <p className="mt-4 text-sm text-bnText-secondary sm:text-base md:mt-6 md:text-lg">
-              Trade forex, crypto, stocks, indices and commodities on MetaTrader 5. Ultra-low spreads, lightning execution, and instant crypto deposits.
+              Trade forex, crypto, stocks and indices on MetaTrader 5. Ultra-low spreads, lightning execution, and instant crypto deposits.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-8">
               <Link

@@ -35,12 +35,6 @@ const categories: Record<string, { label: string; symbol: string }[]> = {
     { label: 'EUR/JPY', symbol: 'FX:EURJPY' },
     { label: 'GBP/JPY', symbol: 'FX:GBPJPY' },
   ],
-  Commodities: [
-    { label: 'Gold', symbol: 'OANDA:XAUUSD' },
-    { label: 'Silver', symbol: 'OANDA:XAGUSD' },
-    { label: 'Crude Oil (WTI)', symbol: 'TVC:USOIL' },
-    { label: 'Brent Oil', symbol: 'TVC:UKOIL' },
-  ],
   Stocks: [
     { label: 'Apple', symbol: 'NASDAQ:AAPL' },
     { label: 'Tesla', symbol: 'NASDAQ:TSLA' },
@@ -112,7 +106,7 @@ export default function MarketsPage() {
           </div>
           <h1 className="text-3xl font-bold text-bnText-primary md:text-4xl">Live Markets</h1>
           <p className="mt-3 max-w-2xl text-bnText-secondary">
-            Track real-time prices across forex, crypto, stocks, indices and commodities. Open an account to trade 1,000+ instruments on MetaTrader 5.
+            Track real-time prices across forex, crypto, stocks and indices. Open an account to trade 1,000+ instruments on MetaTrader 5.
           </p>
         </div>
       </section>

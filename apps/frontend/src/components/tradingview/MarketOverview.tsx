@@ -56,15 +56,6 @@ function MarketOverview({ height = 460 }: { height?: number }) {
           ],
         },
         {
-          title: 'Commodities',
-          symbols: [
-            { s: 'OANDA:XAUUSD', d: 'Gold' },
-            { s: 'OANDA:XAGUSD', d: 'Silver' },
-            { s: 'TVC:USOIL', d: 'Crude Oil' },
-            { s: 'TVC:UKOIL', d: 'Brent Oil' },
-          ],
-        },
-        {
           title: 'Stocks',
           symbols: [
             { s: 'NASDAQ:AAPL', d: 'Apple' },

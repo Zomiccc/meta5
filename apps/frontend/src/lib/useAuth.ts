@@ -1,20 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { api, getAccessToken } from './api';
 
 export function useAuth() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const restore = async () => {
       const token = getAccessToken();
       if (!token) {
         setLoading(false);
-        router.push('/login');
         return;
       }
 
@@ -22,12 +19,9 @@ export function useAuth() {
         const me = await api.get('/auth/me');
         setUser(me.data);
       } catch {
-        // The axios interceptor will have already attempted a refresh.
-        // If we still fail here, the interceptor has cleared tokens and redirected.
-        // Only redirect if tokens are actually gone.
         const stillHasToken = getAccessToken();
         if (!stillHasToken) {
-          router.push('/login');
+          setUser(null);
         }
       } finally {
         setLoading(false);
@@ -35,7 +29,7 @@ export function useAuth() {
     };
 
     restore();
-  }, [router]);
+  }, []);
 
   return { user, loading };
 }

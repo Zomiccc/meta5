@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
@@ -18,7 +19,7 @@ interface Instrument {
 }
 
 const DEFAULT_INSTRUMENT: Instrument = { label: 'EUR/USD', symbol: 'FX:EURUSD', price: 1.0856, contractSize: 100000, category: 'Forex' };
-const CATEGORY_ORDER = ['All', 'Forex', 'Crypto', 'Commodities', 'Stocks', 'Indices'];
+const CATEGORY_ORDER = ['All', 'Forex', 'Crypto', 'Stocks', 'Indices'];
 
 const LEVERAGE = 1000;
 
@@ -43,6 +44,7 @@ interface TradingSnapshot {
 
 export default function TradePage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [instruments, setInstruments] = useState<Instrument[]>([DEFAULT_INSTRUMENT]);
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
@@ -242,6 +244,17 @@ export default function TradePage() {
   const [showInstrumentPicker, setShowInstrumentPicker] = useState(false);
 
   if (loading) {
+    return (
+      <DashboardShell>
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-yellow" />
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  if (!user) {
+    router.push('/login');
     return (
       <DashboardShell>
         <div className="flex h-96 items-center justify-center">

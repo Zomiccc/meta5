@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/useAuth';
 import DashboardShell from '../../components/DashboardShell';
 import { api } from '../../lib/api';
@@ -13,6 +14,7 @@ import {
 
 export default function DashboardPage() {
   const { user: profile, loading } = useAuth();
+  const router = useRouter();
   const [deposits, setDeposits] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [hideBalance, setHideBalance] = useState(false);
@@ -25,6 +27,17 @@ export default function DashboardPage() {
   }, [loading, profile]);
 
   if (loading) {
+    return (
+      <DashboardShell>
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-yellow" />
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  if (!profile) {
+    router.push('/login');
     return (
       <DashboardShell>
         <div className="flex h-96 items-center justify-center">

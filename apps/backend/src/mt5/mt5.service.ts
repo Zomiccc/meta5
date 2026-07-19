@@ -51,12 +51,6 @@ const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; lab
   'BINANCE:AXSUSDT': { contractSize: 1, basePrice: 7.2, label: 'AXS/USDT', category: 'Crypto' },
   'BINANCE:GRTUSDT': { contractSize: 1, basePrice: 0.18, label: 'GRT/USDT', category: 'Crypto' },
 
-  // ─── Commodities & Metals ───
-  'OANDA:XAUUSD': { contractSize: 100, basePrice: 2034.5, label: 'Gold', category: 'Commodities' },
-  'OANDA:XAGUSD': { contractSize: 5000, basePrice: 22.8, label: 'Silver', category: 'Commodities' },
-  'TVC:USOIL': { contractSize: 1000, basePrice: 78.4, label: 'Crude Oil (WTI)', category: 'Commodities' },
-  'TVC:UKOIL': { contractSize: 1000, basePrice: 82.6, label: 'Brent Oil', category: 'Commodities' },
-
   // ─── Stocks (contract size 1) ───
   'NASDAQ:AAPL': { contractSize: 1, basePrice: 195, label: 'Apple', category: 'Stocks' },
   'NASDAQ:TSLA': { contractSize: 1, basePrice: 210, label: 'Tesla', category: 'Stocks' },
@@ -659,7 +653,7 @@ export class Mt5Service {
   }
 
   // Map our internal symbol format to MT5 symbol format
-  // e.g., "FX:EURUSD" -> "EURUSD", "OANDA:XAUUSD" -> "XAUUSD", "BITSTAMP:BTCUSD" -> "BTCUSD"
+  // e.g., "FX:EURUSD" -> "EURUSD", "BITSTAMP:BTCUSD" -> "BTCUSD"
   private mapSymbolForMt5(symbol: string): string {
     const parts = symbol.split(':');
     return parts.length > 1 ? parts[1] : symbol;
@@ -768,10 +762,8 @@ export class Mt5Service {
       'FX:EURUSD': 'EUR_USD',
       'FX:GBPUSD': 'GBP_USD',
       'FX:USDJPY': 'USD_JPY',
-      'OANDA:XAUUSD': 'XAU_USD',
       'BITSTAMP:BTCUSD': 'BTC_USD',
       'BITSTAMP:ETHUSD': 'ETH_USD',
-      'TVC:USOIL': 'WTI_USD',
       'FOREXCOM:SPXUSD': 'SPX500_USD',
     };
     return map[symbol] || symbol.replace(':', '_');

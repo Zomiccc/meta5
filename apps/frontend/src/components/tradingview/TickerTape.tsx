@@ -16,8 +16,6 @@ function TickerTape() {
         { proName: 'FX:EURUSD', title: 'EUR/USD' },
         { proName: 'FX:GBPUSD', title: 'GBP/USD' },
         { proName: 'FX:USDJPY', title: 'USD/JPY' },
-        { proName: 'OANDA:XAUUSD', title: 'Gold' },
-        { proName: 'TVC:USOIL', title: 'Crude Oil' },
         { proName: 'BITSTAMP:BTCUSD', title: 'Bitcoin' },
         { proName: 'BITSTAMP:ETHUSD', title: 'Ethereum' },
         { proName: 'NASDAQ:AAPL', title: 'Apple' },

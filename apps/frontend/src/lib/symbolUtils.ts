@@ -60,10 +60,6 @@ export function getSymbolName(symbol: string): string {
     'SAND/USD': 'The Sandbox',
     'AXS/USD': 'Axie Infinity',
     'GRT/USD': 'The Graph',
-    'XAU/USD': 'Gold',
-    'XAG/USD': 'Silver',
-    'USOIL': 'Crude Oil WTI',
-    'UKOIL': 'Brent Crude Oil',
     'AAPL': 'Apple Inc',
     'GOOGL': 'Alphabet (Google)',
     'MSFT': 'Microsoft',
@@ -95,7 +91,7 @@ export function getDecimalsForSymbol(symbol: string): number {
     if (['XRP/USD', 'DOGE/USD', 'ADA/USD', 'TRX/USD', 'XLM/USD', 'GRT/USD', 'SAND/USD', 'MATIC/USD'].includes(clean)) return 4;
     return 2;
   }
-  // Stocks, indices, commodities: 2
+  // Stocks, indices: 2
   return 2;
 }
 
