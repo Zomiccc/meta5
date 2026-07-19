@@ -432,8 +432,8 @@ export class PriceFeedService {
     return map;
   }
 
-  async getHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
-    const cacheKey = `${symbol}:${days}`;
+  async getHistory(symbol: string, days = 1, interval?: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
+    const cacheKey = `${symbol}:${days}:${interval || 'auto'}`;
     const cached = this.historyCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.HISTORY_CACHE_TTL_MS) {
       return cached.data;
@@ -442,7 +442,7 @@ export class PriceFeedService {
     let data: { time: number; open: number; high: number; low: number; close: number }[] | null = null;
 
     if (!data && this.twelveDataApiKey && TWELVE_DATA_SYMBOL_MAP[symbol]) {
-      data = await this.fetchTwelveDataHistory(symbol, days);
+      data = await this.fetchTwelveDataHistory(symbol, days, interval);
     }
 
     if (!data && this.isCoinGeckoSymbol(symbol)) {
@@ -479,13 +479,13 @@ export class PriceFeedService {
     }
   }
 
-  private async fetchTwelveDataHistory(symbol: string, days = 1): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
+  private async fetchTwelveDataHistory(symbol: string, days = 1, interval?: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[] | null> {
     const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
     if (!tdSymbol || !this.twelveDataApiKey) return null;
-    const interval = days <= 1 ? '5min' : '1h';
-    const outputsize = days <= 1 ? 288 : 24 * days;
+    const actualInterval = interval || (days <= 1 ? '5min' : '1h');
+    const outputsize = actualInterval === '1min' ? 1440 : actualInterval === '5min' ? 288 : actualInterval === '15min' ? 96 : actualInterval === '30min' ? 48 : actualInterval === '1h' ? 24 * days : 288;
     try {
-      const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(tdSymbol)}&interval=${interval}&outputsize=${outputsize}&apikey=${this.twelveDataApiKey}`;
+      const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(tdSymbol)}&interval=${actualInterval}&outputsize=${outputsize}&apikey=${this.twelveDataApiKey}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
