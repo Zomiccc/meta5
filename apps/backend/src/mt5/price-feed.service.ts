@@ -183,7 +183,7 @@ export class PriceFeedService {
   private readonly priceProxyUrl?: string;
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
-  private static readonly CACHE_TTL_MS = 800;
+  private static readonly CACHE_TTL_MS = 1000; // 1 second max cache
   // Tracks symbols whose current price comes from simulation (global or fallback)
   private readonly simulatedSymbols = new Set<string>();
   // Seed per symbol so simulated prices are consistent but jitter over time
@@ -227,6 +227,10 @@ export class PriceFeedService {
     return !!COINGECKO_SYMBOL_MAP[symbol];
   }
 
+  private isForexSymbol(symbol: string): boolean {
+    return symbol.startsWith('FX:');
+  }
+
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
     const cached = this.priceCache.get(symbol);
     if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
@@ -254,6 +258,11 @@ export class PriceFeedService {
     if (price === null && this.isCryptoCompareSymbol(symbol)) {
       price = await this.fetchCryptoComparePrice(symbol);
       if (price !== null) source = 'cryptocompare';
+    }
+
+    if (price === null && this.isForexSymbol(symbol)) {
+      price = await this.fetchForexFallback(symbol);
+      if (price !== null) source = 'exchangerate';
     }
 
     if (price === null && this.isCoinGeckoSymbol(symbol)) {
@@ -363,6 +372,16 @@ export class PriceFeedService {
         const batch = await this.fetchTwelveDataPrices(mapped.slice(index, index + 50));
         Object.assign(results, batch);
       }
+    }
+
+    // Batch forex fallback for any unresolved forex symbols
+    const forexRemaining = symbols.filter((s) => results[s] === undefined && this.isForexSymbol(s));
+    if (forexRemaining.length > 0) {
+      const forexPromises = forexRemaining.map(async (symbol) => {
+        const price = await this.fetchForexFallback(symbol);
+        if (price !== null) results[symbol] = price;
+      });
+      await Promise.all(forexPromises);
     }
 
     const remaining = symbols.filter((s) => results[s] === undefined);
@@ -578,7 +597,7 @@ export class PriceFeedService {
     const mappedSymbols = symbols.map((symbol) => TWELVE_DATA_SYMBOL_MAP[symbol]);
     try {
       const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(mappedSymbols.join(','))}&apikey=${this.twelveDataApiKey}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
       if (!res.ok) return prices;
       const data = await res.json() as any;
       if (data?.status === 'error') return prices;
@@ -607,7 +626,7 @@ export class PriceFeedService {
 
     try {
       const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(tdSymbol)}&apikey=${this.twelveDataApiKey}`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
       if (!res.ok) return null;
       const data = await res.json() as any;
       if (data?.status === 'error') {
@@ -619,6 +638,26 @@ export class PriceFeedService {
       return price;
     } catch (err: any) {
       this.logger.debug(`Twelve Data price fetch failed for ${symbol}: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async fetchForexFallback(symbol: string): Promise<number | null> {
+    const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
+    if (!tdSymbol) return null;
+    const [base, quote] = tdSymbol.split('/');
+    if (!base || !quote) return null;
+
+    try {
+      const url = `https://api.exchangerate.host/convert?from=${base}&to=${quote}&amount=1`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) return null;
+      const data = await res.json() as any;
+      const price = Number(data?.result);
+      if (isNaN(price) || price <= 0) return null;
+      return price;
+    } catch (err: any) {
+      this.logger.debug(`Forex fallback failed for ${symbol}: ${err.message}`);
       return null;
     }
   }

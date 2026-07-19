@@ -5,7 +5,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api, consumeSse } from '../../../lib/api';
-import { Loader2, Zap, X, AlertTriangle, Search } from 'lucide-react';
+import { Loader2, Zap, X, AlertTriangle, Search, ChevronDown } from 'lucide-react';
 import { useToast } from '../../../components/ui/Toast';
 import { getDisplaySymbol, getSymbolName, formatPriceForSymbol } from '../../../lib/symbolUtils';
 
@@ -171,11 +171,17 @@ export default function TradePage() {
     }
   }, [hasMt5, refreshAccount]);
 
-  // Initial load + poll for live P&L
+  // Initial load + poll for live P&L every 1 second
   useEffect(() => {
     if (loading || !hasMt5) return;
     refreshAccount();
     refreshTrades();
+    const tradesInterval = setInterval(refreshTrades, 1000);
+    const accountInterval = setInterval(refreshAccount, 1000);
+    return () => {
+      clearInterval(tradesInterval);
+      clearInterval(accountInterval);
+    };
   }, [loading, hasMt5, refreshAccount, refreshTrades]);
 
   const activeLivePrice = livePrices[active.symbol] ?? active.price;
@@ -233,6 +239,7 @@ export default function TradePage() {
   };
 
   const [mobileTab, setMobileTab] = useState<'markets' | 'chart' | 'trade' | 'positions'>('chart');
+  const [showInstrumentPicker, setShowInstrumentPicker] = useState(false);
 
   if (loading) {
     return (
@@ -496,17 +503,90 @@ export default function TradePage() {
     </div>
   );
 
+  // ---- Mobile instrument picker modal ----
+  const instrumentPicker = showInstrumentPicker && (
+    <div className="fixed inset-0 z-[60] flex flex-col bg-bn-bg lg:hidden">
+      <div className="flex h-12 flex-shrink-0 items-center border-b border-bn-border px-3">
+        <button onClick={() => setShowInstrumentPicker(false)} className="flex h-8 w-8 items-center justify-center rounded text-bnText-primary">
+          <X className="h-5 w-5" />
+        </button>
+        <span className="ml-2 text-sm font-bold text-bnText-primary">Select Instrument</span>
+      </div>
+      <div className="flex-shrink-0 p-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-bnText-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search instruments..."
+            className="w-full rounded bg-bn-input py-2 pl-9 pr-3 text-sm text-bnText-primary placeholder:text-bnText-muted focus:outline-none"
+          />
+        </div>
+      </div>
+      <div className="flex flex-shrink-0 gap-1.5 overflow-x-auto px-3 pb-2 scrollbar-hide">
+        {CATEGORY_ORDER.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition ${
+              category === cat ? 'bg-yellow text-bn-bg' : 'bg-bn-input text-bnText-secondary'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {filtered.map((item) => {
+          const live = livePrices[item.symbol];
+          const up = live ? live >= item.price : false;
+          return (
+            <button
+              key={item.symbol}
+              onClick={() => {
+                setActive(item);
+                setShowInstrumentPicker(false);
+                setMobileTab('chart');
+              }}
+              className={`flex w-full items-center justify-between border-b border-bn-border px-4 py-3 text-left transition ${
+                active.symbol === item.symbol ? 'bg-yellow/5' : 'hover:bg-bn-hover'
+              }`}
+            >
+              <div>
+                <div className="text-sm font-semibold text-bnText-primary">{getDisplaySymbol(item.symbol)}</div>
+                <div className="text-[10px] text-bnText-muted">{getSymbolName(item.symbol)}</div>
+              </div>
+              <div className="text-right">
+                <div className={`font-mono text-sm ${live ? (up ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
+                  {live ? formatPriceForSymbol(item.symbol, live) : '—'}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="py-8 text-center text-sm text-bnText-muted">No instruments match your search.</p>
+        )}
+      </div>
+    </div>
+  );
+
   // ---- Mobile layout: bottom tabs, no scroll ----
   const mobileLayout = (
     <div className="flex h-full flex-col overflow-hidden lg:hidden">
-      {/* Symbol bar */}
+      {/* Symbol bar — tappable to open instrument picker */}
       <div className="flex h-10 flex-shrink-0 items-center justify-between border-b border-bn-border px-3">
-        <div className="flex items-baseline gap-2">
+        <button
+          onClick={() => setShowInstrumentPicker(true)}
+          className="flex items-center gap-1.5"
+        >
           <span className="text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
+          <ChevronDown className="h-3.5 w-3.5 text-bnText-muted" />
           <span className={`font-mono text-xs ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-muted'}`}>
             {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
           </span>
-        </div>
+        </button>
         <span className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
           <span className={`h-1 w-1 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
           {streamConnected ? 'LIVE' : '...'}
@@ -559,6 +639,7 @@ export default function TradePage() {
     <DashboardShell fullHeight>
       {desktopLayout}
       {mobileLayout}
+      {instrumentPicker}
     </DashboardShell>
   );
 }
