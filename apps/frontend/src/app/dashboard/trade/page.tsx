@@ -256,16 +256,16 @@ export default function TradePage() {
 
   // ---- Top Symbol Bar (48px) ----
   const symbolBar = (
-    <div className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-bn-border bg-bn-bg px-3 overflow-hidden">
-      <button onClick={() => setShowInstrumentPicker(true)} className="flex flex-shrink-0 items-center gap-2">
-        <span className="text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
-        <ChevronDown className="h-3 w-3 text-bnText-secondary" />
+    <div className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-bn-border bg-bn-bg px-3">
+      <button onClick={() => setShowInstrumentPicker(true)} className="flex min-w-0 flex-shrink-0 items-center gap-2">
+        <span className="truncate text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
+        <ChevronDown className="h-3 w-3 flex-shrink-0 text-bnText-secondary" />
       </button>
-      <span className={`flex-shrink-0 text-base font-bold tnum sm:text-lg ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-secondary'}`}>
+      <span className={`min-w-0 flex-shrink truncate text-sm font-bold tnum sm:text-base ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-secondary'}`}>
         {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
       </span>
       {livePrices[active.symbol] && (
-        <span className={`flex-shrink-0 text-xs tnum ${activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed'}`}>
+        <span className={`hidden flex-shrink-0 text-xs tnum sm:inline ${activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed'}`}>
           {activeLivePrice >= active.price ? '+' : ''}{((activeLivePrice - active.price) / active.price * 100).toFixed(2)}%
         </span>
       )}
@@ -274,7 +274,7 @@ export default function TradePage() {
         <span>24h High <span className="text-bnText-primary">{livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}</span></span>
         <span>24h Low <span className="text-bnText-primary">{livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, active.price) : '—'}</span></span>
       </div>
-      <span className={`ml-auto flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold md:ml-0 ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
+      <span className={`ml-auto flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
         <span className={`h-1 w-1 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
         {streamConnected ? 'LIVE' : '...'}
       </span>
@@ -329,7 +329,7 @@ export default function TradePage() {
   const chartContent = (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-hidden">
-        <LiveChart symbol={active.symbol} price={activeLivePrice} height={500} />
+        <LiveChart symbol={active.symbol} price={activeLivePrice} height={260} />
       </div>
     </div>
   );
@@ -614,9 +614,9 @@ export default function TradePage() {
       {symbolBar}
       <div className="flex-1 overflow-hidden">
         {mobileTab === 'chart' && (
-          <div className="flex h-full flex-col">
-            <div className="flex-1 overflow-hidden">{chartContent}</div>
-            {hasMt5 && <div className="h-48 flex-shrink-0 border-t border-bn-border">{bottomPanel}</div>}
+          <div className="flex h-full flex-col overflow-hidden">
+            <div className="h-[240px] flex-shrink-0 overflow-hidden sm:h-[280px]">{chartContent}</div>
+            {hasMt5 && <div className="min-h-0 flex-1 overflow-hidden border-t border-bn-border">{bottomPanel}</div>}
           </div>
         )}
         {mobileTab === 'trade' && <div className="h-full overflow-y-auto bg-bn-bg">{orderPanel}</div>}

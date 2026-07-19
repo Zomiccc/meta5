@@ -147,10 +147,10 @@ export default function DashboardShell({ children, fullHeight }: { children: Rea
   );
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-bn-bg">
+    <div className="flex min-h-screen w-full overflow-x-hidden bg-bn-bg">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <header className="glass sticky top-0 z-40 flex h-16 items-center justify-between border-b border-bn-border px-4 lg:px-8">
           <div className="flex items-center gap-3">
             <button

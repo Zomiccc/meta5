@@ -98,7 +98,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell>
-      <div className="mx-auto max-w-6xl space-y-5">
+      <div className="mx-auto w-full max-w-6xl space-y-5">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,10 +190,12 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="mb-3 flex overflow-x-auto gap-2 scrollbar-hide">
-            {['Hot', 'Forex', 'Crypto', 'Stocks', 'Indices'].map((tab) => (
-              <button key={tab} onClick={() => setMarketTab(tab)} className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs transition-all duration-200 ${marketTab === tab ? 'bg-yellow font-semibold text-black' : 'bg-bn-card text-bnText-secondary hover:text-bnText-primary'}`}>{tab}</button>
-            ))}
+          <div className="w-full overflow-hidden">
+            <div className="mb-3 flex overflow-x-auto gap-2 scrollbar-hide">
+              {['Hot', 'Forex', 'Crypto', 'Stocks', 'Indices'].map((tab) => (
+                <button key={tab} onClick={() => setMarketTab(tab)} className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs transition-all duration-200 ${marketTab === tab ? 'bg-yellow font-semibold text-black' : 'bg-bn-card text-bnText-secondary hover:text-bnText-primary'}`}>{tab}</button>
+              ))}
+            </div>
           </div>
           <div className="mb-2 flex items-center justify-between px-1 text-xs text-bnText-secondary">
             <span>Name</span>

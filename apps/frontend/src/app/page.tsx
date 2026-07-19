@@ -38,7 +38,7 @@ const fadeUp = {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-bn-bg">
+    <div className="min-h-screen overflow-x-hidden bg-bn-bg">
       <Navbar />
       <Hero />
       <LiveMarketStrip />
