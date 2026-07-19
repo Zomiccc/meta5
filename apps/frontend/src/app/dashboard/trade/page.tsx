@@ -256,16 +256,16 @@ export default function TradePage() {
 
   // ---- Top Symbol Bar (48px) ----
   const symbolBar = (
-    <div className="flex h-12 flex-shrink-0 items-center gap-4 border-b border-bn-border bg-bn-bg px-4">
-      <button onClick={() => setShowInstrumentPicker(true)} className="flex items-center gap-2">
+    <div className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-bn-border bg-bn-bg px-3 overflow-hidden">
+      <button onClick={() => setShowInstrumentPicker(true)} className="flex flex-shrink-0 items-center gap-2">
         <span className="text-sm font-bold text-bnText-primary">{getDisplaySymbol(active.symbol)}</span>
         <ChevronDown className="h-3 w-3 text-bnText-secondary" />
       </button>
-      <span className={`text-lg font-bold tnum ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-secondary'}`}>
+      <span className={`flex-shrink-0 text-base font-bold tnum sm:text-lg ${livePrices[active.symbol] ? (activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed') : 'text-bnText-secondary'}`}>
         {livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}
       </span>
       {livePrices[active.symbol] && (
-        <span className={`text-xs tnum ${activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed'}`}>
+        <span className={`flex-shrink-0 text-xs tnum ${activeLivePrice >= active.price ? 'text-bnGreen' : 'text-bnRed'}`}>
           {activeLivePrice >= active.price ? '+' : ''}{((activeLivePrice - active.price) / active.price * 100).toFixed(2)}%
         </span>
       )}
@@ -274,7 +274,7 @@ export default function TradePage() {
         <span>24h High <span className="text-bnText-primary">{livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, activeLivePrice) : '—'}</span></span>
         <span>24h Low <span className="text-bnText-primary">{livePrices[active.symbol] ? formatPriceForSymbol(active.symbol, active.price) : '—'}</span></span>
       </div>
-      <span className={`ml-auto flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold md:ml-0 ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
+      <span className={`ml-auto flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold md:ml-0 ${streamConnected ? 'bg-bnGreen/10 text-bnGreen' : 'bg-yellow/10 text-yellow'}`}>
         <span className={`h-1 w-1 animate-pulse rounded-full ${streamConnected ? 'bg-bnGreen' : 'bg-yellow'}`} />
         {streamConnected ? 'LIVE' : '...'}
       </span>
@@ -329,7 +329,7 @@ export default function TradePage() {
   const chartContent = (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-hidden">
-        <LiveChart symbol={active.symbol} price={activeLivePrice} height={1000} />
+        <LiveChart symbol={active.symbol} price={activeLivePrice} height={500} />
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ const INTERVALS = [
   { label: '1h', value: '1h', seconds: 3600 },
 ];
 
-export default function LiveChart({ symbol, price }: LiveChartProps) {
+export default function LiveChart({ symbol, price, height = 400 }: LiveChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
   const seriesRef = useRef<any>(null);
@@ -244,7 +244,7 @@ export default function LiveChart({ symbol, price }: LiveChartProps) {
       </div>
 
       {/* Chart container */}
-      <div ref={containerRef} className="flex-1 overflow-hidden" />
+      <div ref={containerRef} className="flex-1 overflow-hidden" style={{ minHeight: height }} />
 
       {/* Loading overlay */}
       {loading && (

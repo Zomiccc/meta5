@@ -44,7 +44,7 @@ export default function Home() {
       <LiveMarketStrip />
 
       <section className="border-y border-bn-border bg-bn-secondary">
-        <div className="mx-auto grid max-w-7xl grid-cols-4 divide-x divide-bn-border">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-y divide-bn-border sm:grid-cols-4 sm:divide-y-0 sm:divide-x">
           {trustStats.map((s, i) => (
             <motion.div
               key={s.label}
