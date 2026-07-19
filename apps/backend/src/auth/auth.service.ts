@@ -187,6 +187,47 @@ export class AuthService {
     return { verified: true };
   }
 
+  async requestPasswordReset(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) return { message: 'If an account exists, a reset code has been sent.' };
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.prisma.emailOtp.deleteMany({ where: { email, purpose: 'reset_password' } });
+    await this.prisma.emailOtp.create({
+      data: {
+        email,
+        code,
+        purpose: 'reset_password',
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+    await this.emailService.sendPasswordResetEmail(email, user.name, code);
+    return { message: 'If an account exists, a reset code has been sent.' };
+  }
+
+  async verifyPasswordResetCode(email: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new BadRequestException('Invalid or expired reset code');
+
+    const record = await this.prisma.emailOtp.findFirst({
+      where: { email, purpose: 'reset_password' },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!record || record.code !== code || record.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
+    return { valid: true };
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    await this.verifyPasswordResetCode(email, code);
+    const hash = await bcrypt.hash(newPassword, 12);
+    await this.prisma.user.update({ where: { email }, data: { password: hash } });
+    await this.prisma.emailOtp.deleteMany({ where: { email, purpose: 'reset_password' } });
+    await this.prisma.refreshToken.deleteMany({ where: { user: { email } } });
+    return { message: 'Password reset successfully. Please log in with your new password.' };
+  }
+
   private async generateTokens(userId: string, role: string) {
     const payload = { sub: userId, role };
     const accessToken = this.jwtService.sign(payload);

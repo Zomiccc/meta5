@@ -82,6 +82,16 @@ export class EmailService {
     return this.sendVerificationEmail(to, name, code);
   }
 
+  async sendPasswordResetEmail(to: string, name: string, code: string) {
+    if (!this.enabled) {
+      this.logger.warn(`[MOCK EMAIL] Password reset code for ${to}: ${code}`);
+    }
+    return this.send(to, `Reset your ${this.brand} password`, this.wrap(
+      'Reset your password',
+      `<p>Hi ${name},</p><p>We received a request to reset your password. Use the code below. It expires in 10 minutes.</p>${this.codeBox(code)}<p>If you didn't request this, please ignore this email.</p>`,
+    ));
+  }
+
   private async send(to: string, subject: string, html: string) {
     if (!this.enabled) {
       this.logger.warn(`[MOCK EMAIL] to=${to} subject="${subject}"`);

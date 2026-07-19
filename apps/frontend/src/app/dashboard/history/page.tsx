@@ -76,7 +76,8 @@ export default function HistoryPage() {
         className="mb-8 rounded-bn-lg border border-bn-border bg-bn-card p-5 shadow-card"
       >
         <h3 className="mb-4 text-lg font-semibold text-bnText-primary">Deposits</h3>
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-[640px] w-full text-left text-sm">
             <thead className="border-b border-bn-border text-bnText-secondary">
               <tr>
@@ -103,6 +104,23 @@ export default function HistoryPage() {
             </tbody>
           </table>
         </div>
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {deposits.length === 0 ? (
+            <p className="py-6 text-center text-sm text-bnText-muted">No deposits found</p>
+          ) : (
+            deposits.map((d) => (
+              <div key={d.id} className="rounded-bn border border-bn-border bg-bn-input/50 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-bnText-secondary">{new Date(d.createdAt).toLocaleDateString()}</span>
+                  <span className={statusBadge(d.status)}>{d.status}</span>
+                </div>
+                <p className="mt-1 text-base font-bold tnum text-bnText-primary">${Number(d.amount).toFixed(2)} <span className="text-xs font-normal text-bnText-secondary">{d.cryptoCurrency}</span></p>
+                <div className="mt-2 break-all">{txCell(d.txHash)}</div>
+              </div>
+            ))
+          )}
+        </div>
       </motion.div>
 
       <motion.div
@@ -112,7 +130,8 @@ export default function HistoryPage() {
         className="rounded-bn-lg border border-bn-border bg-bn-card p-5 shadow-card"
       >
         <h3 className="mb-4 text-lg font-semibold text-bnText-primary">Withdrawals</h3>
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-[640px] w-full text-left text-sm">
             <thead className="border-b border-bn-border text-bnText-secondary">
               <tr>
@@ -138,6 +157,24 @@ export default function HistoryPage() {
               )}
             </tbody>
           </table>
+        </div>
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {withdrawals.length === 0 ? (
+            <p className="py-6 text-center text-sm text-bnText-muted">No withdrawals found</p>
+          ) : (
+            withdrawals.map((w) => (
+              <div key={w.id} className="rounded-bn border border-bn-border bg-bn-input/50 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-bnText-secondary">{new Date(w.createdAt).toLocaleDateString()}</span>
+                  <span className={statusBadge(w.status)}>{w.status}</span>
+                </div>
+                <p className="mt-1 text-base font-bold tnum text-bnText-primary">${Number(w.amount).toFixed(2)}</p>
+                <p className="mt-1 break-all font-mono text-xs text-bnText-secondary">{(w.clientWalletAddress || w.walletAddress) || '—'}</p>
+                <div className="mt-2 break-all">{txCell(w.txHash)}</div>
+              </div>
+            ))
+          )}
         </div>
       </motion.div>
     </DashboardShell>

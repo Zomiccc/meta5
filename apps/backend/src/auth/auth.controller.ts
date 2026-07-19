@@ -84,6 +84,24 @@ export class AuthController {
     return this.authService.resendVerification(user.userId);
   }
 
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  @Post('verify-reset-code')
+  @HttpCode(HttpStatus.OK)
+  async verifyResetCode(@Body() body: { email: string; code: string }) {
+    return this.authService.verifyPasswordResetCode(body.email, body.code);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() body: { email: string; code: string; newPassword: string }) {
+    return this.authService.resetPassword(body.email, body.code, body.newPassword);
+  }
+
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     const isProd = process.env.NODE_ENV === 'production';
     // SameSite=None is required for cross-domain auth (frontend on Vercel, backend on Render)
