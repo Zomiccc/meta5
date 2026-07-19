@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { api, saveAuthTokens } from '../../lib/api';
+import { useAuth } from '../../lib/useAuth';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { Card } from '../../components/ui/Card';
@@ -13,7 +12,7 @@ import { useToast } from '../../components/ui/Toast';
 import { Mail, Lock, Eye, EyeOff, TrendingUp } from 'lucide-react';
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuth();
   const { error } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,10 +25,7 @@ export default function LoginPage() {
     setLoading(true);
     setErrMsg('');
     try {
-      const res = await api.post('/auth/login', { email, password });
-      saveAuthTokens(res.data.accessToken, res.data.refreshToken);
-      const role = res.data.user.role;
-      router.push(role === 'admin' ? '/admin' : '/dashboard');
+      await login(email, password);
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Invalid credentials';
       setErrMsg(msg);

@@ -21,8 +21,8 @@ import {
   History,
   TrendingUp,
   Home,
+  BarChart3,
 } from 'lucide-react';
-import { api, clearAuthTokens } from '../lib/api';
 import { useAuth } from '../lib/useAuth';
 import { Button } from './ui/Button';
 
@@ -55,17 +55,9 @@ const navGroups = [
 export default function DashboardShell({ children, fullHeight }: { children: React.ReactNode; fullHeight?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-
-  const logout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch {}
-    clearAuthTokens();
-    router.push('/login');
-  };
 
   const balance = user?.mt5Account?.balance ? Number(user.mt5Account.balance) : 0;
 
@@ -257,17 +249,31 @@ export default function DashboardShell({ children, fullHeight }: { children: Rea
         {/* Main content */}
         <main className={fullHeight ? 'flex-1 overflow-hidden' : 'flex-1 overflow-x-hidden p-4 pb-24 lg:p-8 lg:pb-8'}>{children}</main>
 
-        {/* Mobile bottom nav — Binance style with 5 items */}
+        {/* Mobile bottom nav — Binance style with highlighted center button */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-bn-border bg-bn-secondary lg:hidden">
           {[
             { href: '/dashboard', label: 'Home', icon: Home },
-            { href: '/dashboard/trade', label: 'Trade', icon: TrendingUp },
-            { href: '/dashboard/deposit', label: 'Deposit', icon: ArrowDownCircle },
-            { href: '/dashboard/withdraw', label: 'Withdraw', icon: ArrowUpCircle },
-            { href: '/dashboard/settings', label: 'Me', icon: User },
+            { href: '/markets', label: 'Markets', icon: BarChart3 },
+            { href: '/dashboard/trade', label: 'Trade', icon: TrendingUp, highlight: true },
+            { href: '/dashboard/history', label: 'Orders', icon: FileText },
+            { href: '/dashboard/deposit', label: 'Assets', icon: Wallet },
           ].map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
+            if (item.highlight) {
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex flex-col items-center justify-center gap-0.5"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow -mt-4">
+                    <Icon className="h-5 w-5 text-black" />
+                  </div>
+                  <span className="text-[10px] font-medium text-yellow">{item.label}</span>
+                </Link>
+              );
+            }
             return (
               <Link
                 key={item.href}
