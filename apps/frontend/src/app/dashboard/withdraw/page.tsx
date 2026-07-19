@@ -219,8 +219,8 @@ export default function WithdrawPage() {
               </div>
               <span className="text-xs text-bnText-muted">{withdrawals.length} total</span>
             </div>
-            <div className="overflow-hidden rounded-bn border border-bn-border">
-              <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto rounded-bn border border-bn-border">
+              <table className="w-full min-w-[400px] text-left text-sm">
                 <thead className="bg-bn-secondary text-xs text-bnText-muted">
                   <tr>
                     <th className="px-3 py-2 font-medium">Amount</th>

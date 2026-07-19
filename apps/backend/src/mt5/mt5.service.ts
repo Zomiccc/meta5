@@ -189,24 +189,6 @@ export class Mt5Service {
     });
   }
 
-  // ─── Test funding (instant, no deposit record) ───
-  async testFund(userId: string, amount: number) {
-    const account = await this.prisma.mT5Account.findUnique({ where: { userId } });
-    if (!account) throw new BadRequestException('No MT5 account found. Contact support to create your MT5 account.');
-
-    await this.creditAccount(userId, amount);
-
-    await this.prisma.notification.create({
-      data: {
-        userId,
-        title: 'Test funds added',
-        message: `$${amount.toFixed(2)} test funds credited to your MT5 account (Login: ${account.mt5Login}).`,
-      },
-    }).catch(() => undefined);
-
-    return { message: `Test funds of $${amount.toFixed(2)} added successfully`, newBalance: Number(account.balance) + amount };
-  }
-
   // ─── Open a new trade ───
   async openTrade(userId: string, symbol: string, type: 'BUY' | 'SELL', volume: number) {
     const account = await this.prisma.mT5Account.findUnique({ where: { userId } });

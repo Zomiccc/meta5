@@ -6,7 +6,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import LiveChart from '../../../components/LiveChart';
 import { useAuth } from '../../../lib/useAuth';
 import { api, consumeSse } from '../../../lib/api';
-import { Loader2, Zap, X, AlertTriangle, Search, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
+import { Loader2, X, AlertTriangle, Search, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { useToast } from '../../../components/ui/Toast';
 import { getDisplaySymbol, getSymbolName, formatPriceForSymbol } from '../../../lib/symbolUtils';
 
@@ -54,7 +54,6 @@ export default function TradePage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [account, setAccount] = useState<any>(null);
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
-  const [funding, setFunding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
@@ -193,25 +192,6 @@ export default function TradePage() {
   }, [loading, hasMt5, refreshAccount, refreshTrades]);
 
   const activeLivePrice = livePrices[active.symbol] ?? active.price;
-
-  const estMargin = useMemo(() => {
-    const vol = parseFloat(volume) || 0;
-    const notional = vol * active.contractSize * activeLivePrice;
-    return (notional / LEVERAGE).toFixed(2);
-  }, [volume, active, activeLivePrice]);
-
-  const addTestFunds = async () => {
-    setFunding(true);
-    try {
-      const res = await api.post('/mt5/test-fund', { amount: 10000 });
-      showToast('success', res.data.message);
-      await refreshAccount();
-    } catch (err: any) {
-      showToast('error', err.response?.data?.message || 'Failed to add test funds');
-    } finally {
-      setFunding(false);
-    }
-  };
 
   const placeOrder = async () => {
     const vol = parseFloat(volume);
@@ -405,11 +385,6 @@ export default function TradePage() {
         <button onClick={placeOrder} disabled={!hasMt5 || submitting} className={`w-full rounded py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${side === 'BUY' ? 'bg-bnGreen text-black hover:bg-green-600' : 'bg-bnRed text-white hover:bg-red-600'}`}>
           {submitting ? 'Submitting...' : `${side === 'BUY' ? 'Buy' : 'Sell'} ${activeBaseAsset}`}
         </button>
-        {hasMt5 && (
-          <button onClick={addTestFunds} disabled={funding} className="w-full rounded border border-yellow/30 bg-yellow/10 py-2 text-xs font-bold text-yellow transition hover:bg-yellow/20 disabled:opacity-50">
-            <Zap className="mr-1 inline h-3 w-3" />{funding ? 'Adding...' : 'Add $10,000 Test Funds'}
-          </button>
-        )}
         {criticalMargin && (
           <div className="flex items-center gap-1.5 rounded border border-red-500/30 bg-bnRed/10 px-2 py-1.5 text-[10px] text-bnRed">
             <AlertTriangle className="h-3 w-3 flex-shrink-0" /> Margin call: {marginLevel.toFixed(1)}%
@@ -428,14 +403,14 @@ export default function TradePage() {
 
   const bottomPanel = (
     <div className="flex h-full flex-col">
-      <div className="flex items-center border-b border-bn-border px-4">
+      <div className="flex items-center border-b border-bn-border px-4 overflow-x-auto scrollbar-hide">
         {(['Open Orders', 'Positions', 'History', 'Account Summary'] as const).map((tab) => (
           <button key={tab} onClick={() => setBottomTab(tab)} className={`whitespace-nowrap px-4 py-2 text-xs ${bottomTab === tab ? 'border-b-2 border-yellow text-bnText-primary' : 'text-bnText-secondary'}`}>
             {tab} {tab === 'Open Orders' && trades.length > 0 && <span className="ml-1 rounded-full bg-yellow px-1 text-[10px] text-black">{trades.length}</span>}
           </button>
         ))}
         {bottomTab === 'Open Orders' && (
-          <div className="ml-auto flex gap-3 text-xs text-bnText-secondary">
+          <div className="ml-auto hidden flex gap-3 text-xs text-bnText-secondary md:flex">
             <button className={subFilter === 'All' ? 'text-bnText-primary' : ''} onClick={() => setSubFilter('All')}>All {trades.length}</button>
             <button className={subFilter === 'Working' ? 'text-bnText-primary' : ''} onClick={() => setSubFilter('Working')}>Working</button>
             <button className={subFilter === 'Filled' ? 'text-bnText-primary' : ''} onClick={() => setSubFilter('Filled')}>Filled {filledCount}</button>
@@ -444,8 +419,8 @@ export default function TradePage() {
         )}
       </div>
       {bottomTab === 'Open Orders' && (
-        <div className="flex-1 overflow-y-auto">
-          <table className="w-full text-xs">
+        <div className="flex-1 overflow-auto">
+          <table className="w-full min-w-[700px] text-xs">
             <thead className="sticky top-0 bg-bn-bg">
               <tr className="text-bnText-secondary">
                 <th className="px-4 py-2 text-left">Symbol</th>

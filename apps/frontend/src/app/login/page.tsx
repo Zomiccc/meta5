@@ -106,9 +106,6 @@ export default function LoginPage() {
             </p>
           </Card>
 
-          <div className="mt-4 rounded-bn border border-bn-border bg-bn-card p-3 text-center text-xs text-bnText-muted">
-            Demo: admin@broker.pk / Admin123! &nbsp;|&nbsp; client@broker.pk / Client123!
-          </div>
         </div>
       </main>
       <Footer />

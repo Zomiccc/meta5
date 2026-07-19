@@ -15,12 +15,6 @@ export class Mt5Controller {
     return this.mt5Service.getAccount(user.userId);
   }
 
-  @Post('test-fund')
-  async testFund(@CurrentUser() user: any, @Body('amount') amount: number) {
-    const fundAmount = amount || 10000;
-    return this.mt5Service.testFund(user.userId, Number(fundAmount));
-  }
-
   @Post('trade')
   async openTrade(
     @CurrentUser() user: any,
