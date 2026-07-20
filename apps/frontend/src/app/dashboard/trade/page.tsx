@@ -316,7 +316,7 @@ export default function TradePage() {
   );
 
   const orderPanel = (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex min-h-full flex-col">
       <div className="flex items-center justify-between border-b border-bn-border p-3">
         <span className="text-sm font-semibold text-bnText-primary">USDT</span>
         <span className="text-xs text-bnText-secondary">···</span>
@@ -330,7 +330,7 @@ export default function TradePage() {
           <button key={type} onClick={() => setOrderType(type)} className={orderType === type ? 'font-semibold text-bnText-primary' : 'text-bnText-secondary'}>{type}</button>
         ))}
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-3">
+      <div className="flex flex-col gap-3 p-3">
         <div>
           <div className="mb-1 flex items-center justify-between">
             <span className="text-xs text-bnText-secondary">Price (USDT)</span>
@@ -515,7 +515,7 @@ export default function TradePage() {
           <div className="flex-1 overflow-hidden">{chartContent}</div>
           {hasMt5 && <div className="h-56 flex-shrink-0 border-t border-bn-border">{bottomPanel}</div>}
         </div>
-        <div className="flex w-72 flex-shrink-0 flex-col overflow-hidden border-l border-bn-border bg-bn-bg">{orderPanel}</div>
+        <div className="flex w-72 flex-shrink-0 flex-col overflow-y-auto border-l border-bn-border bg-bn-bg">{orderPanel}</div>
       </div>
     </div>
   );
@@ -600,7 +600,7 @@ export default function TradePage() {
             {hasMt5 && <div className="min-h-0 flex-1 overflow-hidden border-t border-bn-border">{bottomPanel}</div>}
           </div>
         )}
-        {mobileTab === 'trade' && <div className="h-full overflow-y-auto bg-bn-bg">{orderPanel}</div>}
+        {mobileTab === 'trade' && <div className="h-full overflow-y-auto bg-bn-bg pb-4">{orderPanel}</div>}
         {mobileTab === 'markets' && <div className="flex h-full flex-col bg-bn-bg">{watchlistContent}</div>}
       </div>
       <div className="flex h-12 flex-shrink-0 border-t border-bn-border bg-bn-bg">
