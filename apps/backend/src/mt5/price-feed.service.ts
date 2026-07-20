@@ -168,6 +168,38 @@ const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'OANDA:UK100GBP': 'FTSE',
 };
 
+// Yahoo Finance fallback map (no API key required)
+const YAHOO_SYMBOL_MAP: Record<string, string> = {
+  // Forex
+  'FX:EURUSD': 'EURUSD=X',
+  'FX:GBPUSD': 'GBPUSD=X',
+  'FX:USDJPY': 'JPY=X',
+  'FX:AUDUSD': 'AUDUSD=X',
+  'FX:USDCAD': 'CADUSD=X',
+  'FX:USDCHF': 'CHFUSD=X',
+  'FX:NZDUSD': 'NZDUSD=X',
+  'FX:EURGBP': 'EURGBP=X',
+  'FX:EURJPY': 'EURJPY=X',
+  'FX:GBPJPY': 'GBPJPY=X',
+  // Metals
+  'FX:XAUUSD': 'GC=F',
+  'FX:XAGUSD': 'SI=F',
+  // Stocks
+  'NASDAQ:AAPL': 'AAPL',
+  'NASDAQ:TSLA': 'TSLA',
+  'NASDAQ:NVDA': 'NVDA',
+  'NASDAQ:AMZN': 'AMZN',
+  'NASDAQ:MSFT': 'MSFT',
+  'NASDAQ:META': 'META',
+  'NASDAQ:GOOGL': 'GOOGL',
+  // Indices
+  'FOREXCOM:SPXUSD': '^GSPC',
+  'FOREXCOM:NSXUSD': '^IXIC',
+  'FOREXCOM:DJI': '^DJI',
+  'INDEX:DEU40': '^GDAXI',
+  'OANDA:UK100GBP': '^FTSE',
+};
+
 interface PriceCacheEntry {
   price: number;
   timestamp: number;
@@ -337,6 +369,12 @@ export class PriceFeedService {
     if (price === null && this.isCryptoCompareSymbol(symbol)) {
       price = await this.fetchCryptoComparePrice(symbol);
       if (price !== null) source = 'cryptocompare';
+    }
+
+    if (price === null && this.isForexSymbol(symbol)) {
+      // Try Yahoo Finance for forex/metals ( Twelve Data may not cover XAU on free plans).
+      price = await this.fetchYahooFallback(symbol);
+      if (price !== null) source = 'yahoo';
     }
 
     if (price === null && this.isForexSymbol(symbol) && !this.twelveDataApiKey) {
@@ -766,12 +804,15 @@ export class PriceFeedService {
   }
 
   private async fetchYahooFallback(symbol: string): Promise<number | null> {
-    const tdSymbol = TWELVE_DATA_SYMBOL_MAP[symbol];
-    if (!tdSymbol) return null;
+    const ySymbol = YAHOO_SYMBOL_MAP[symbol];
+    if (!ySymbol) return null;
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(tdSymbol)}?interval=1d&range=1d`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySymbol)}?interval=1d&range=1d`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+        signal: AbortSignal.timeout(3000),
+      });
       if (!res.ok) return null;
       const data = await res.json() as any;
       const price = Number(data?.chart?.result?.[0]?.meta?.regularMarketPrice);
