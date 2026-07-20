@@ -1,4 +1,4 @@
-name = "meta5-price-proxy"
+name = "meta5"
 main = "workers/price-proxy.js"
 compatibility_date = "2025-01-01"
 
