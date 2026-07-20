@@ -33,7 +33,7 @@ export class Mt5Controller {
   @Sse('stream')
   stream(@CurrentUser() user: any, @Query('symbols') symbols?: string): Observable<MessageEvent> {
     const requestedSymbols = symbols ? symbols.split(',').map((symbol) => symbol.trim()).filter(Boolean) : [];
-    return timer(0, 1000).pipe(
+    return timer(0, 300).pipe(
       exhaustMap(() =>
         from(this.mt5Service.getTradingSnapshot(user.userId, requestedSymbols)).pipe(
           map((data) => ({ data }) as MessageEvent),

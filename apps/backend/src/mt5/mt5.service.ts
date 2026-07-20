@@ -18,6 +18,7 @@ const INSTRUMENTS: Record<string, { contractSize: number; basePrice: number; lab
   'FX:EURGBP': { contractSize: 100000, basePrice: 0.8530, label: 'EUR/GBP', category: 'Forex' },
   'FX:EURJPY': { contractSize: 100000, basePrice: 161.10, label: 'EUR/JPY', category: 'Forex' },
   'FX:GBPJPY': { contractSize: 100000, basePrice: 188.90, label: 'GBP/JPY', category: 'Forex' },
+  'FX:XAUUSD': { contractSize: 100, basePrice: 2350, label: 'GOLD', category: 'Forex' },
 
   // ─── Crypto (contract size 1) ───
   'BITSTAMP:BTCUSD': { contractSize: 1, basePrice: 43210, label: 'BTC/USD', category: 'Crypto' },
@@ -98,15 +99,9 @@ export class Mt5Service {
     return price;
   }
 
-  private async getRealPrices(symbols: string[]): Promise<Record<string, number>> {
-    const prices = await this.priceFeed.getPrices(symbols);
-    const result: Record<string, number> = {};
-    for (const [symbol, price] of Object.entries(prices)) {
-      if (!this.priceFeed.isSimulated(symbol)) {
-        result[symbol] = price;
-      }
-    }
-    return result;
+  private async getCurrentPrices(symbols: string[]): Promise<Record<string, number>> {
+    // Return both real and simulated prices so the UI always has a ticking price.
+    return this.priceFeed.getPrices(symbols);
   }
 
   async createAccount(userId: string) {
@@ -252,8 +247,10 @@ export class Mt5Service {
 
       await this.syncAccountFromBridge(userId);
     } else {
-      // Mock trading — always use real-time price
-      entryPrice = await this.getRealPrice(symbol);
+      // Mock trading — use live price (real if available, otherwise simulated fallback)
+      const price = await this.priceFeed.getPrice(symbol);
+      if (price === null) throw new Error(`No price available for ${symbol}`);
+      entryPrice = price;
 
       const notional = volume * instrument.contractSize * entryPrice;
       const requiredMargin = notional / LEVERAGE;
@@ -395,7 +392,7 @@ export class Mt5Service {
         where: { userId },
         orderBy: { openTime: 'desc' },
       }),
-      symbols.length > 0 ? this.getRealPrices(symbols) : Promise.resolve({}),
+      symbols.length > 0 ? this.getCurrentPrices(symbols) : Promise.resolve({}),
     ]);
 
     return {
@@ -437,7 +434,7 @@ export class Mt5Service {
 
     // Mock or MT5 bridge: fetch real prices from Twelve Data API
     const symbols: string[] = [...new Set(trades.map((t: any) => t.symbol as string))];
-    const livePrices = await this.getRealPrices(symbols);
+    const livePrices = await this.getCurrentPrices(symbols);
 
     let totalProfit = 0;
     let totalMargin = 0;

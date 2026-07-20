@@ -34,6 +34,7 @@ const categories: Record<string, { label: string; symbol: string }[]> = {
     { label: 'EUR/GBP', symbol: 'FX:EURGBP' },
     { label: 'EUR/JPY', symbol: 'FX:EURJPY' },
     { label: 'GBP/JPY', symbol: 'FX:GBPJPY' },
+    { label: 'GOLD', symbol: 'FX:XAUUSD' },
   ],
   Stocks: [
     { label: 'Apple', symbol: 'NASDAQ:AAPL' },

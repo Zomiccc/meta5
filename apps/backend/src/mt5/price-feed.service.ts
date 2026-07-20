@@ -144,6 +144,7 @@ const TWELVE_DATA_SYMBOL_MAP: Record<string, string> = {
   'FX:EURGBP': 'EUR/GBP',
   'FX:EURJPY': 'EUR/JPY',
   'FX:GBPJPY': 'GBP/JPY',
+  'FX:XAUUSD': 'XAU/USD',
   // Crypto
   'BITSTAMP:BTCUSD': 'BTC/USD',
   'BITSTAMP:ETHUSD': 'ETH/USD',
@@ -178,7 +179,7 @@ export class PriceFeedService {
   private readonly priceProxyUrl?: string;
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
-  private static readonly CACHE_TTL_MS = 1000; // 1 second max cache
+  private static readonly CACHE_TTL_MS = 300; // 300ms max cache for faster tick updates
   // Tracks symbols whose current price comes from simulation (global or fallback)
   private readonly simulatedSymbols = new Set<string>();
   // Seed per symbol so simulated prices are consistent but jitter over time
@@ -320,7 +321,7 @@ export class PriceFeedService {
       // Forex
       'FX:EURUSD': 1.0856, 'FX:GBPUSD': 1.2734, 'FX:USDJPY': 148.32, 'FX:AUDUSD': 0.6580,
       'FX:USDCAD': 1.3620, 'FX:USDCHF': 0.8810, 'FX:NZDUSD': 0.6120, 'FX:EURGBP': 0.8530,
-      'FX:EURJPY': 161.10, 'FX:GBPJPY': 188.90,
+      'FX:EURJPY': 161.10, 'FX:GBPJPY': 188.90, 'FX:XAUUSD': 2350,
       // Crypto
       'BITSTAMP:BTCUSD': 43210, 'BITSTAMP:ETHUSD': 2280,
       'BINANCE:SOLUSDT': 102.5, 'BINANCE:XRPUSDT': 0.62, 'BINANCE:BNBUSDT': 312,
@@ -351,9 +352,9 @@ export class PriceFeedService {
       seed = symbol.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
       this.simulatedSeeds.set(symbol, seed);
     }
-    // pseudo-random drift using time + seed (small movement, ~0.02% per 2s)
+    // pseudo-random drift using time + seed (small movement, ~0.02% per tick)
     const now = Date.now();
-    const t = Math.floor(now / 2000);
+    const t = Math.floor(now / 300);
     const sin = Math.sin((t + seed) * 0.5);
     const cos = Math.cos((t + seed) * 0.7);
     const noise = (sin + cos) * 0.0005;
