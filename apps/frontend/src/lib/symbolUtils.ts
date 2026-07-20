@@ -1,7 +1,14 @@
 // Convert internal symbol to display name
 export function getDisplaySymbol(symbol: string): string {
+  // Forex: EURUSD -> EUR/USD, USDJPY -> USD/JPY, XAUUSD -> XAU/USD
+  if (symbol.startsWith('FX:')) {
+    const pair = symbol.replace('FX:', '');
+    if (pair.length === 6) return `${pair.slice(0, 3)}/${pair.slice(3)}`;
+    return pair;
+  }
+
+  // Crypto/stablecoin: replace trailing USDT/USDC with /USD
   return symbol
-    .replace('FX:', '')
     .replace('BINANCE:', '')
     .replace('BITSTAMP:', '')
     .replace('NASDAQ:', '')
@@ -13,8 +20,8 @@ export function getDisplaySymbol(symbol: string): string {
     .replace('FOREXCOM:', '')
     .replace('INDEX:', '')
     .replace('CRYPTO:', '')
-    .replace('USDT', '/USD')
-    .replace('USDC', '/USD');
+    .replace(/USDT$/g, '/USD')
+    .replace(/USDC$/g, '/USD');
 }
 
 // Convert internal symbol to friendly full name

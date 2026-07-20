@@ -46,7 +46,7 @@ export default function DashboardMarketsPage() {
       }
     };
     fetchPrices();
-    const interval = setInterval(fetchPrices, 5000);
+    const interval = setInterval(fetchPrices, 1000);
     return () => clearInterval(interval);
   }, [instruments]);
 

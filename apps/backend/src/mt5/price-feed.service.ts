@@ -130,6 +130,8 @@ const COINGECKO_SYMBOL_MAP: Record<string, string> = {
   'BINANCE:SANDUSDT': 'the-sandbox',
   'BINANCE:AXSUSDT': 'axie-infinity',
   'BINANCE:GRTUSDT': 'the-graph',
+  // Precious metals proxy via tokenized gold
+  'FX:XAUUSD': 'pax-gold',
 };
 
 // Map internal symbols to Twelve Data format (primary source for all instrument types)
@@ -808,14 +810,18 @@ export class PriceFeedService {
     if (!ySymbol) return null;
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySymbol)}?interval=1d&range=1d`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ySymbol}?interval=1d&range=1d`;
       const res = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
         signal: AbortSignal.timeout(3000),
       });
       if (!res.ok) return null;
       const data = await res.json() as any;
-      const price = Number(data?.chart?.result?.[0]?.meta?.regularMarketPrice);
+      const result = data?.chart?.result?.[0];
+      let price = Number(result?.meta?.regularMarketPrice);
+      if (isNaN(price) || price <= 0) {
+        price = Number(result?.meta?.previousClose ?? result?.meta?.chartPreviousClose);
+      }
       if (isNaN(price) || price <= 0) return null;
       return price;
     } catch (err: any) {
