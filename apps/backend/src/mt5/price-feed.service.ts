@@ -339,7 +339,8 @@ export class PriceFeedService {
       if (price !== null) source = 'cryptocompare';
     }
 
-    if (price === null && this.isForexSymbol(symbol)) {
+    if (price === null && this.isForexSymbol(symbol) && !this.twelveDataApiKey) {
+      // Only use the free exchangerate.host fallback when no Twelve Data key is configured.
       price = await this.fetchForexFallback(symbol);
       if (price !== null) source = 'exchangerate';
     }
