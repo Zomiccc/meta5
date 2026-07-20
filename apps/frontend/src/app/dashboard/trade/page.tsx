@@ -589,10 +589,23 @@ export default function TradePage() {
     </div>
   );
 
+  const mobileTabBar = (
+    <div className="flex h-12 flex-shrink-0 border-b border-bn-border bg-bn-bg">
+      {[
+        { key: 'markets', label: 'Markets' },
+        { key: 'chart', label: 'Chart' },
+        { key: 'trade', label: 'Trade' },
+      ].map((tab) => (
+        <button key={tab.key} onClick={() => setMobileTab(tab.key as typeof mobileTab)} className={`flex-1 py-2 text-[10px] font-medium transition ${mobileTab === tab.key ? 'border-b-2 border-yellow text-yellow' : 'text-bnText-muted'}`}>{tab.label}</button>
+      ))}
+    </div>
+  );
+
   // ---- Mobile layout ----
   const mobileLayout = (
     <div className="flex h-full flex-col overflow-hidden lg:hidden">
       {symbolBar}
+      {mobileTabBar}
       <div className="flex-1 overflow-hidden">
         {mobileTab === 'chart' && (
           <div className="flex h-full flex-col overflow-hidden">
@@ -602,15 +615,6 @@ export default function TradePage() {
         )}
         {mobileTab === 'trade' && <div className="h-full overflow-y-auto bg-bn-bg pb-4">{orderPanel}</div>}
         {mobileTab === 'markets' && <div className="flex h-full flex-col bg-bn-bg">{watchlistContent}</div>}
-      </div>
-      <div className="flex h-12 flex-shrink-0 border-t border-bn-border bg-bn-bg">
-        {[
-          { key: 'markets', label: 'Markets' },
-          { key: 'chart', label: 'Chart' },
-          { key: 'trade', label: 'Trade' },
-        ].map((tab) => (
-          <button key={tab.key} onClick={() => setMobileTab(tab.key as typeof mobileTab)} className={`flex-1 py-2 text-[10px] font-medium transition ${mobileTab === tab.key ? 'text-yellow' : 'text-bnText-muted'}`}>{tab.label}</button>
-        ))}
       </div>
     </div>
   );
