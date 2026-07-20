@@ -54,7 +54,7 @@ export default function TradePage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [account, setAccount] = useState<any>(null);
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
-  const [submitting, setSubmitting] = useState(false);
+  const [inflight, setInflight] = useState(0);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [streamConnected, setStreamConnected] = useState(false);
@@ -176,23 +176,24 @@ export default function TradePage() {
 
   const activeLivePrice = livePrices[active.symbol] ?? active.price;
 
-  const placeOrder = async () => {
+  const placeOrder = () => {
     const vol = parseFloat(volume);
     if (!vol || vol <= 0) {
       showToast('error', 'Enter a valid volume');
       return;
     }
-    setSubmitting(true);
-    try {
-      const res = await api.post('/mt5/trade', { symbol: active.symbol, type: side, volume: vol });
-      showToast('success', res.data.message);
-      await refreshTrades();
-      await refreshAccount();
-    } catch (err: any) {
-      showToast('error', err.response?.data?.message || 'Order failed');
-    } finally {
-      setSubmitting(false);
-    }
+    setInflight((n) => n + 1);
+    api.post('/mt5/trade', { symbol: active.symbol, type: side, volume: vol })
+      .then(() => {
+        refreshTrades();
+        refreshAccount();
+      })
+      .catch((err: any) => {
+        showToast('error', err.response?.data?.message || 'Order failed');
+      })
+      .finally(() => {
+        setInflight((n) => Math.max(0, n - 1));
+      });
   };
 
   const closeTrade = async (tradeId: string) => {
@@ -363,8 +364,8 @@ export default function TradePage() {
         </div>
         <div className="flex items-center justify-between text-xs"><span className="text-bnText-secondary">Avbl</span><span className="tnum text-bnText-primary">{balance.toFixed(2)} USDT</span></div>
         <div className="flex items-center justify-between text-xs"><span className="text-bnText-secondary">Est. Fee</span><span className="text-bnText-primary">-- {activeBaseAsset}</span></div>
-        <button onClick={placeOrder} disabled={!hasMt5 || submitting} className={`w-full rounded-bn py-3 text-sm font-bold transition-all duration-200 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${side === 'BUY' ? 'bg-bnGreen text-black hover:brightness-110' : 'bg-bnRed text-white hover:brightness-110'}`}>
-          {submitting ? 'Submitting...' : `${side === 'BUY' ? 'Buy' : 'Sell'} ${activeBaseAsset}`}
+        <button onClick={placeOrder} disabled={!hasMt5} className={`w-full rounded-bn py-3 text-sm font-bold transition-all duration-200 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${side === 'BUY' ? 'bg-bnGreen text-black hover:brightness-110' : 'bg-bnRed text-white hover:brightness-110'}`}>
+          {inflight > 0 ? `Submitting ${inflight}...` : `${side === 'BUY' ? 'Buy' : 'Sell'} ${activeBaseAsset}`}
         </button>
         {criticalMargin && (
           <div className="flex items-center gap-1.5 rounded border border-red-500/30 bg-bnRed/10 px-2 py-1.5 text-[10px] text-bnRed">
