@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import WebSocket from 'ws';
 
 // Map internal symbols to Binance ticker symbols for crypto (free, no key)
 const BINANCE_SYMBOL_MAP: Record<string, string> = {
@@ -179,7 +180,7 @@ export class PriceFeedService {
   private readonly priceProxyUrl?: string;
   private readonly simulatePrices: boolean;
   private readonly priceCache = new Map<string, PriceCacheEntry>();
-  private static readonly CACHE_TTL_MS = 300; // 300ms max cache for faster tick updates
+  private static readonly CACHE_TTL_MS = 100; // 100ms max cache for fast tick updates
   // Tracks symbols whose current price comes from simulation (global or fallback)
   private readonly simulatedSymbols = new Set<string>();
   // Seed per symbol so simulated prices are consistent but jitter over time
@@ -191,6 +192,10 @@ export class PriceFeedService {
   // Keep the last known real price so we can return it when live APIs fail instead of going blank
   private readonly lastKnownPrice = new Map<string, { price: number; timestamp: number }>();
   private static readonly LAST_KNOWN_TTL_MS = 30 * 60 * 1000;
+  // Real-time Binance WebSocket price cache for crypto
+  private readonly binanceWsPrices = new Map<string, { price: number; timestamp: number }>();
+  private binanceWs: WebSocket | null = null;
+  private binanceWsSubscribed = false;
 
   constructor(private readonly configService: ConfigService) {
     this.twelveDataApiKey = (this.configService.get<string>('TWELVE_DATA_API_KEY') || '').trim() || undefined;
@@ -205,6 +210,65 @@ export class PriceFeedService {
 
   isConfigured(): boolean {
     return !!this.twelveDataApiKey || this.simulatePrices;
+  }
+
+  private startBinanceWebSocket() {
+    if (this.binanceWsSubscribed) return;
+    const streams = Object.values(BINANCE_SYMBOL_MAP)
+      .filter((ticker, idx, arr) => arr.indexOf(ticker) === idx)
+      .map((ticker) => `${ticker.toLowerCase()}@trade`)
+      .join('/');
+    if (!streams) return;
+
+    const url = `wss://stream.binance.com:9443/stream?streams=${streams}`;
+    try {
+      this.binanceWs = new WebSocket(url);
+      this.binanceWsSubscribed = true;
+    } catch (err: any) {
+      this.logger.warn(`Failed to start Binance WebSocket: ${err.message}`);
+      this.binanceWsSubscribed = false;
+      return;
+    }
+
+    const reverseMap = new Map<string, string>();
+    for (const [internal, binance] of Object.entries(BINANCE_SYMBOL_MAP)) {
+      reverseMap.set(binance.toLowerCase(), internal);
+    }
+
+    this.binanceWs.on('message', (data: any) => {
+      try {
+        const message = JSON.parse(data.toString());
+        const stream = message.stream as string | undefined;
+        const internal = stream ? reverseMap.get(stream.split('@')[0]) : undefined;
+        const price = Number(message.data?.p);
+        if (internal && !isNaN(price) && price > 0) {
+          this.binanceWsPrices.set(internal, { price, timestamp: Date.now() });
+          this.priceCache.set(internal, { price, timestamp: Date.now() });
+          this.lastKnownPrice.set(internal, { price, timestamp: Date.now() });
+          this.simulatedSymbols.delete(internal);
+        }
+      } catch {
+        // ignore malformed messages
+      }
+    });
+
+    this.binanceWs.on('error', (err: any) => {
+      this.logger.warn(`Binance WebSocket error: ${err.message}`);
+    });
+
+    this.binanceWs.on('close', () => {
+      this.binanceWs = null;
+      this.binanceWsSubscribed = false;
+      // Reconnect after a short delay
+      setTimeout(() => this.startBinanceWebSocket(), 5000);
+    });
+  }
+
+  private getBinanceWsPrice(symbol: string): number | null {
+    const entry = this.binanceWsPrices.get(symbol);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > 5000) return null; // ignore stale > 5s
+    return entry.price;
   }
 
   private isBinanceSymbol(symbol: string): boolean {
@@ -235,9 +299,20 @@ export class PriceFeedService {
     return symbol.startsWith('FOREXCOM:') || symbol.startsWith('INDEX:') || symbol.startsWith('OANDA:UK');
   }
 
+  private getCacheTtl(symbol: string): number {
+    // Crypto prices come from Binance WebSocket and can tick fast;
+    // forex/stocks rely on free REST APIs, so cache them a bit longer.
+    return this.isBinanceSymbol(symbol) ? PriceFeedService.CACHE_TTL_MS : 1000;
+  }
+
   async getPrice(symbol: string, basePrice = 0): Promise<number | null> {
+    // Use real-time Binance WebSocket prices for crypto whenever available.
+    this.startBinanceWebSocket();
+    const wsPrice = this.getBinanceWsPrice(symbol);
+    if (wsPrice !== null) return wsPrice;
+
     const cached = this.priceCache.get(symbol);
-    if (cached && Date.now() - cached.timestamp < PriceFeedService.CACHE_TTL_MS) {
+    if (cached && Date.now() - cached.timestamp < this.getCacheTtl(symbol)) {
       return cached.price;
     }
 
@@ -354,7 +429,7 @@ export class PriceFeedService {
     }
     // pseudo-random drift using time + seed (small movement, ~0.02% per tick)
     const now = Date.now();
-    const t = Math.floor(now / 300);
+    const t = Math.floor(now / 100);
     const sin = Math.sin((t + seed) * 0.5);
     const cos = Math.cos((t + seed) * 0.7);
     const noise = (sin + cos) * 0.0005;
